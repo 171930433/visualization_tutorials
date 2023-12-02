@@ -34,6 +34,11 @@ target_link_libraries(points_and_lines
    ${catkin_LIBRARIES}
 )
 
+add_executable(all_shapes src/all_shapes.cpp)
+target_link_libraries(all_shapes
+   ${catkin_LIBRARIES}
+)
+
 #############
 ## Install ##
 #############
