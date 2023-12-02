@@ -77,6 +77,8 @@ public:
   // Set the color and alpha of the visual, which are user-editable
   // parameters and therefore don't come from the Imu message.
   void setColor( float r, float g, float b, float a );
+  // 是否显示重力部分
+  void setShowGraverty(bool show_graverty);
 
 private:
   // The object implementing the actual arrow shape
@@ -89,6 +91,8 @@ private:
   // The SceneManager, kept here only so the destructor can ask it to
   // destroy the ``frame_node_``.
   Ogre::SceneManager* scene_manager_;
+  // raw msg
+  sensor_msgs::Imu::ConstPtr msg_;
 };
 // END_TUTORIAL
 

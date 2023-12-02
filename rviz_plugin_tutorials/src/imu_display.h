@@ -47,6 +47,7 @@ namespace rviz
 class ColorProperty;
 class FloatProperty;
 class IntProperty;
+class BoolProoerty;
 }
 
 // All the source in this plugin is in its own namespace.  This is not
@@ -97,6 +98,7 @@ protected:
 private Q_SLOTS:
   void updateColorAndAlpha();
   void updateHistoryLength();
+  void updateShowGraverty();
 
   // Function to handle an incoming ROS message.
 private:
@@ -110,6 +112,7 @@ private:
   rviz::ColorProperty* color_property_;
   rviz::FloatProperty* alpha_property_;
   rviz::IntProperty* history_length_property_;
+  rviz::BoolProperty* show_graverty_;
 };
 // END_TUTORIAL
 

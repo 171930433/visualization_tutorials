@@ -15,6 +15,7 @@ br = tf.TransformBroadcaster()
 rate = rospy.Rate(10)
 radius = 5
 angle = 0
+dir = 1
 
 dist = 3
 while not rospy.is_shutdown():
@@ -23,17 +24,22 @@ while not rospy.is_shutdown():
     imu.header.frame_id = "base_link"
     imu.header.stamp = rospy.Time.now()
    
-    imu.linear_acceleration.x = sin( 10 * angle )
-    imu.linear_acceleration.y = sin( 20 * angle )
-    imu.linear_acceleration.z = sin( 40 * angle )
+    imu.linear_acceleration.x = sin( 0 )
+    imu.linear_acceleration.y = sin( angle )
+    imu.linear_acceleration.z = sin( 10 )
 
     publisher.publish( imu )
 
-    br.sendTransform((radius * cos(angle), radius * sin(angle), 0),
-                     tf.transformations.quaternion_from_euler(0, 0, angle),
+    br.sendTransform((0, 0, 0),
+                     tf.transformations.quaternion_from_euler(0, 0, 0),
                      rospy.Time.now(),
                      "base_link",
                      "map")
-    angle += .01
+    angle += dir * 0.01
+    if angle >= 1: 
+        dir = -1
+    if angle < 0:
+        dir = 1
+
     rate.sleep()
 
