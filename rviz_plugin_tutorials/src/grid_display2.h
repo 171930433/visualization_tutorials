@@ -33,6 +33,7 @@
 #include <rviz/properties/color_property.h>
 #include <rviz/properties/float_property.h>
 #include <rviz/properties/int_property.h>
+#include <rviz/properties/bool_property.h>
 #include <rviz/properties/vector_property.h>
 #include <rviz/properties/enum_property.h>
 #include <rviz/properties/tf_frame_property.h>
@@ -75,6 +76,7 @@ private Q_SLOTS:
   void updateOffset();
   void updatePlane();
   void updateStyle();
+  void updateAutoScale();
 
 private:
   Grid2* grid_; ///< Handles actually drawing the grid
@@ -89,6 +91,8 @@ private:
   FloatProperty* alpha_property_;
   EnumProperty* plane_property_;
   VectorProperty* offset_property_;
+  // added 
+  BoolProperty* auto_scale_;  // 自动缩放尺寸到整个viewport
 };
 
 } // namespace rviz

@@ -44,222 +44,211 @@
 #include "grid_view2.h"
 #include "grid_display2.h"
 
-// #include <rviz/view_manager.h>
-// #include <rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h>
+#include <rviz/view_manager.h>
+#include <rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h>
 
 namespace rviz
 {
-GridDisplay2::GridDisplay2() : Display()
-{
-  frame_property_ =
-      new TfFrameProperty("Reference Frame", TfFrameProperty::FIXED_FRAME_STRING,
-                          "The TF frame this grid will use for its origin.", this, nullptr, true);
-
-  cell_count_property_ =
-      new IntProperty("Plane Cell Count", 10, "The number of cells to draw in the plane of the grid.",
-                      this, &GridDisplay2::updateCellCount);
-  cell_count_property_->setMin(1);
-
-  height_property_ = new IntProperty("Normal Cell Count", 0,
-                                     "The number of cells to draw along the normal vector of the grid. "
-                                     " Setting to anything but 0 makes the grid 3D.",
-                                     this, &GridDisplay2::updateHeight);
-  height_property_->setMin(0);
-
-  cell_size_property_ =
-      new FloatProperty("Cell Size", 1.0f, "The length, in meters, of the side of each cell.", this,
-                        &GridDisplay2::updateCellSize);
-  cell_size_property_->setMin(0.0001);
-
-  style_property_ =
-      new EnumProperty("Line Style", "Lines", "The rendering operation to use to draw the grid lines.",
-                       this, &GridDisplay2::updateStyle);
-  style_property_->addOption("Lines", Grid2::Lines);
-  style_property_->addOption("Billboards", Grid2::Billboards);
-
-  line_width_property_ =
-      new FloatProperty("Line Width", 0.03, "The width, in meters, of each grid line.", style_property_,
-                        &GridDisplay2::updateLineWidth, this);
-  line_width_property_->setMin(0.001);
-  line_width_property_->hide();
-
-  color_property_ = new ColorProperty("Color", Qt::gray, "The color of the grid lines.", this,
-                                      &GridDisplay2::updateColor);
-  alpha_property_ =
-      new FloatProperty("Alpha", 0.5f, "The amount of transparency to apply to the grid lines.", this,
-                        &GridDisplay2::updateColor);
-  alpha_property_->setMin(0.0f);
-  alpha_property_->setMax(1.0f);
-
-  plane_property_ = new EnumProperty("Plane", "XY", "The plane to draw the grid along.", this,
-                                     &GridDisplay2::updatePlane);
-  plane_property_->addOption("XY", XY);
-  plane_property_->addOption("XZ", XZ);
-  plane_property_->addOption("YZ", YZ);
-
-  offset_property_ = new VectorProperty(
-      "Offset", Ogre::Vector3::ZERO,
-      "Allows you to offset the grid from the origin of the reference frame.  In meters.", this,
-      &GridDisplay2::updateOffset);
-}
-
-GridDisplay2::~GridDisplay2()
-{
-  if (initialized())
+  GridDisplay2::GridDisplay2() : Display()
   {
-    delete grid_;
+    frame_property_ =
+        new TfFrameProperty("Reference Frame", TfFrameProperty::FIXED_FRAME_STRING,
+                            "The TF frame this grid will use for its origin.", this, nullptr, true);
+
+    cell_count_property_ =
+        new IntProperty("Plane Cell Count", 10, "The number of cells to draw in the plane of the grid.",
+                        this, &GridDisplay2::updateCellCount);
+    cell_count_property_->setMin(1);
+
+    height_property_ = new IntProperty("Normal Cell Count", 0,
+                                       "The number of cells to draw along the normal vector of the grid. "
+                                       " Setting to anything but 0 makes the grid 3D.",
+                                       this, &GridDisplay2::updateHeight);
+    height_property_->setMin(0);
+
+    cell_size_property_ =
+        new FloatProperty("Cell Size", 1.0f, "The length, in meters, of the side of each cell.", this,
+                          &GridDisplay2::updateCellSize);
+    cell_size_property_->setMin(0.0001);
+
+    style_property_ =
+        new EnumProperty("Line Style", "Lines", "The rendering operation to use to draw the grid lines.",
+                         this, &GridDisplay2::updateStyle);
+    style_property_->addOption("Lines", Grid2::Lines);
+    style_property_->addOption("Billboards", Grid2::Billboards);
+
+    line_width_property_ =
+        new FloatProperty("Line Width", 0.03, "The width, in meters, of each grid line.", style_property_,
+                          &GridDisplay2::updateLineWidth, this);
+    line_width_property_->setMin(0.001);
+    line_width_property_->hide();
+
+    color_property_ = new ColorProperty("Color", Qt::gray, "The color of the grid lines.", this,
+                                        &GridDisplay2::updateColor);
+    alpha_property_ =
+        new FloatProperty("Alpha", 0.5f, "The amount of transparency to apply to the grid lines.", this,
+                          &GridDisplay2::updateColor);
+    alpha_property_->setMin(0.0f);
+    alpha_property_->setMax(1.0f);
+
+    plane_property_ = new EnumProperty("Plane", "XY", "The plane to draw the grid along.", this,
+                                       &GridDisplay2::updatePlane);
+    plane_property_->addOption("XY", XY);
+    plane_property_->addOption("XZ", XZ);
+    plane_property_->addOption("YZ", YZ);
+
+    offset_property_ = new VectorProperty(
+        "Offset", Ogre::Vector3::ZERO,
+        "Allows you to offset the grid from the origin of the reference frame.  In meters.", this,
+        &GridDisplay2::updateOffset);
+    auto_scale_ = new BoolProperty("AutoScale", false, "only render grid in viewport", this, &GridDisplay2::updateAutoScale);
   }
-}
 
-void GridDisplay2::onInitialize()
-{
-  QColor color = color_property_->getColor();
-  color.setAlphaF(alpha_property_->getFloat());
-
-  frame_property_->setFrameManager(context_->getFrameManager());
-  grid_ = new Grid2(scene_manager_, scene_node_, (Grid2::Style)style_property_->getOptionInt(),
-                   cell_count_property_->getInt(), cell_size_property_->getFloat(),
-                   line_width_property_->getFloat(), qtToOgre(color));
-
-  grid_->getSceneNode()->setVisible(false);
-  updatePlane();
-}
-
-void GridDisplay2::update(float /*dt*/, float /*ros_dt*/)
-{
-  QString qframe = frame_property_->getFrame();
-  std::string frame = qframe.toStdString();
-
-  Ogre::Vector3 position;
-  Ogre::Quaternion orientation;
-  if (context_->getFrameManager()->getTransform(frame, ros::Time(), position, orientation))
+  GridDisplay2::~GridDisplay2()
   {
-    scene_node_->setPosition(position);
-    scene_node_->setOrientation(orientation);
-    setStatus(StatusProperty::Ok, "Transform", "Transform OK");
-  }
-  else
-  {
-    std::string error;
-    if (context_->getFrameManager()->transformHasProblems(frame, ros::Time(), error))
+    if (initialized())
     {
-      setStatus(StatusProperty::Error, "Transform", QString::fromStdString(error));
+      delete grid_;
+    }
+  }
+
+  void GridDisplay2::onInitialize()
+  {
+    QColor color = color_property_->getColor();
+    color.setAlphaF(alpha_property_->getFloat());
+
+    frame_property_->setFrameManager(context_->getFrameManager());
+    grid_ = new Grid2(scene_manager_, scene_node_, (Grid2::Style)style_property_->getOptionInt(),
+                      cell_count_property_->getInt(), cell_size_property_->getFloat(),
+                      line_width_property_->getFloat(), qtToOgre(color), auto_scale_->getBool());
+
+    grid_->getSceneNode()->setVisible(false);
+    updatePlane();
+  }
+
+  void GridDisplay2::update(float /*dt*/, float /*ros_dt*/)
+  {
+    QString qframe = frame_property_->getFrame();
+    std::string frame = qframe.toStdString();
+
+    Ogre::Vector3 position;
+    Ogre::Quaternion orientation;
+    if (context_->getFrameManager()->getTransform(frame, ros::Time(), position, orientation))
+    {
+      // 如果是正交投影
+      if (FixedOrientationOrthoViewController *fvc =
+              qobject_cast<FixedOrientationOrthoViewController *>(context_->getViewManager()->getCurrent()))
+      {
+        grid_->createAutoScale(position, orientation);
+      }
+      scene_node_->setPosition(position);
+      scene_node_->setOrientation(orientation);
+      // std::cout << "position = " << position << " orientation = " << orientation << "\n";
+      setStatus(StatusProperty::Ok, "Transform", "Transform OK");
     }
     else
     {
-      setStatus(StatusProperty::Error, "Transform",
-                "Could not transform from [" + qframe + "] to [" + fixed_frame_ + "]");
+      std::string error;
+      if (context_->getFrameManager()->transformHasProblems(frame, ros::Time(), error))
+      {
+        setStatus(StatusProperty::Error, "Transform", QString::fromStdString(error));
+      }
+      else
+      {
+        setStatus(StatusProperty::Error, "Transform",
+                  "Could not transform from [" + qframe + "] to [" + fixed_frame_ + "]");
+      }
     }
   }
 
-  // if (scene_manager_->getCurrentViewport())
-  // {
-  //   if (FixedOrientationOrthoViewController* vc =
-  //           qobject_cast<FixedOrientationOrthoViewController*>(context_->getViewManager()->getCurrent()))
-  //   {
-  //     auto* vp = scene_manager_->getCurrentViewport();
-  //     // 实际像素宽度
-  //     float act_width = vp->getActualWidth();
-  //     float act_height = vp->getActualHeight();
-  //     float act_top = vp->getActualTop();
-  //     float act_left = vp->getActualLeft();
-  //     auto mat = vp->getCamera()->getViewMatrix();
-  //     auto pos = vp->getCamera()->getPosition();
-  //     auto rea_pos = vp->getCamera()->getRealPosition();
-  //     double xx = mat[0][3], yy = mat[1][3], zz = mat[2][3];
-  //     // scale
-  //     float scale = vc->getScale();
-  //     ROS_INFO("act_width=%lf act_height=%lf scale = %lf top = %lf left = %lf, ", act_width, act_height, scale, act_top, act_left);
-  //     ROS_INFO("xx=%lf yy=%lf zz = %lf", xx, yy, zz);
-  //     std::cout << "pos = " << pos <<"\n";
-  //     std::cout << "rea_pos = " << rea_pos <<"\n";
-  //     float cell_size = (act_width >= act_height ? act_width / scale : act_height / scale);
-  //     if (cell_size != cell_count_property_->getInt())
-  //     {
-  //       cell_count_property_->setInt(cell_size);
-  //     }
-  //   }
-
-  //   // ROS_INFO("width=%lf height=%lf scale=%lf", width,height,scale);
-  // }
-}
-
-void GridDisplay2::updateColor()
-{
-  QColor color = color_property_->getColor();
-  color.setAlphaF(alpha_property_->getFloat());
-  grid_->setColor(qtToOgre(color));
-  context_->queueRender();
-}
-
-void GridDisplay2::updateCellSize()
-{
-  grid_->setCellLength(cell_size_property_->getFloat());
-  context_->queueRender();
-}
-
-void GridDisplay2::updateCellCount()
-{
-  grid_->setCellCount(cell_count_property_->getInt());
-  context_->queueRender();
-}
-
-void GridDisplay2::updateLineWidth()
-{
-  grid_->setLineWidth(line_width_property_->getFloat());
-  context_->queueRender();
-}
-
-void GridDisplay2::updateHeight()
-{
-  grid_->setHeight(height_property_->getInt());
-  context_->queueRender();
-}
-
-void GridDisplay2::updateStyle()
-{
-  Grid2::Style style = (Grid2::Style)style_property_->getOptionInt();
-  grid_->setStyle(style);
-
-  switch (style)
+  void GridDisplay2::updateColor()
   {
-  case Grid2::Billboards:
-    line_width_property_->show();
-    break;
-  case Grid2::Lines:
-  default:
-    line_width_property_->hide();
-    break;
+    QColor color = color_property_->getColor();
+    color.setAlphaF(alpha_property_->getFloat());
+    grid_->setColor(qtToOgre(color));
+    context_->queueRender();
   }
-  context_->queueRender();
-}
 
-void GridDisplay2::updateOffset()
-{
-  grid_->getSceneNode()->setPosition(offset_property_->getVector());
-  context_->queueRender();
-}
-
-void GridDisplay2::updatePlane()
-{
-  Ogre::Quaternion orient;
-  switch ((Plane)plane_property_->getOptionInt())
+  void GridDisplay2::updateAutoScale()
   {
-  case XZ:
-    orient = Ogre::Quaternion(1, 0, 0, 0);
-    break;
-  case YZ:
-    orient = Ogre::Quaternion(Ogre::Vector3(0, -1, 0), Ogre::Vector3(0, 0, 1), Ogre::Vector3(1, 0, 0));
-    break;
-  case XY:
-  default:
-    orient = Ogre::Quaternion(Ogre::Vector3(1, 0, 0), Ogre::Vector3(0, 0, -1), Ogre::Vector3(0, 1, 0));
-    break;
-  }
-  grid_->getSceneNode()->setOrientation(orient);
+    bool const auto_scale = auto_scale_->getBool();
+    ROS_INFO("autoscale = %d", auto_scale);
 
-  context_->queueRender();
-}
+    grid_->setAutoScale(auto_scale);
+    // height_property_->setHidden(auto_scale);
+    cell_count_property_->setHidden(auto_scale);
+    cell_size_property_->setHidden(auto_scale);
+    context_->queueRender();
+  }
+
+  void GridDisplay2::updateCellSize()
+  {
+    grid_->setCellLength(cell_size_property_->getFloat());
+    context_->queueRender();
+  }
+
+  void GridDisplay2::updateCellCount()
+  {
+    grid_->setCellCount(cell_count_property_->getInt());
+    context_->queueRender();
+  }
+
+  void GridDisplay2::updateLineWidth()
+  {
+    grid_->setLineWidth(line_width_property_->getFloat());
+    context_->queueRender();
+  }
+
+  void GridDisplay2::updateHeight()
+  {
+    grid_->setHeight(height_property_->getInt());
+    context_->queueRender();
+  }
+
+  void GridDisplay2::updateStyle()
+  {
+    Grid2::Style style = (Grid2::Style)style_property_->getOptionInt();
+    grid_->setStyle(style);
+
+    switch (style)
+    {
+    case Grid2::Billboards:
+      line_width_property_->show();
+      break;
+    case Grid2::Lines:
+    default:
+      line_width_property_->hide();
+      break;
+    }
+    context_->queueRender();
+  }
+
+  void GridDisplay2::updateOffset()
+  {
+    grid_->getSceneNode()->setPosition(offset_property_->getVector());
+    context_->queueRender();
+  }
+
+  void GridDisplay2::updatePlane()
+  {
+    Ogre::Quaternion orient;
+    switch ((Plane)plane_property_->getOptionInt())
+    {
+    case XZ:
+      orient = Ogre::Quaternion(1, 0, 0, 0);
+      break;
+    case YZ:
+      orient = Ogre::Quaternion(Ogre::Vector3(0, -1, 0), Ogre::Vector3(0, 0, 1), Ogre::Vector3(1, 0, 0));
+      break;
+    case XY:
+    default:
+      orient = Ogre::Quaternion(Ogre::Vector3(1, 0, 0), Ogre::Vector3(0, 0, -1), Ogre::Vector3(0, 1, 0));
+      break;
+    }
+    grid_->getSceneNode()->setOrientation(orient);
+
+    context_->queueRender();
+  }
 
 } // namespace rviz
 

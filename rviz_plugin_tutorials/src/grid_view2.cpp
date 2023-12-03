@@ -49,8 +49,9 @@ namespace rviz
                uint32_t cell_count,
                float cell_length,
                float line_width,
-               const Ogre::ColourValue &color)
-      : scene_manager_(scene_manager), style_(style), cell_count_(cell_count), cell_length_(cell_length), line_width_(line_width), height_(0), color_(color)
+               const Ogre::ColourValue &color,
+               bool const auto_scale)
+      : scene_manager_(scene_manager), style_(style), cell_count_(cell_count), cell_length_(cell_length), line_width_(line_width), height_(0), color_(color), auto_scale_(auto_scale)
   {
     static uint32_t gridCount = 0;
     std::stringstream ss;
@@ -107,6 +108,11 @@ namespace rviz
     create();
   }
 
+  void Grid2::setAutoScale(bool flag)
+  {
+    auto_scale_ = flag;
+  }
+
   void Grid2::setColor(const Ogre::ColourValue &color)
   {
     color_ = color;
@@ -139,12 +145,22 @@ namespace rviz
     create();
   }
 
+  void Grid2::createAutoScale(Ogre::Vector3 &p_wc, Ogre::Quaternion &q_wc)
+  {
+    if (!auto_scale_)
+    {
+      return;
+    }
+    // 根据比例尺，重新确认cell_length_，cell_count_参数，再进行重新绘制
+    std::cout << "createAutoScale\n";
+  }
+
   void Grid2::create()
   {
     manual_object_->clear();
     billboard_line_->clear();
 
-    float extent = (cell_length_ * ((double)cell_count_)) / 2;
+    float extent = (cell_length_ * ((double)cell_count_)) / 2; // 0.5
 
     if (style_ == Billboards)
     {
@@ -163,15 +179,21 @@ namespace rviz
 
     for (uint32_t h = 0; h <= height_; ++h)
     {
-      float h_real = (height_ / 2.0f - (float)h) * cell_length_;
-      for (uint32_t i = 0; i <= cell_count_; i++)
+      float h_real = (height_ / 2.0f - (float)h) * cell_length_; // 0
+      for (uint32_t i = 0; i <= cell_count_; i++)                // 0
       {
-        float inc = extent - (i * cell_length_);
+        float inc = extent - (i * cell_length_); // 0.5
 
-        Ogre::Vector3 p1(inc, h_real, -extent);
-        Ogre::Vector3 p2(inc, h_real, extent);
-        Ogre::Vector3 p3(-extent, h_real, inc);
-        Ogre::Vector3 p4(extent, h_real, inc);
+        Ogre::Vector3 p1(inc, h_real, -extent); // 0.5  0 -0.5
+        Ogre::Vector3 p2(inc, h_real, extent);  // 0.5  0 0.5
+        Ogre::Vector3 p3(-extent, h_real, inc); // -0.5 0 0.5
+        Ogre::Vector3 p4(extent, h_real, inc);  // 0.5  0 0.5
+
+        // std::cout << " h = " << h <<" i = " << i <<" inc = " << inc << " extent = " <<extent <<"\n";
+        // std::cout<<"p1= " << p1 <<"\n";
+        // std::cout<<"p2= " << p2 <<"\n";
+        // std::cout<<"p3= " << p3 <<"\n";
+        // std::cout<<"p4= " << p4 <<"\n";
 
         if (style_ == Billboards)
         {
