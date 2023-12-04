@@ -57,42 +57,42 @@ namespace rviz
 
     cell_count_property_ =
         new IntProperty("Plane Cell Count", 10, "The number of cells to draw in the plane of the grid.",
-                        this, &GridDisplay2::updateCellCount);
+                        this, SLOT(GridDisplay2::updateCellCount()));
     cell_count_property_->setMin(1);
 
     height_property_ = new IntProperty("Normal Cell Count", 0,
                                        "The number of cells to draw along the normal vector of the grid. "
                                        " Setting to anything but 0 makes the grid 3D.",
-                                       this, &GridDisplay2::updateHeight);
+                                       this, SLOT(GridDisplay2::updateHeight));
     height_property_->setMin(0);
 
     cell_size_property_ =
         new FloatProperty("Cell Size", 1.0f, "The length, in meters, of the side of each cell.", this,
-                          &GridDisplay2::updateCellSize);
+                          SLOT(GridDisplay2::updateCellSize));
     cell_size_property_->setMin(0.0001);
 
     style_property_ =
         new EnumProperty("Line Style", "Lines", "The rendering operation to use to draw the grid lines.",
-                         this, &GridDisplay2::updateStyle);
+                         this, SLOT(GridDisplay2::updateStyle));
     style_property_->addOption("Lines", Grid2::Lines);
     style_property_->addOption("Billboards", Grid2::Billboards);
 
     line_width_property_ =
         new FloatProperty("Line Width", 0.03, "The width, in meters, of each grid line.", style_property_,
-                          &GridDisplay2::updateLineWidth, this);
+                          SLOT(GridDisplay2::updateLineWidth), this);
     line_width_property_->setMin(0.001);
     line_width_property_->hide();
 
     color_property_ = new ColorProperty("Color", Qt::gray, "The color of the grid lines.", this,
-                                        &GridDisplay2::updateColor);
+                                        SLOT(GridDisplay2::updateColor));
     alpha_property_ =
         new FloatProperty("Alpha", 0.5f, "The amount of transparency to apply to the grid lines.", this,
-                          &GridDisplay2::updateColor);
+                          SLOT(GridDisplay2::updateColor));
     alpha_property_->setMin(0.0f);
     alpha_property_->setMax(1.0f);
 
     plane_property_ = new EnumProperty("Plane", "XY", "The plane to draw the grid along.", this,
-                                       &GridDisplay2::updatePlane);
+                                       SLOT(GridDisplay2::updatePlane));
     plane_property_->addOption("XY", XY);
     plane_property_->addOption("XZ", XZ);
     plane_property_->addOption("YZ", YZ);
@@ -100,8 +100,8 @@ namespace rviz
     offset_property_ = new VectorProperty(
         "Offset", Ogre::Vector3::ZERO,
         "Allows you to offset the grid from the origin of the reference frame.  In meters.", this,
-        &GridDisplay2::updateOffset);
-    auto_scale_ = new BoolProperty("AutoScale", false, "only render grid in viewport", this, &GridDisplay2::updateAutoScale);
+        SLOT(GridDisplay2::updateOffset));
+    auto_scale_ = new BoolProperty("AutoScale", false, "only render grid in viewport", this, SLOT(GridDisplay2::updateAutoScale));
   }
 
   GridDisplay2::~GridDisplay2()
