@@ -41,6 +41,8 @@
 
 #include <sstream>
 
+#include <OgreCamera.h>
+
 namespace rviz
 {
   Grid2::Grid2(Ogre::SceneManager *scene_manager,
@@ -145,7 +147,7 @@ namespace rviz
     create();
   }
 
-  void Grid2::createAutoScale(Ogre::Vector3 &p_wc, Ogre::Quaternion &q_wc)
+  void Grid2::createAutoScale(Ogre::Camera const *cam, Ogre::Vector3 &p_wc, Ogre::Quaternion &q_wc)
   {
     if (!auto_scale_)
     {
@@ -153,6 +155,46 @@ namespace rviz
     }
     // 根据比例尺，重新确认cell_length_，cell_count_参数，再进行重新绘制
     std::cout << "createAutoScale\n";
+    // 确定视野宽度
+    if(!cam) return;
+    auto const &proj = cam->getProjectionMatrix();
+    float const sx = 1.0 / proj[0][0];                                    // 世界坐标的一半宽度
+    float const sy = 1.0 / proj[1][1];                                    // 世界坐标的一半高度
+    if(!scene_manager_->getCurrentViewport()) return;
+    int width = scene_manager_->getCurrentViewport()->getActualWidth();   // 整体像素宽度
+    int height = scene_manager_->getCurrentViewport()->getActualHeight(); // 整体像素高度
+    //
+    float pixel_per_meter = 2 * sx / (width - 1);
+    // step: 每个栅格的具体大小
+    double step = 10;
+    double t[] = {1.0, 2.0, 5.0, 10.0}, tick = 30.0 * pixel_per_meter;
+    double order = pow(10.0, floor(log10(tick)));
+    for (int i = 0; i < 4; i++)
+    {
+      if (tick <= t[i] * order)
+      {
+        step = t[i] * order;
+        break;
+      }
+    }
+    // 指定cell length 和 cell count
+    int cell_count = (width >= height ? std::ceil(2 * sx / step) : std::ceil(2 * sy / step));
+    if (cell_length_ != step || cell_count != cell_count_)
+    {
+      cell_length_ = step;
+      cell_count_ = cell_count;
+      create();
+    }
+
+    // 将当前的网格放置在最近的pos ,仅考虑XY平面
+    auto cam_pos = cam->getPosition();
+    p_wc.x = round(cam_pos.x / step) * step;
+    p_wc.y = round(cam_pos.y / step) * step;
+
+    // std::cout << "sx = " << sx << " sy = " << sy << "\n";
+    // // std::cout << "px = " << px << " py = " << py << "\n";
+    // std::cout << "height = " << height << " width = " << width
+    //           << " pixel_per_meter = " << pixel_per_meter << " step = " << step << "\n";
   }
 
   void Grid2::create()

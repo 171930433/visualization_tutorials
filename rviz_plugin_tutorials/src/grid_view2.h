@@ -44,6 +44,7 @@ namespace Ogre
 
   class ManualObject;
   class SceneNode;
+  class Camera;
 
   class Any;
 } // namespace Ogre
@@ -88,7 +89,7 @@ namespace rviz
     ~Grid2();
 
     void create();
-    void createAutoScale(Ogre::Vector3& p_wc,Ogre::Quaternion& q_wc);  // 返回grid的世界坐标系位置，姿态
+    void createAutoScale(Ogre::Camera const *cam, Ogre::Vector3 &p_wc, Ogre::Quaternion &q_wc); // 返回grid的世界坐标系位置，姿态
 
     /**
      * \brief Get the Ogre scene node associated with this grid
