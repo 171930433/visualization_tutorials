@@ -154,7 +154,7 @@ namespace rviz
       return;
     }
     // 根据比例尺，重新确认cell_length_，cell_count_参数，再进行重新绘制
-    std::cout << "createAutoScale\n";
+    // std::cout << "createAutoScale\n";
     // 确定视野宽度
     if(!cam) return;
     auto const &proj = cam->getProjectionMatrix();

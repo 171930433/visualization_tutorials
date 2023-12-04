@@ -172,7 +172,7 @@ namespace rviz
   void GridDisplay2::updateAutoScale()
   {
     bool const auto_scale = auto_scale_->getBool();
-    ROS_INFO("autoscale = %d", auto_scale);
+    // ROS_INFO("autoscale = %d", auto_scale);
 
     grid_->setAutoScale(auto_scale);
     // height_property_->setHidden(auto_scale);
