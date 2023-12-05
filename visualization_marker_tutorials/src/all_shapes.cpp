@@ -36,7 +36,7 @@
 visualization_msgs::Marker CreateArrow()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "arrow";
   marker.id = 0;
@@ -69,7 +69,7 @@ visualization_msgs::Marker CreateArrow()
 visualization_msgs::Marker CreateCube()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "cube";
   marker.id = 0;
@@ -102,7 +102,7 @@ visualization_msgs::Marker CreateCube()
 visualization_msgs::Marker CreateSphere()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "sphere";
   marker.id = 0;
@@ -135,7 +135,7 @@ visualization_msgs::Marker CreateSphere()
 visualization_msgs::Marker CreateCylinder()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "cylinder";
   marker.id = 0;
@@ -168,7 +168,7 @@ visualization_msgs::Marker CreateCylinder()
 visualization_msgs::Marker CreateLineStrip()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "line strip";
   marker.id = 0;
@@ -208,7 +208,7 @@ visualization_msgs::Marker CreateLineStrip()
 visualization_msgs::Marker CreateLineList()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "line list";
   marker.id = 0;
@@ -253,7 +253,7 @@ visualization_msgs::Marker CreateLineList()
 visualization_msgs::Marker CreateCuberList()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "cube list ";
   marker.id = 0;
@@ -295,7 +295,7 @@ visualization_msgs::Marker CreateCuberList()
 visualization_msgs::Marker CreateSphereList()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "sphere list ";
   marker.id = 0;
@@ -337,7 +337,7 @@ visualization_msgs::Marker CreateSphereList()
 visualization_msgs::Marker CreatePoints()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "points ";
   marker.id = 0;
@@ -385,7 +385,7 @@ visualization_msgs::Marker CreatePoints()
 visualization_msgs::Marker CreateViewOrientedText ()
 {
   visualization_msgs::Marker marker;
-  marker.header.frame_id = "my_frame";
+  marker.header.frame_id = "map";
   marker.header.stamp = ros::Time::now();
   marker.ns = "ViewOrientedText ";
   marker.id = 0;

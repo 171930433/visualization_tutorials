@@ -156,11 +156,13 @@ namespace rviz
     // 根据比例尺，重新确认cell_length_，cell_count_参数，再进行重新绘制
     // std::cout << "createAutoScale\n";
     // 确定视野宽度
-    if(!cam) return;
+    if (!cam)
+      return;
     auto const &proj = cam->getProjectionMatrix();
-    float const sx = 1.0 / proj[0][0];                                    // 世界坐标的一半宽度
-    float const sy = 1.0 / proj[1][1];                                    // 世界坐标的一半高度
-    if(!scene_manager_->getCurrentViewport()) return;
+    float const sx = 1.0 / proj[0][0]; // 世界坐标的一半宽度
+    float const sy = 1.0 / proj[1][1]; // 世界坐标的一半高度
+    if (!scene_manager_->getCurrentViewport())
+      return;
     int width = scene_manager_->getCurrentViewport()->getActualWidth();   // 整体像素宽度
     int height = scene_manager_->getCurrentViewport()->getActualHeight(); // 整体像素高度
     //
@@ -182,7 +184,7 @@ namespace rviz
     if (cell_length_ != step || cell_count != cell_count_)
     {
       cell_length_ = step;
-      cell_count_ = cell_count;
+      cell_count_ = cell_count + 2; // 防止边界漏一个
       create();
     }
 
