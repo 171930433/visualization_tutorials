@@ -52,6 +52,7 @@ namespace Ogre
 namespace rviz
 {
   class BillboardLine;
+  class MovableText;
 
   /**
    * \class Grid
@@ -164,6 +165,11 @@ namespace rviz
     uint32_t height_;
     bool auto_scale_;
     Ogre::ColourValue color_;
+
+  private:
+    // 比例尺文字
+    std::shared_ptr<MovableText> text_;
+    void UpdateText();
   };
 
 } // namespace rviz

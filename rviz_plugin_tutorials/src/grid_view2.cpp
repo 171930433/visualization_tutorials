@@ -30,6 +30,7 @@
 #include "grid_view2.h"
 
 #include <rviz/ogre_helpers/billboard_line.h>
+#include <rviz/ogre_helpers/movable_text.h>
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
@@ -156,11 +157,13 @@ namespace rviz
     // 根据比例尺，重新确认cell_length_，cell_count_参数，再进行重新绘制
     // std::cout << "createAutoScale\n";
     // 确定视野宽度
-    if(!cam) return;
+    if (!cam)
+      return;
     auto const &proj = cam->getProjectionMatrix();
-    float const sx = 1.0 / proj[0][0];                                    // 世界坐标的一半宽度
-    float const sy = 1.0 / proj[1][1];                                    // 世界坐标的一半高度
-    if(!scene_manager_->getCurrentViewport()) return;
+    float const sx = 1.0 / proj[0][0]; // 世界坐标的一半宽度
+    float const sy = 1.0 / proj[1][1]; // 世界坐标的一半高度
+    if (!scene_manager_->getCurrentViewport())
+      return;
     int width = scene_manager_->getCurrentViewport()->getActualWidth();   // 整体像素宽度
     int height = scene_manager_->getCurrentViewport()->getActualHeight(); // 整体像素高度
     //
@@ -186,6 +189,9 @@ namespace rviz
       create();
     }
 
+    // 文字更新
+    UpdateText();
+
     // 将当前的网格放置在最近的pos ,仅考虑XY平面
     auto cam_pos = cam->getPosition();
     p_wc.x = round(cam_pos.x / step) * step;
@@ -197,8 +203,26 @@ namespace rviz
     //           << " pixel_per_meter = " << pixel_per_meter << " step = " << step << "\n";
   }
 
+  void Grid2::UpdateText()
+  {
+    if (!text_)
+    {
+      text_ = std::make_shared<MovableText>("default label");
+      text_->setTextAlignment(MovableText::H_CENTER, MovableText::V_CENTER);
+      scene_node_->attachObject(text_.get());
+    }
+    text_->setCharacterHeight(cell_length_);
+    text_->setColor(Ogre::ColourValue::White);
+    text_->setCaption(std::to_string(cell_length_) + " m");
+  }
+
   void Grid2::create()
   {
+    if(text_)
+    {
+      text_->setVisible(auto_scale_);
+    }
+
     manual_object_->clear();
     billboard_line_->clear();
 
