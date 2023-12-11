@@ -185,7 +185,7 @@ namespace rviz
     if (cell_length_ != step || cell_count != cell_count_)
     {
       cell_length_ = step;
-      cell_count_ = cell_count;
+      cell_count_ = cell_count + 2; // 防止边界漏一个
       create();
     }
 
