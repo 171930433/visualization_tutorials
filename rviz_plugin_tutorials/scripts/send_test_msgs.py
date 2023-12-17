@@ -18,6 +18,7 @@ angle = 0
 dir = 1
 px = 0
 py = 0
+index = 0
 
 dist = 3
 while not rospy.is_shutdown():
@@ -25,6 +26,8 @@ while not rospy.is_shutdown():
     imu = Imu()
     imu.header.frame_id = "base_link"
     imu.header.stamp = rospy.Time.now()
+    index+=1
+    imu.header.seq = index
    
     imu.linear_acceleration.x = sin( 0 )
     imu.linear_acceleration.y = sin( angle )
