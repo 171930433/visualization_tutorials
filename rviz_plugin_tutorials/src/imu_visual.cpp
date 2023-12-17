@@ -32,14 +32,50 @@
 #include <OGRE/OgreSceneManager.h>
 
 #include <rviz/ogre_helpers/arrow.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/string_property.h>
+#include <rviz/properties/quaternion_property.h>
+#include <rviz/properties/vector_property.h>
+#include <rviz/properties/color_property.h>
+#include <rviz/properties/int_property.h>
 
 #include "imu_visual.h"
 
 namespace rviz_plugin_tutorials
 {
+  ImuSelectionHandler::ImuSelectionHandler(const sensor_msgs::Imu::ConstPtr &msg, rviz::DisplayContext *context) : rviz::SelectionHandler(context), msg_(msg)
+  {
+  }
+
+  void ImuSelectionHandler::createProperties(const rviz::Picked & /*obj*/, rviz::Property *parent_property)
+  {
+    using namespace rviz;
+    Property *group = new Property("imu-" + QString(std::to_string(msg_->header.seq).c_str()), "imu type",
+                                   "", parent_property);
+    properties_.push_back(group);
+
+    std::cout << "msg selected = " << msg_->header.seq << "\n";
+    Ogre::Vector3 acc{msg_->linear_acceleration.x, msg_->linear_acceleration.y, msg_->linear_acceleration.z};
+    position_property_ = new VectorProperty("acc", acc, "", group);
+    position_property_->setReadOnly(true);
+
+    seq_ = new IntProperty("sequence", msg_->header.seq, "imu sequence", group);
+    seq_->setReadOnly(true);
+
+    // orientation_property_ = new QuaternionProperty("Orientation", getOrientation(), "", group);
+    // orientation_property_->setReadOnly(true);
+
+    // scale_property_ = createScaleProperty(*marker_->getMessage(), getScale(), group);
+    // scale_property_->setReadOnly(true);
+
+    // color_property_ = new ColorProperty("Color", getColor(), "", group);
+    // color_property_->setReadOnly(true);
+
+    group->expand();
+  }
 
   // BEGIN_TUTORIAL
-  ImuVisual::ImuVisual(Ogre::SceneManager *scene_manager, Ogre::SceneNode *parent_node)
+  ImuVisual::ImuVisual(rviz::DisplayContext *context, Ogre::SceneManager *scene_manager, Ogre::SceneNode *parent_node) : context_(context)
   {
     scene_manager_ = scene_manager;
 
@@ -67,6 +103,11 @@ namespace rviz_plugin_tutorials
   void ImuVisual::setMessage(const sensor_msgs::Imu::ConstPtr &msg)
   {
     msg_ = msg;
+
+    // 可以选择
+    handler_.reset(
+        new ImuSelectionHandler(msg, context_));
+    handler_->addTrackedObjects(frame_node_);
 
     const geometry_msgs::Vector3 &a = msg->linear_acceleration;
 

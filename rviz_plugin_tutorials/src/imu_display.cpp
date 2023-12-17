@@ -162,7 +162,7 @@ namespace rviz_plugin_tutorials
     }
     else
     {
-      visual.reset(new ImuVisual(context_->getSceneManager(), scene_node_));
+      visual.reset(new ImuVisual(context_, context_->getSceneManager(), scene_node_));
     }
 
     // Now set or update the contents of the chosen visual.
@@ -215,9 +215,7 @@ namespace rviz_plugin_tutorials
     trj_points_->setAlpha(1);
     trj_points_->addPoints(&points.front(), points.size());
 
-
-  std::cout << "trj_points_ size = " << points.size() <<"\n";
-
+    // std::cout << "trj_points_ size = " << points.size() << "\n";
   }
 
 } // end namespace rviz_plugin_tutorials

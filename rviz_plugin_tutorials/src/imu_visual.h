@@ -32,69 +32,97 @@
 
 #include <sensor_msgs/Imu.h>
 
+#include <rviz/selection/forwards.h>
+#include <rviz/selection/selection_manager.h>
 namespace Ogre
 {
-class Vector3;
-class Quaternion;
+  class Vector3;
+  class Quaternion;
 }
 
 namespace rviz
 {
-class Arrow;
+  class Arrow;
+  class VectorProperty;
+  class StringProperty;
+  class IntProperty;
 }
 
 namespace rviz_plugin_tutorials
 {
+  class ImuSelectionHandler : public rviz::SelectionHandler
+  {
+  public:
+    ImuSelectionHandler(const sensor_msgs::Imu::ConstPtr &msg, rviz::DisplayContext *context);
+    ~ImuSelectionHandler() override{};
 
-// BEGIN_TUTORIAL
-// Declare the visual class for this display.
-//
-// Each instance of ImuVisual represents the visualization of a single
-// sensor_msgs::Imu message.  Currently it just shows an arrow with
-// the direction and magnitude of the acceleration vector, but could
-// easily be expanded to include more of the message data.
-class ImuVisual
-{
-public:
-  // Constructor.  Creates the visual stuff and puts it into the
-  // scene, but in an unconfigured state.
-  ImuVisual( Ogre::SceneManager* scene_manager, Ogre::SceneNode* parent_node );
+    // Ogre::Vector3 getPosition() const;
+    // Ogre::Quaternion getOrientation() const;
+    // Ogre::Vector3 getScale() const;
+    // QColor getColor() const;
 
-  // Destructor.  Removes the visual stuff from the scene.
-  virtual ~ImuVisual();
+    void createProperties(const rviz::Picked &obj, rviz::Property *parent_property) override;
+    void updateProperties() override{};
 
-  // Configure the visual to show the data in the message.
-  void setMessage( const sensor_msgs::Imu::ConstPtr& msg );
+  private:
+    sensor_msgs::ImuConstPtr msg_;
+    // QString marker_id_;
+    rviz::VectorProperty *position_property_;
+    rviz::IntProperty* seq_;
+    // QuaternionProperty *orientation_property_;
+    // VectorProperty *scale_property_;
+    // ColorProperty *color_property_;
+  };
+  // BEGIN_TUTORIAL
+  // Declare the visual class for this display.
+  //
+  // Each instance of ImuVisual represents the visualization of a single
+  // sensor_msgs::Imu message.  Currently it just shows an arrow with
+  // the direction and magnitude of the acceleration vector, but could
+  // easily be expanded to include more of the message data.
+  class ImuVisual
+  {
+  public:
+    // Constructor.  Creates the visual stuff and puts it into the
+    // scene, but in an unconfigured state.
+    ImuVisual(rviz::DisplayContext *context, Ogre::SceneManager *scene_manager, Ogre::SceneNode *parent_node);
 
-  // Set the pose of the coordinate frame the message refers to.
-  // These could be done inside setMessage(), but that would require
-  // calls to FrameManager and error handling inside setMessage(),
-  // which doesn't seem as clean.  This way ImuVisual is only
-  // responsible for visualization.
-  void setFramePosition( const Ogre::Vector3& position );
-  void setFrameOrientation( const Ogre::Quaternion& orientation );
+    // Destructor.  Removes the visual stuff from the scene.
+    virtual ~ImuVisual();
 
-  // Set the color and alpha of the visual, which are user-editable
-  // parameters and therefore don't come from the Imu message.
-  void setColor( float r, float g, float b, float a );
-  // 是否显示重力部分
-  void setShowGraverty(bool show_graverty);
+    // Configure the visual to show the data in the message.
+    void setMessage(const sensor_msgs::Imu::ConstPtr &msg);
 
-private:
-  // The object implementing the actual arrow shape
-  boost::shared_ptr<rviz::Arrow> acceleration_arrow_;
+    // Set the pose of the coordinate frame the message refers to.
+    // These could be done inside setMessage(), but that would require
+    // calls to FrameManager and error handling inside setMessage(),
+    // which doesn't seem as clean.  This way ImuVisual is only
+    // responsible for visualization.
+    void setFramePosition(const Ogre::Vector3 &position);
+    void setFrameOrientation(const Ogre::Quaternion &orientation);
 
-  // A SceneNode whose pose is set to match the coordinate frame of
-  // the Imu message header.
-  Ogre::SceneNode* frame_node_;
+    // Set the color and alpha of the visual, which are user-editable
+    // parameters and therefore don't come from the Imu message.
+    void setColor(float r, float g, float b, float a);
+    // 是否显示重力部分
+    void setShowGraverty(bool show_graverty);
 
-  // The SceneManager, kept here only so the destructor can ask it to
-  // destroy the ``frame_node_``.
-  Ogre::SceneManager* scene_manager_;
-  // raw msg
-  sensor_msgs::Imu::ConstPtr msg_;
-};
-// END_TUTORIAL
+  private:
+    // The object implementing the actual arrow shape
+    boost::shared_ptr<rviz::Arrow> acceleration_arrow_;
+
+    // A SceneNode whose pose is set to match the coordinate frame of
+    // the Imu message header.
+    Ogre::SceneNode *frame_node_;
+    rviz::DisplayContext *context_;
+    // The SceneManager, kept here only so the destructor can ask it to
+    // destroy the ``frame_node_``.
+    Ogre::SceneManager *scene_manager_;
+    // raw msg
+    sensor_msgs::Imu::ConstPtr msg_;
+    boost::shared_ptr<ImuSelectionHandler> handler_;
+  };
+  // END_TUTORIAL
 
 } // end namespace rviz_plugin_tutorials
 

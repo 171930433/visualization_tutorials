@@ -37,6 +37,7 @@
 #include <sensor_msgs/Imu.h>
 #endif
 
+
 namespace Ogre
 {
   class SceneNode;
@@ -57,6 +58,8 @@ namespace rviz_plugin_tutorials
 {
 
   class ImuVisual;
+
+
 
   // BEGIN_TUTORIAL
   // Here we declare our new subclass of rviz::Display.  Every display
