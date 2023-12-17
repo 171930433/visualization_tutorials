@@ -39,6 +39,9 @@
 #include <rviz/properties/bool_property.h>
 #include <rviz/frame_manager.h>
 
+#include <rviz/ogre_helpers/point_cloud.h>
+#include <visualization_msgs/Marker.h>
+
 #include "imu_visual.h"
 
 #include "imu_display.h"
@@ -93,6 +96,7 @@ namespace rviz_plugin_tutorials
   {
     MFDClass::reset();
     visuals_.clear();
+    msgs_.clear();
   }
 
   // Set the current color and alpha values for each visual.
@@ -111,6 +115,7 @@ namespace rviz_plugin_tutorials
   void ImuDisplay::updateHistoryLength()
   {
     visuals_.rset_capacity(history_length_property_->getInt());
+    msgs_.rset_capacity(history_length_property_->getInt());
   }
 
   void ImuDisplay::updateShowGraverty()
@@ -125,6 +130,15 @@ namespace rviz_plugin_tutorials
   // This is our callback to handle an incoming message.
   void ImuDisplay::processMessage(const sensor_msgs::Imu::ConstPtr &msg)
   {
+    msgs_.push_back(msg);
+
+    if (!trj_points_)
+    {
+      trj_points_ = new rviz::PointCloud();
+      trj_points_node_ = scene_node_->createChildSceneNode();
+      trj_points_node_->attachObject(trj_points_);
+    }
+
     // Here we call the rviz::FrameManager to get the transform from the
     // fixed frame to the frame in the header of this Imu message.  If
     // it fails, we can't do anything else so we return.
@@ -165,6 +179,45 @@ namespace rviz_plugin_tutorials
 
     // And send it to the end of the circular buffer
     visuals_.push_back(visual);
+
+    // * update trj
+    int32_t type = visualization_msgs::Marker::POINTS;
+    trj_points_node_->setPosition(Ogre::Vector3{0, 0, 0});
+    trj_points_node_->setOrientation(orientation);
+
+    switch (type)
+    {
+    case visualization_msgs::Marker::POINTS:
+      trj_points_->setRenderMode(rviz::PointCloud::RM_SQUARES);
+      trj_points_->setDimensions(0.1, 0.1, 0.0f);
+      break;
+    case visualization_msgs::Marker::CUBE_LIST:
+      trj_points_->setRenderMode(rviz::PointCloud::RM_BOXES);
+      trj_points_->setDimensions(0.1, 0.1, 0.1);
+      break;
+    case visualization_msgs::Marker::SPHERE_LIST:
+      trj_points_->setRenderMode(rviz::PointCloud::RM_SPHERES);
+      trj_points_->setDimensions(0.1, 0.1, 0.1);
+      break;
+    }
+    trj_points_->clear();
+    std::vector<rviz::PointCloud::Point> points;
+    points.resize(msgs_.size());
+    for (size_t i = 0; i < msgs_.size(); i++)
+    {
+      auto const &frame = msgs_[i];
+      auto &pt = points[i];
+      pt.color = Ogre::ColourValue::Green;
+      pt.position.x = frame->angular_velocity.x;
+      pt.position.y = frame->angular_velocity.y;
+      pt.position.z = frame->angular_velocity.z;
+    }
+    trj_points_->setAlpha(1);
+    trj_points_->addPoints(&points.front(), points.size());
+
+
+  std::cout << "trj_points_ size = " << points.size() <<"\n";
+
   }
 
 } // end namespace rviz_plugin_tutorials

@@ -50,6 +50,7 @@ namespace rviz_plugin_tutorials
     //
     // Here we create a node to store the pose of the Imu's header frame
     // relative to the RViz fixed frame.
+    // frame_node_ = parent_node->createChildSceneNode();
     frame_node_ = parent_node->createChildSceneNode();
 
     // We create the arrow object within the frame node so that we can
