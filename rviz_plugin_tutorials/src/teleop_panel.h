@@ -28,6 +28,7 @@
  */
 #ifndef TELEOP_PANEL_H
 #define TELEOP_PANEL_H
+// #include "qcustomplot.h"
 
 #ifndef Q_MOC_RUN
 # include <ros/ros.h>
@@ -35,7 +36,10 @@
 # include <rviz/panel.h>
 #endif
 
+
 class QLineEdit;
+class QCustomPlot;
+
 
 namespace rviz_plugin_tutorials
 {
@@ -98,7 +102,7 @@ protected Q_SLOTS:
 protected:
   // The control-area widget which turns mouse events into command
   // velocities.
-  DriveWidget* drive_widget_;
+  // DriveWidget* drive_widget_;
 
   // One-line text editor for entering the outgoing ROS topic name.
   QLineEdit* output_topic_editor_;
@@ -116,6 +120,10 @@ protected:
   float linear_velocity_;
   float angular_velocity_;
   // END_TUTORIAL
+
+  QCustomPlot* plot_;
+  void setupTrajectoryDemo(QCustomPlot *customPlot);
+
 };
 
 } // end namespace rviz_plugin_tutorials

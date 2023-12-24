@@ -34,7 +34,7 @@
 
 #include <OgreSceneManager.h>
 #include <OgreSceneNode.h>
-#include <rviz/ogre_helpers/ogre_vector.h>
+// #include <rviz/ogre_helpers/ogre_vector.h>
 #include <OgreQuaternion.h>
 #include <OgreManualObject.h>
 #include <OgreMaterialManager.h>
