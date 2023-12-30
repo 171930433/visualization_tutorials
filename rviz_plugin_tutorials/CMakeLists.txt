@@ -47,7 +47,7 @@ set(SRC_FILES
   src/qcustomplot.cpp
 #  因为存在moc,所以需要包含头文件
   src/data_table_widget.h
-  src/my_table_model
+  src/data_table_model
 )
 
 # # Header files

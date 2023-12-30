@@ -120,11 +120,11 @@ namespace rviz_plugin_tutorials
     // drive_widget_ = new DriveWidget;
 
     data_table_ = new DataTableWidget;
-    data_table_->setMainInterval(10);
-    data_table_->setSubRange(20);
+    data_table_->setMainInterval(100);
+    data_table_->setSubRange(200);
 
     // 构造数据
-    int count = 1000;
+    int count = 100 * 10000;
     datas_.reserve(count);
     for (int i = 0; i < count; ++i)
     {
