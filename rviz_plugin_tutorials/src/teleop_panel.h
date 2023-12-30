@@ -37,6 +37,8 @@
 #endif
 #include "qcustomplot.h"
 
+#include "data_table_widget.h"
+
 class QLineEdit;
 class QCustomPlot;
 
@@ -127,7 +129,7 @@ protected:
       }
       else
       {
-          setted_[dockWidget] = false;
+        setted_[dockWidget] = false;
       }
     }
     return QObject::eventFilter(obj, event);
@@ -218,6 +220,9 @@ namespace rviz_plugin_tutorials
 
     QCustomPlot *plot_;
     void setupTrajectoryDemo(QCustomPlot *customPlot);
+    
+    DataTableWidget *data_table_;
+    std::vector<MyStruct> datas_;
   };
 
 } // end namespace rviz_plugin_tutorials

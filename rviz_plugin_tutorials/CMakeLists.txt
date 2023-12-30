@@ -11,7 +11,7 @@ include_directories(${catkin_INCLUDE_DIRS})
 link_directories(${catkin_LIBRARY_DIRS})
 
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 14)
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
@@ -45,7 +45,9 @@ set(SRC_FILES
   src/grid_view2.cpp
   src/grid_display2.cpp
   src/qcustomplot.cpp
- 
+#  因为存在moc,所以需要包含头文件
+  src/data_table_widget.h
+  src/my_table_model
 )
 
 # # Header files

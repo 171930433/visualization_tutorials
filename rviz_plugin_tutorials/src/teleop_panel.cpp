@@ -119,10 +119,24 @@ namespace rviz_plugin_tutorials
     // Then create the control widget.
     // drive_widget_ = new DriveWidget;
 
+    data_table_ = new DataTableWidget;
+    data_table_->setMainInterval(10);
+    data_table_->setSubRange(20);
+
+    // 构造数据
+    int count = 1000;
+    datas_.reserve(count);
+    for (int i = 0; i < count; ++i)
+    {
+      datas_.emplace_back(MyStruct{i, i * 1.0, std::to_string(2 * i)});
+    }
+    data_table_->setData(datas_);
+
     // Lay out the topic field above the control widget.
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addLayout(topic_layout);
-    // layout->addWidget(plot_);
+    // layout->addWidget(data_table_, 1);
+    layout->addWidget(data_table_, 1);
     setLayout(layout);
 
     // Create a timer for sending the output.  Motor controllers want to
@@ -150,6 +164,7 @@ namespace rviz_plugin_tutorials
 
   void TeleopPanel::onInitialize()
   {
+    return;
     // 切换主窗口
     this->layout()->addWidget(vis_manager_->getRenderPanel());
     this->layout()->update();
@@ -168,7 +183,6 @@ namespace rviz_plugin_tutorials
       if (dockWidget->widget() == this)
       {
         qDebug() << dockWidget->windowTitle() << " install DockWidgetEventFilter ";
-        dockWidget->removeEventFilter()
         dockWidget->installEventFilter(new DockWidgetEventFilter());
       }
     }
