@@ -14,7 +14,7 @@ link_directories(${catkin_LIBRARY_DIRS})
 set(CMAKE_CXX_STANDARD 11)
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
-# set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTOMOC ON)
 
 ## This plugin includes Qt widgets, so we must include Qt.
 ## We'll use the version that rviz used so they are compatible.
@@ -48,13 +48,13 @@ set(SRC_FILES
  
 )
 
-# Header files
-set(HEADERS
-src/qcustomplot.h
-src/teleop_panel.h
-)
+# # Header files
+# set(HEADERS
+# src/qcustomplot.h
+# src/teleop_panel.h
+# )
 
-qt5_wrap_cpp(MOC_SOURCES ${HEADERS})
+# qt5_wrap_cpp(MOC_SOURCES ${HEADERS})
 
 
 ## An rviz plugin is just a shared library, so here we declare the
@@ -62,7 +62,8 @@ qt5_wrap_cpp(MOC_SOURCES ${HEADERS})
 ## "rviz_plugin_tutorials", or whatever your version of this project
 ## is called) and specify the list of source files we collected above
 ## in ``${SRC_FILES}``.
-add_library(${PROJECT_NAME} ${SRC_FILES} ${MOC_SOURCES})
+# add_library(${PROJECT_NAME} ${SRC_FILES} ${MOC_SOURCES})
+add_library(${PROJECT_NAME} ${SRC_FILES})
 
 ## Link the myviz executable with whatever Qt libraries have been defined by
 ## the ``find_package(Qt4 ...)`` line above, or by the

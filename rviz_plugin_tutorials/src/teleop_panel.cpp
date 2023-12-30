@@ -43,63 +43,10 @@
 
 // #include "drive_widget.h"
 
-
-class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed
-{
-  Q_GADGET
-public:
-  QCPMapAxisTickerFixed(QCPAxis *x_axis, QCPAxis *y_axis) : QCPAxisTickerFixed()
-  {
-    x_axis_ = x_axis;
-    y_axis_ = y_axis;
-    //    this->setTickLength(0, 0);
-  }
-
-protected:
-  // reimplemented virtual methods: range in meter
-  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE
-  {
-    y_axis_->setScaleRatio(x_axis_);
-
-    double re = 0;
-
-    if (x_axis_->range().size() >= y_axis_->range().size())
-    {
-      re = CalcStep(y_axis_->range().size(), y_axis_->axisRect()->height());
-    }
-    else
-    {
-      re = CalcStep(x_axis_->range().size(), x_axis_->axisRect()->width());
-    }
-
-    // qDebug() << "synced_ = " << synced_ << "getTickStep range = " << range << " step = " << re;
-
-    return re;
-  }
-
-  virtual int getSubTickCount(double tickStep) Q_DECL_OVERRIDE { return 0; }
-
-  double CalcStep(double const rangle_meter, int const range_pixel)
-  {
-    double step = 10;
-    double pixel_per_meter = rangle_meter / range_pixel;
-    double t[] = {1.0, 2.0, 5.0, 10.0}, tick = 30.0 * pixel_per_meter;
-    double order = pow(10.0, floor(log10(tick)));
-    for (int i = 0; i < 4; i++)
-    {
-      if (tick <= t[i] * order)
-      {
-        step = t[i] * order;
-        break;
-      }
-    }
-    return step;
-  }
-
-private:
-  QCPAxis *x_axis_;
-  QCPAxis *y_axis_;
-};
+#include <rviz/visualization_manager.h>
+#include <rviz/render_panel.h>
+#include <rviz/visualization_frame.h>
+#include <rviz/window_manager_interface.h>
 
 namespace rviz_plugin_tutorials
 {
@@ -171,12 +118,11 @@ namespace rviz_plugin_tutorials
 
     // Then create the control widget.
     // drive_widget_ = new DriveWidget;
-    plot_ = new QCustomPlot(this);
-    setupTrajectoryDemo(plot_);
+
     // Lay out the topic field above the control widget.
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addLayout(topic_layout);
-    layout->addWidget(plot_);
+    // layout->addWidget(plot_);
     setLayout(layout);
 
     // Create a timer for sending the output.  Motor controllers want to
@@ -200,6 +146,39 @@ namespace rviz_plugin_tutorials
 
     // Make the control widget start disabled, since we don't start with an output topic.
     // drive_widget_->setEnabled(false);
+  }
+
+  void TeleopPanel::onInitialize()
+  {
+    // 切换主窗口
+    this->layout()->addWidget(vis_manager_->getRenderPanel());
+    this->layout()->update();
+    //
+    plot_ = new QCustomPlot();
+    setupTrajectoryDemo(plot_);
+    // plot_->setEnabled(false);
+    auto main_window = dynamic_cast<rviz::VisualizationFrame *>(vis_manager_->getWindowManager());
+    // main_window->takeCentralWidget();
+    // main_window->setCentralWidget(plot_);
+    QList<QDockWidget *> dockWidgets = main_window->findChildren<QDockWidget *>();
+
+    // 打印或处理 dockWidgets
+    for (QDockWidget *dockWidget : dockWidgets)
+    {
+      if (dockWidget->widget() == this)
+      {
+        qDebug() << dockWidget->windowTitle() << " install DockWidgetEventFilter ";
+        dockWidget->removeEventFilter()
+        dockWidget->installEventFilter(new DockWidgetEventFilter());
+      }
+    }
+    // main_window->dock
+    auto cw_layoyt = main_window->centralWidget()->layout();
+    // cw_layoyt->takeAt(1);
+    qobject_cast<QBoxLayout *>(cw_layoyt)->insertWidget(1, plot_, 1);
+    cw_layoyt->update();
+    // plot_->setVisible(true);
+    // main_window->centralWidget()->layout()->update();
   }
 
   // setVel() is connected to the DriveWidget's output, which is sent
