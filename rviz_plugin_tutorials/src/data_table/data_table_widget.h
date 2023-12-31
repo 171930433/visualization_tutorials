@@ -7,11 +7,11 @@
 #include <vector>
 #include <boost/hana.hpp>
 #include <qdebug.h>
-#include "data_table_model.h"
-
 #include <string>
 #include <eigen3/Eigen/Dense>
 
+#include "data_table/data_table_model.h"
+#include "time_sync.h"
 // 示例结构体
 
 enum class Color
@@ -70,13 +70,14 @@ convertToVariant(const T &value)
 
 class DataTableDisplay;
 
-class DataTableWidget : public QWidget
+class DataTableWidget : public QWidget, public ITimeSync
 {
     Q_OBJECT
 
 public:
     explicit DataTableWidget(QWidget *parent = nullptr);
-
+    void FocusPoint(double const t0) override;
+    void FouseRange(QCPRange const &time_range) override;
     template <typename T>
     void setData(const std::vector<T> &newData)
     {
@@ -113,8 +114,10 @@ public slots:
     void setMainInterval(int interval);
     void setSubRange(int range);
     void OnMainSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+
 private:
     void Scrol2SubMiddle();
+
 private:
     QTableView *mainTableView_;
     QTableView *subTableView_;

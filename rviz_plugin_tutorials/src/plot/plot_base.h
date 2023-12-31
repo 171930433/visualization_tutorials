@@ -1,7 +1,7 @@
 #pragma once
 #include <map>
 #include "plot/qcustomplot.h"
-
+#include "time_sync.h"
 // template<typename EnumT>
 // inline QStringList EnumToStringList(EnumT const val)
 // {
@@ -17,14 +17,6 @@
 
 //     return list;
 // }
-
-class ITimeSync
-{
-public:
-  virtual void FocusPoint(double const t0) = 0;
-  virtual void FouseRange(QCPRange const &time_range) = 0;
-};
-
 class PlotBase : public QCustomPlot, public ITimeSync
 {
   Q_OBJECT

@@ -32,6 +32,15 @@
     </description>
     <message_type>sensor_msgs/Imu</message_type>
   </class>
+  <!--  -->
+  <class name="rviz_plugin_tutorials/TimeSync"
+         type="TimeSyncDisplay"
+         base_class_type="rviz::Display">
+    <description>
+      TimeSync.
+    </description>
+  </class>
+  <!--  -->
   <class name="rviz_plugin_tutorials/Grid2"
          type="rviz::GridDisplay2"
          base_class_type="rviz::Display">
