@@ -47,12 +47,17 @@ set(SRC_FILES
   src/teleop_panel.cpp
   src/grid_view2.cpp
   src/grid_display2.cpp
-  src/qcustomplot.cpp
-#  因为存在moc,所以需要包含头文件
+  # data_table
   src/data_table/data_table_model.h
   src/data_table/data_table_widget.cpp
   src/data_table/data_table_display.cpp
   src/data_table/data_table_panel.cpp
+  # plot 2d
+  src/plot/qcustomplot.cpp
+  src/plot/plot_base.cpp
+  src/plot/trajectory_display.cpp
+  src/plot/trajectory_widget.cpp
+  src/plot/trajectory_panel.cpp
 )
 
 # # Header files

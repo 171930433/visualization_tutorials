@@ -1,17 +1,17 @@
-#include "data_table_display.h"
+#include "plot/trajectory_display.h"
 #include <rviz/properties/int_property.h>
 
-#include "data_table/data_table_widget.h"
+#include "plot/trajectory_widget.h"
 
-DataTableDisplay::DataTableDisplay()
+TrajectoryDisplay::TrajectoryDisplay()
 {
 }
-DataTableDisplay::~DataTableDisplay()
+TrajectoryDisplay::~TrajectoryDisplay()
 {
 }
 
 // Overrides from Display
-void DataTableDisplay::onInitialize()
+void TrajectoryDisplay::onInitialize()
 {
     main_interval_ = new rviz::IntProperty("interval", 100, "main grid interval[5,1000]", this, SLOT(UpdateInterval()));
     main_interval_->setMin(5);
@@ -21,15 +21,15 @@ void DataTableDisplay::onInitialize()
     sub_range_->setMax(100);
 }
 
-void DataTableDisplay::UpdateInterval()
+void TrajectoryDisplay::UpdateInterval()
 {
-    view_->setMainInterval(main_interval_->getInt());
+    // view_->setMainInterval(main_interval_->getInt());
 }
-void DataTableDisplay::UpdateRange()
+void TrajectoryDisplay::UpdateRange()
 {
-    view_->setSubRange(sub_range_->getInt());
+    // view_->setSubRange(sub_range_->getInt());
 }
 
-void DataTableDisplay::update(float dt, float ros_dt)
+void TrajectoryDisplay::update(float dt, float ros_dt)
 {
 }

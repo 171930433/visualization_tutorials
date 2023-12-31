@@ -36,8 +36,6 @@
 #include <QLabel>
 #include <QTimer>
 
-#include "qcustomplot.h"
-
 #include <geometry_msgs/Twist.h>
 #include "teleop_panel.h"
 
@@ -54,61 +52,6 @@
 namespace rviz_plugin_tutorials
 {
 
-  void TeleopPanel::setupTrajectoryDemo(QCustomPlot *customPlot)
-  {
-    // demoName = "Vector3 Demo";
-
-    customPlot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom);
-
-    customPlot->xAxis->setRange(-8, 8);
-    customPlot->yAxis->setRange(-5, 5);
-    customPlot->axisRect()->setupFullAxesBox();
-
-    // xy with same scale strategy
-    QSharedPointer<QCPMapAxisTickerFixed> map_ticker;
-    map_ticker = QSharedPointer<QCPMapAxisTickerFixed>::create(customPlot->xAxis, customPlot->yAxis);
-    map_ticker->setTickStep(10.0);
-    map_ticker->setScaleStrategy(QCPAxisTickerFixed::ssNone);
-
-    foreach (QCPAxis *axis, customPlot->axisRect()->axes())
-    {
-      axis->setTicker(map_ticker);
-      axis->setTickLength(0, 0);
-      axis->setTickLabels(false);
-    }
-
-    customPlot->legend->setVisible(true);
-    QFont legendFont = QWidget::font();
-    legendFont.setPointSize(10);
-    customPlot->legend->setFont(legendFont);
-    customPlot->legend->setSelectedFont(legendFont);
-    customPlot->legend->setSelectableParts(QCPLegend::spItems); // legend box shall not be selectable, only legend items
-
-    // xy axis with same scale factor
-    customPlot->yAxis->setScaleRatio(customPlot->xAxis, 1.0);
-
-    customPlot->rescaleAxes();
-
-    // connect slot that shows a message in the status bar when a graph is clicked:
-    // connect(customPlot, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *, int)));
-
-    // setup policy and connect slot for context menu popup:
-    // customPlot->setContextMenuPolicy(Qt::CustomContextMenu);
-    // connect(customPlot, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
-  }
-
-  // BEGIN_TUTORIAL
-  // Here is the implementation of the TeleopPanel class.  TeleopPanel
-  // has these responsibilities:
-  //
-  // - Act as a container for GUI elements DriveWidget and QLineEdit.
-  // - Publish command velocities 10 times per second (whether 0 or not).
-  // - Saving and restoring internal state from a config file.
-  //
-  // We start with the constructor, doing the standard Qt thing of
-  // passing the optional *parent* argument on to the superclass
-  // constructor, and also zero-ing the velocities we will be
-  // publishing.
   TeleopPanel::TeleopPanel(QWidget *parent)
       : rviz::Panel(parent), linear_velocity_(0), angular_velocity_(0)
   {
@@ -155,31 +98,31 @@ namespace rviz_plugin_tutorials
   {
     return;
     // 切换主窗口
-    this->layout()->addWidget(vis_manager_->getRenderPanel());
-    this->layout()->update();
-    //
-    plot_ = new QCustomPlot();
-    setupTrajectoryDemo(plot_);
-    // plot_->setEnabled(false);
-    auto main_window = dynamic_cast<rviz::VisualizationFrame *>(vis_manager_->getWindowManager());
-    // main_window->takeCentralWidget();
-    // main_window->setCentralWidget(plot_);
-    QList<QDockWidget *> dockWidgets = main_window->findChildren<QDockWidget *>();
+    // this->layout()->addWidget(vis_manager_->getRenderPanel());
+    // this->layout()->update();
+    // //
+    // plot_ = new QCustomPlot();
+    // setupTrajectoryDemo(plot_);
+    // // plot_->setEnabled(false);
+    // auto main_window = dynamic_cast<rviz::VisualizationFrame *>(vis_manager_->getWindowManager());
+    // // main_window->takeCentralWidget();
+    // // main_window->setCentralWidget(plot_);
+    // QList<QDockWidget *> dockWidgets = main_window->findChildren<QDockWidget *>();
 
-    // 打印或处理 dockWidgets
-    for (QDockWidget *dockWidget : dockWidgets)
-    {
-      if (dockWidget->widget() == this)
-      {
-        qDebug() << dockWidget->windowTitle() << " install DockWidgetEventFilter ";
-        dockWidget->installEventFilter(new DockWidgetEventFilter());
-      }
-    }
-    // main_window->dock
-    auto cw_layoyt = main_window->centralWidget()->layout();
-    // cw_layoyt->takeAt(1);
-    qobject_cast<QBoxLayout *>(cw_layoyt)->insertWidget(1, plot_, 1);
-    cw_layoyt->update();
+    // // 打印或处理 dockWidgets
+    // for (QDockWidget *dockWidget : dockWidgets)
+    // {
+    //   if (dockWidget->widget() == this)
+    //   {
+    //     qDebug() << dockWidget->windowTitle() << " install DockWidgetEventFilter ";
+    //     dockWidget->installEventFilter(new DockWidgetEventFilter());
+    //   }
+    // }
+    // // main_window->dock
+    // auto cw_layoyt = main_window->centralWidget()->layout();
+    // // cw_layoyt->takeAt(1);
+    // qobject_cast<QBoxLayout *>(cw_layoyt)->insertWidget(1, plot_, 1);
+    // cw_layoyt->update();
     // plot_->setVisible(true);
     // main_window->centralWidget()->layout()->update();
   }

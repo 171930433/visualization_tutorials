@@ -35,70 +35,13 @@
 
 #include <rviz/panel.h>
 #endif
-#include "qcustomplot.h"
 
-#include "data_table/data_table_widget.h"
+#include <QDockWidget>
+#include <QEvent>
+#include <QDebug>
 
 class QLineEdit;
-class QCustomPlot;
 
-
-class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed
-{
-  Q_GADGET
-public:
-  QCPMapAxisTickerFixed(QCPAxis *x_axis, QCPAxis *y_axis) : QCPAxisTickerFixed()
-  {
-    x_axis_ = x_axis;
-    y_axis_ = y_axis;
-    //    this->setTickLength(0, 0);
-  }
-
-protected:
-  // reimplemented virtual methods: range in meter
-  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE
-  {
-    y_axis_->setScaleRatio(x_axis_);
-
-    double re = 0;
-
-    if (x_axis_->range().size() >= y_axis_->range().size())
-    {
-      re = CalcStep(y_axis_->range().size(), y_axis_->axisRect()->height());
-    }
-    else
-    {
-      re = CalcStep(x_axis_->range().size(), x_axis_->axisRect()->width());
-    }
-
-    // qDebug() << "synced_ = " << synced_ << "getTickStep range = " << range << " step = " << re;
-
-    return re;
-  }
-
-  virtual int getSubTickCount(double tickStep) Q_DECL_OVERRIDE { return 0; }
-
-  double CalcStep(double const rangle_meter, int const range_pixel)
-  {
-    double step = 10;
-    double pixel_per_meter = rangle_meter / range_pixel;
-    double t[] = {1.0, 2.0, 5.0, 10.0}, tick = 30.0 * pixel_per_meter;
-    double order = pow(10.0, floor(log10(tick)));
-    for (int i = 0; i < 4; i++)
-    {
-      if (tick <= t[i] * order)
-      {
-        step = t[i] * order;
-        break;
-      }
-    }
-    return step;
-  }
-
-private:
-  QCPAxis *x_axis_;
-  QCPAxis *y_axis_;
-};
 
 class DockWidgetEventFilter : public QObject
 {
@@ -141,7 +84,6 @@ protected:
 namespace rviz_plugin_tutorials
 {
 
-  class DriveWidget;
 
   // BEGIN_TUTORIAL
   // Here we declare our new subclass of rviz::Panel.  Every panel which
@@ -217,10 +159,6 @@ namespace rviz_plugin_tutorials
     // The latest velocity values from the drive widget.
     float linear_velocity_;
     float angular_velocity_;
-    // END_TUTORIAL
-
-    QCustomPlot *plot_;
-    void setupTrajectoryDemo(QCustomPlot *customPlot);
   };
 
 } // end namespace rviz_plugin_tutorials
