@@ -27,7 +27,8 @@ void TrajectoryWidget::setupTrajectoryDemo()
   this->xAxis->setRange(-8, 8);
   this->yAxis->setRange(-5, 5);
   this->axisRect()->setupFullAxesBox();
-
+  this->axisRect()->setAutoMargins(QCP::MarginSide::msNone);
+  this->axisRect()->setMargins(QMargins{0, 0, 0, 0});
   // xy with same scale strategy
   map_ticker_ = QSharedPointer<QCPMapAxisTickerFixed>::create(this->xAxis, this->yAxis);
   map_ticker_->setTickStep(10.0);
@@ -226,12 +227,12 @@ void TrajectoryWidget::ChangeScatterShape(QCPScatterStyle::ScatterShape const ty
 {
   this->graph()->setScatterStyle(type);
   this->replot();
-  qDebug() << "scatter type = " << type <<" changed !";
+  qDebug() << "scatter type = " << type << " changed !";
 }
 
 void TrajectoryWidget::ChangeLineStyle(QCPGraph::LineStyle const type)
 {
   this->graph()->setLineStyle(type);
   this->replot();
-  qDebug() << "line type = " << type <<" changed !";
+  qDebug() << "line type = " << type << " changed !";
 }

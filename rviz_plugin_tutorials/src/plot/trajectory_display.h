@@ -2,7 +2,7 @@
 
 // #include <rviz/properties/color_property.h>
 // #include <rviz/properties/float_property.h>
-// #include <rviz/properties/bool_property.h>
+#include <rviz/properties/bool_property.h>
 #include <rviz/properties/int_property.h>
 
 // #include <rviz/properties/vector_property.h>
@@ -15,6 +15,7 @@ namespace rviz
   class IntProperty;
   class EnumProperty;
   class BoolProperty;
+  class GroupProperty;
 }
 
 namespace zhito
@@ -23,6 +24,24 @@ namespace zhito
 }
 
 class TrajectoryWidget;
+class QCPGraph;
+
+class GraphProperty : public rviz::BoolProperty
+{
+  Q_OBJECT
+public:
+  GraphProperty(QCPGraph *graph, Property *parent = nullptr);
+
+private Q_SLOTS:
+  void UpdateScatterShape();
+  void UpdateLineStyle();
+  void UpdateEnable();
+
+protected:
+  rviz::EnumProperty *scatter_type_ = nullptr;
+  rviz::EnumProperty *line_type_ = nullptr;
+  QCPGraph *graph_;
+};
 
 class TrajectoryDisplay : public rviz::Display
 {
@@ -42,7 +61,7 @@ public:
 private Q_SLOTS:
   void UpdateScatterShape();
   void UpdateLineStyle();
-  void Swap2Central();  // 将当前视图放置在central widget位置
+  void Swap2Central(); // 将当前视图放置在central widget位置
 
 private:
   TrajectoryWidget *view_ = nullptr;
@@ -50,5 +69,7 @@ private:
 
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;
-  rviz::BoolProperty* swap2central_ = nullptr;
+  rviz::BoolProperty *swap2central_ = nullptr;
+
+  std::map<std::string, GraphProperty *> graphs_;
 };
