@@ -49,11 +49,11 @@ namespace rviz_plugin_tutorials
     data_table_->setSubRange(200);
 
     // 构造数据
-    int count = 100 * 10000;
+    int count = 1 * 1000;
     datas_.reserve(count);
     for (int i = 0; i < count; ++i)
     {
-      datas_.emplace_back(MyStruct{i, i * 1.0, std::to_string(2 * i), Eigen::Vector3d::Identity().array() + i});
+      datas_.emplace_back(MyStruct{i + 1e8, i + 1, std::to_string(2 * i), Eigen::Vector3d::Identity().array() + i});
     }
     data_table_->setData(datas_);
 

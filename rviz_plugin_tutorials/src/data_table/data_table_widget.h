@@ -22,15 +22,15 @@ enum class Color
 
 struct MyStruct
 {
+    double t0_s;
     int a;
-    double b;
     std::string c;
     Eigen::Vector3d acc_ = Eigen::Vector3d::Identity();
     Color color_ = Color::Red;
 };
 Q_DECLARE_METATYPE(Eigen::Vector3d);
 Q_DECLARE_METATYPE(Color);
-BOOST_HANA_ADAPT_STRUCT(MyStruct, a, b, c, acc_, color_);
+BOOST_HANA_ADAPT_STRUCT(MyStruct, t0_s, a, c, acc_, color_);
 
 // 转换函数
 template <typename T, typename std::enable_if<!std::is_enum<T>::value, T>::type * = nullptr>

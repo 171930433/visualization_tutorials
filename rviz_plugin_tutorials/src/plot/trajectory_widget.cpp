@@ -51,9 +51,11 @@ void TrajectoryWidget::setupTrajectoryDemo()
   // xy axis with same scale factor
   this->yAxis->setScaleRatio(this->xAxis, 1.0);
 
-  addRandomGraph();
   // addRandomGraph();
   // addRandomGraph();
+  // addRandomGraph();
+  addRandomTrajectory();
+  addRandomTrajectory();
   // all_curve_["gnss"] = new QCPCurve(this->xAxis, this->yAxis);
   // all_curve_["gnss"]->setPen(QPen(QColor(255, 110, 40)));
   // all_curve_["gnss"]->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
@@ -93,9 +95,9 @@ void TrajectoryWidget::setupTrajectoryDemo()
   connect(this, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *, int)));
 }
 
-void TrajectoryWidget::addRandomGraph()
+void TrajectoryWidget::addRandomTrajectory()
 {
-  int n = 50; // number of points in graph
+  int n = 1 * 1000; // number of points in graph
   double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
@@ -104,9 +106,45 @@ void TrajectoryWidget::addRandomGraph()
   double r2 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
   double r3 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
   double r4 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
-  QVector<double> x(n), y(n);
+  QVector<double> x(n), y(n), time_index(n);
   for (int i = 0; i < n; i++)
   {
+    time_index[i] = i + 1e8;
+    x[i] = (i / (double)n - 0.5) * 10.0 * xScale + xOffset;
+    y[i] = (qSin(x[i] * r1 * 5) * qSin(qCos(x[i] * r2) * r4 * 3) + r3 * qCos(qSin(x[i]) * r4 * 2)) * yScale + yOffset;
+  }
+
+  QCPCurve *frame = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
+  frame->setName(QString("curve-%1").arg(all_curve_.size()));
+  frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
+  frame->setLineStyle(QCPCurve::LineStyle::lsLine);
+  frame->setSelectable(QCP::stDataRange);
+  frame->setData(time_index, x, y);
+  QPen graphPen;
+  graphPen.setColor(QColor(0, 0, 0));
+  graphPen.setWidthF(std::rand() / (double)RAND_MAX * 2 + 1);
+  frame->setPen(graphPen);
+
+  all_curve_[frame->name().toStdString()] = frame;
+
+  this->replot();
+}
+
+void TrajectoryWidget::addRandomGraph()
+{
+  int n = 1 * 1000; // number of points in graph
+  double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
+  double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
+  double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
+  double yOffset = (std::rand() / (double)RAND_MAX - 0.5) * 10;
+  double r1 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
+  double r2 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
+  double r3 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
+  double r4 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
+  QVector<double> x(n), y(n), time_index(n);
+  for (int i = 0; i < n; i++)
+  {
+    time_index[i] = i;
     x[i] = (i / (double)n - 0.5) * 10.0 * xScale + xOffset;
     y[i] = (qSin(x[i] * r1 * 5) * qSin(qCos(x[i] * r2) * r4 * 3) + r3 * qCos(qSin(x[i]) * r4 * 2)) * yScale + yOffset;
   }
@@ -114,12 +152,16 @@ void TrajectoryWidget::addRandomGraph()
   this->addGraph();
   this->graph()->setSelectable(QCP::stDataRange);
   this->graph()->setName(QString("New graph %1").arg(this->graphCount() - 1));
-  this->graph()->setData(x, y);
-  this->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand() % 5 + 1));
-  if (std::rand() % 100 > 50)
-    this->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand() % 14 + 1)));
+  // this->graph()->setData(x, y);
+  this->graph()->setData(time_index, y);
+  // this->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand() % 5 + 1));
+  this->graph()->setLineStyle((QCPGraph::LineStyle::lsLine));
+  // if (std::rand() % 100 > 50)
+  // this->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand() % 14 + 1)));
+  this->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape::ssCross)));
   QPen graphPen;
-  graphPen.setColor(QColor(std::rand() % 245 + 10, std::rand() % 245 + 10, std::rand() % 245 + 10));
+  // graphPen.setColor(QColor(std::rand() % 245 + 10, std::rand() % 245 + 10, std::rand() % 245 + 10));
+  graphPen.setColor(QColor(0, 0, 0));
   graphPen.setWidthF(std::rand() / (double)RAND_MAX * 2 + 1);
   this->graph()->setPen(graphPen);
   this->replot();
@@ -180,9 +222,14 @@ void TrajectoryWidget::graphClicked(QCPAbstractPlottable *plottable, int dataInd
 {
   // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
   // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
-  double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
-  QString message = QString("Clicked on graph '%1' at data point #%2 with value %3.").arg(plottable->name()).arg(dataIndex).arg(dataValue);
+  double t0_s = plottable->interface1D()->dataSortKey(dataIndex);
+  double x = plottable->interface1D()->dataMainKey(dataIndex);
+  double y = plottable->interface1D()->dataMainValue(dataIndex);
+
+  QString message = QString("Clicked on graph '%1' at data point #%2, t0=%5 x= %3 y = %4.").arg(plottable->name()).arg(dataIndex).arg(x).arg(y).arg(t0_s, 0, 'f', 3);
   qDebug() << " " << message;
+
+  FocusPoint(t0_s);
 }
 
 void TrajectoryWidget::selectionChanged()
@@ -199,8 +246,22 @@ void TrajectoryWidget::selectionChanged()
     }
   }
 
+  auto *first_curve = all_curve_.begin()->second;
   for (auto [key, curve] : all_curve_)
   {
+    auto const &range = curve->selection().dataRanges();
+    if (!range.empty())
+    {
+      double const start = curve->dataSortKey(range.begin()->begin());
+      double const end = curve->dataSortKey(range.begin()->end());
+      QString str = QString("%1 selected %2 points, t0_s in range [%3,%4]").arg(curve->name()).arg(curve->selection().dataPointCount()).arg(start, 0, 'f', 3).arg(end, 0, 'f', 3);
+      qDebug() << str;
+
+      if (curve == first_curve)
+      {
+        FouseRange(QCPRange{start, end});
+      }
+    }
   }
 
   qDebug() << " selectionChanged ";
@@ -223,6 +284,12 @@ void TrajectoryWidget::keyPressEvent(QKeyEvent *event)
   }
 }
 
+void TrajectoryWidget::resizeEvent(QResizeEvent *event)
+{
+  PlotBase::resizeEvent(event);
+  this->replot();
+}
+
 void TrajectoryWidget::ChangeScatterShape(QCPScatterStyle::ScatterShape const type)
 {
   this->graph()->setScatterStyle(type);
@@ -235,4 +302,40 @@ void TrajectoryWidget::ChangeLineStyle(QCPGraph::LineStyle const type)
   this->graph()->setLineStyle(type);
   this->replot();
   qDebug() << "line type = " << type << " changed !";
+}
+
+void TrajectoryWidget::FocusPoint(double const t0)
+{
+  // 1. 先检查所有的数据区间是否包含待查找点
+  auto *first_curve = all_curve_.begin()->second;
+  auto const dataIndex = first_curve->findBegin(t0);
+
+  double const t0_s = first_curve->dataSortKey(dataIndex);
+  double const x = first_curve->dataMainKey(dataIndex);
+  double const y = first_curve->dataMainValue(dataIndex);
+
+  QString const str = QString("t0 = %1, finded to_s = %1").arg(t0, 0, 'f', 3).arg(t0_s, 0, 'f', 3);
+  qDebug() << str;
+
+  this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
+  this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+}
+
+void TrajectoryWidget::FouseRange(QCPRange const &time_range)
+{
+  // 1. 先检查所有的数据区间是否包含待查找区间
+  double const t0_s = time_range.center();
+  FocusPoint(t0_s);
+  // 2. 选中待选择点
+  auto *first_curve = all_curve_.begin()->second;
+  auto const start_Index = first_curve->findBegin(time_range.lower);
+  auto const end_Index = first_curve->findBegin(time_range.upper);
+  // 3. 清空原先选中的点
+  auto const selected = first_curve->selection();
+  QString str1 = QString("origin [%1,%2]").arg(selected.dataRange().begin()).arg(selected.dataRange().end());
+  qDebug() << str1;
+  QCPDataRange index_range{start_Index, end_Index};
+  first_curve->setSelection(QCPDataSelection{index_range});
+  QString str2 = QString("after [%1,%2]").arg(start_Index).arg(end_Index);
+  qDebug() << str2;
 }

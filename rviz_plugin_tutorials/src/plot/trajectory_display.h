@@ -24,13 +24,13 @@ namespace zhito
 }
 
 class TrajectoryWidget;
-class QCPGraph;
+class QCPCurve;
 
 class GraphProperty : public rviz::BoolProperty
 {
   Q_OBJECT
 public:
-  GraphProperty(QCPGraph *graph, Property *parent = nullptr);
+  GraphProperty(QCPCurve *graph, Property *parent = nullptr);
 
 private Q_SLOTS:
   void UpdateScatterShape();
@@ -40,7 +40,7 @@ private Q_SLOTS:
 protected:
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;
-  QCPGraph *graph_;
+  QCPCurve *graph_;
 };
 
 class TrajectoryDisplay : public rviz::Display

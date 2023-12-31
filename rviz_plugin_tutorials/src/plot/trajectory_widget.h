@@ -3,13 +3,14 @@
 
 #include <ros/time.h>
 
-
 class QWidget;
 
-class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed {
+class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed
+{
   Q_GADGET
- public:
-  QCPMapAxisTickerFixed(QCPAxis *x_axis, QCPAxis *y_axis) : QCPAxisTickerFixed() {
+public:
+  QCPMapAxisTickerFixed(QCPAxis *x_axis, QCPAxis *y_axis) : QCPAxisTickerFixed()
+  {
     x_axis_ = x_axis;
     y_axis_ = y_axis;
     //    this->setTickLength(0, 0);
@@ -17,16 +18,20 @@ class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed {
 
   double Step() const { return tick_step_; }
 
- protected:
+protected:
   // reimplemented virtual methods: range in meter
-  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE {
+  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE
+  {
     y_axis_->setScaleRatio(x_axis_);
 
     double re = 0;
 
-    if (x_axis_->range().size() >= y_axis_->range().size()) {
+    if (x_axis_->range().size() >= y_axis_->range().size())
+    {
       re = CalcStep(y_axis_->range().size(), y_axis_->axisRect()->height());
-    } else {
+    }
+    else
+    {
       re = CalcStep(x_axis_->range().size(), x_axis_->axisRect()->width());
     }
 
@@ -37,13 +42,16 @@ class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed {
 
   virtual int getSubTickCount(double tickStep) Q_DECL_OVERRIDE { return 0; }
 
-  double CalcStep(double const rangle_meter, int const range_pixel) {
+  double CalcStep(double const rangle_meter, int const range_pixel)
+  {
     double step = 10;
     double pixel_per_meter = rangle_meter / range_pixel;
     double t[] = {1.0, 2.0, 5.0, 10.0}, tick = 30.0 * pixel_per_meter;
     double order = pow(10.0, floor(log10(tick)));
-    for (int i = 0; i < 4; i++) {
-      if (tick <= t[i] * order) {
+    for (int i = 0; i < 4; i++)
+    {
+      if (tick <= t[i] * order)
+      {
         step = t[i] * order;
         break;
       }
@@ -51,12 +59,11 @@ class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed {
     return step;
   }
 
- private:
+private:
   QCPAxis *x_axis_;
   QCPAxis *y_axis_;
   double tick_step_ = 0;
 };
-
 
 class DockWidgetEventFilter : public QObject
 {
@@ -96,34 +103,40 @@ protected:
   std::map<QDockWidget *, bool> setted_;
 };
 
-class TrajectoryWidget : public PlotBase {
+class TrajectoryWidget : public PlotBase
+{
   Q_OBJECT
 
- public:
+public:
   TrajectoryWidget(QWidget *parent = nullptr);
   void SyncDataAndView() override { SyncData(); }
+  std::map<std::string, QCPCurve *> Curves() const { return all_curve_; }
+  void FocusPoint(double const t0) override;
+  void FouseRange(QCPRange const &time_range) override;
 
- protected:
+protected:
   void keyPressEvent(QKeyEvent *event) override;
+  void resizeEvent(QResizeEvent *event) override;
 
- protected:
+protected:
   void setupTrajectoryDemo();
   void addRandomGraph();
+  void addRandomTrajectory();
 
- private:
+private:
   QSharedPointer<QCPMapAxisTickerFixed> map_ticker_;
-  QString StepString(double const step);  // 分辨率文字
+  QString StepString(double const step); // 分辨率文字
   QCPItemText *step_text = nullptr;
 
- private:
+private:
   QTimer dataTimer_;
   std::map<std::string, QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
- private slots:
+private slots:
   void mouseWheel(QWheelEvent *);
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
   void selectionChanged();
- public slots:
+public slots:
   void SyncData();
   void ChangeScatterShape(QCPScatterStyle::ScatterShape const type);
   void ChangeLineStyle(QCPGraph::LineStyle const type);
