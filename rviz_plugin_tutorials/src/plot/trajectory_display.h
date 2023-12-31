@@ -12,31 +12,43 @@
 
 namespace rviz
 {
-    class IntProperty;
+  class IntProperty;
+  class EnumProperty;
+  class BoolProperty;
+}
+
+namespace zhito
+{
+  class TrajectoryPanel;
 }
 
 class TrajectoryWidget;
 
 class TrajectoryDisplay : public rviz::Display
 {
-    Q_OBJECT
+  Q_OBJECT
 public:
-    TrajectoryDisplay();
-    ~TrajectoryDisplay() override;
+  TrajectoryDisplay();
+  ~TrajectoryDisplay() override;
 
-    // 需要在 Initialize 之前调用,以确定在onInitialize 绑定有效
-    void setView(TrajectoryWidget *view) { view_ = view; }
+  // 需要在 Initialize 之前调用,以确定在onInitialize 绑定有效
+  void setView(TrajectoryWidget *view) { view_ = view; }
+  void setPanel(zhito::TrajectoryPanel *panel) { panel_ = panel; }
 
-    // Overrides from Display
-    void onInitialize() override;
-    void update(float dt, float ros_dt) override;
+  // Overrides from Display
+  void onInitialize() override;
+  void update(float dt, float ros_dt) override;
 
 private Q_SLOTS:
-    void UpdateInterval();
-    void UpdateRange();
-private:
-    TrajectoryWidget *view_ = nullptr;
+  void UpdateScatterShape();
+  void UpdateLineStyle();
+  void Swap2Central();  // 将当前视图放置在central widget位置
 
-    rviz::IntProperty *main_interval_;
-    rviz::IntProperty *sub_range_;
+private:
+  TrajectoryWidget *view_ = nullptr;
+  zhito::TrajectoryPanel *panel_ = nullptr;
+
+  rviz::EnumProperty *scatter_type_ = nullptr;
+  rviz::EnumProperty *line_type_ = nullptr;
+  rviz::BoolProperty* swap2central_ = nullptr;
 };

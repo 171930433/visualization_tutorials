@@ -41,6 +41,12 @@
 #include "plot/trajectory_widget.h"
 #include "plot/trajectory_display.h"
 
+// swap to central
+#include <rviz/visualization_manager.h>
+#include <rviz/render_panel.h>
+#include <rviz/visualization_frame.h>
+#include <rviz/window_manager_interface.h>
+
 namespace zhito
 {
 
@@ -84,8 +90,54 @@ namespace zhito
     raw_data_display_ = new TrajectoryDisplay();
     // 给view
     raw_data_display_->setView(plot_);
+    raw_data_display_->setPanel(this);
     raw_data_display_->setName(QString("Trajectory"));
     vis_manager_->addDisplay(raw_data_display_, true);
+
+    // 当前panel可以最大化
+    auto main_window = vis_manager_->getWindowManager()->getParentWindow();
+    QList<QDockWidget *> dockWidgets = main_window->findChildren<QDockWidget *>();
+    for (QDockWidget *dockWidget : dockWidgets)
+    {
+      if (dockWidget->widget() == this)
+      {
+        qDebug() << dockWidget->windowTitle() << " install DockWidgetEventFilter ";
+        dockWidget->installEventFilter(new DockWidgetEventFilter());
+      }
+    }
+  }
+
+  void TrajectoryPanel::Swap2Central(bool insert)
+  {
+    auto main_window = dynamic_cast<rviz::VisualizationFrame *>(vis_manager_->getWindowManager());
+    auto cw_layoyt = main_window->centralWidget()->layout();
+
+    if (insert)
+    {
+      qobject_cast<QBoxLayout *>(cw_layoyt)->insertWidget(1, plot_, 1);
+      v_layout_->insertWidget(0, vis_manager_->getRenderPanel(), 1);
+    }
+    else
+    {
+      qobject_cast<QBoxLayout *>(cw_layoyt)->insertWidget(1, vis_manager_->getRenderPanel(), 1);
+      v_layout_->insertWidget(0, plot_, 1);
+    }
+
+    // 切换主窗口
+    // this->layout()->addWidget();
+    // this->layout()->update();
+    //
+
+    // plot_->setEnabled(false);
+    // main_window->takeCentralWidget();
+    // main_window->setCentralWidget(plot_);
+
+    // main_window->dock
+    // cw_layoyt->takeAt(1);
+    cw_layoyt->update();
+    v_layout_->update();
+    // plot_->setVisible(true);
+    // main_window->centralWidget()->layout()->update();
   }
 
 } // namespace zhito

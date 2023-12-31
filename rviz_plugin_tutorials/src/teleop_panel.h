@@ -42,45 +42,6 @@
 
 class QLineEdit;
 
-
-class DockWidgetEventFilter : public QObject
-{
-protected:
-  bool eventFilter(QObject *obj, QEvent *event) override
-  {
-    if (event->type() == QEvent::Type::WindowActivate)
-    {
-      QDockWidget *dockWidget = qobject_cast<QDockWidget *>(obj);
-      if (dockWidget && dockWidget->isFloating())
-      {
-        if (setted_.count(dockWidget) == 0)
-        {
-          setted_[dockWidget] = false;
-        }
-
-        if (!setted_[dockWidget])
-        {
-          dockWidget->setWindowFlags(Qt::Window);
-          dockWidget->show();
-          setted_[dockWidget] = true;
-          qDebug() << ros::Time::now().toNSec() << " " << obj->objectName() << " floated " << dockWidget->windowFlags();
-        }
-        // else
-        // {
-        //   event->accept();
-        //   return true;
-        // }
-      }
-      else
-      {
-        setted_[dockWidget] = false;
-      }
-    }
-    return QObject::eventFilter(obj, event);
-  }
-  std::map<QDockWidget *, bool> setted_;
-};
-
 namespace rviz_plugin_tutorials
 {
 

@@ -9,13 +9,15 @@
 // #include "cacher/cacher.hpp"
 // #include "cyber_message_filter_display.h"
 
-TrajectoryWidget::TrajectoryWidget(QWidget *parent) : PlotBase(parent) {
+TrajectoryWidget::TrajectoryWidget(QWidget *parent) : PlotBase(parent)
+{
   type_ = Type::Trajectory;
   //
   setupTrajectoryDemo();
 }
 
-void TrajectoryWidget::setupTrajectoryDemo() {
+void TrajectoryWidget::setupTrajectoryDemo()
+{
   // demoName = "Vector3 Demo";
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectLegend | QCP::iSelectPlottables);
 
@@ -31,7 +33,8 @@ void TrajectoryWidget::setupTrajectoryDemo() {
   map_ticker_->setTickStep(10.0);
   map_ticker_->setScaleStrategy(QCPAxisTickerFixed::ssNone);
 
-  foreach (QCPAxis *axis, this->axisRect()->axes()) {
+  foreach (QCPAxis *axis, this->axisRect()->axes())
+  {
     axis->setTicker(map_ticker_);
     axis->setTickLength(0, 0);
     axis->setTickLabels(false);
@@ -42,14 +45,14 @@ void TrajectoryWidget::setupTrajectoryDemo() {
   legendFont.setPointSize(10);
   this->legend->setFont(legendFont);
   this->legend->setSelectedFont(legendFont);
-  this->legend->setSelectableParts(QCPLegend::spItems);  // legend box shall not be selectable, only legend items
+  this->legend->setSelectableParts(QCPLegend::spItems); // legend box shall not be selectable, only legend items
 
   // xy axis with same scale factor
   this->yAxis->setScaleRatio(this->xAxis, 1.0);
 
   addRandomGraph();
-  addRandomGraph();
-  addRandomGraph();
+  // addRandomGraph();
+  // addRandomGraph();
   // all_curve_["gnss"] = new QCPCurve(this->xAxis, this->yAxis);
   // all_curve_["gnss"]->setPen(QPen(QColor(255, 110, 40)));
   // all_curve_["gnss"]->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
@@ -62,7 +65,7 @@ void TrajectoryWidget::setupTrajectoryDemo() {
   step_text = new QCPItemText(this);
   step_text->position->setType(QCPItemPosition::ptAxisRectRatio);
   step_text->setPositionAlignment(Qt::AlignRight | Qt::AlignBottom);
-  step_text->position->setCoords(1.0, 0.95);  // lower right corner of axis rect
+  step_text->position->setCoords(1.0, 0.95); // lower right corner of axis rect
   step_text->setText("1 m");
   step_text->setTextAlignment(Qt::AlignLeft);
   step_text->setFont(QFont(font().family(), 9));
@@ -83,14 +86,15 @@ void TrajectoryWidget::setupTrajectoryDemo() {
 
   // setup a timer that repeatedly calls MainWindow::realtimeDataSlot:
   connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncData()));
-  dataTimer_.start(100);  // Interval 0 means to refresh as fast as possible
+  dataTimer_.start(100); // Interval 0 means to refresh as fast as possible
 
   // connect slot that shows a message in the status bar when a graph is clicked:
   connect(this, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *, int)));
 }
 
-void TrajectoryWidget::addRandomGraph() {
-  int n = 500000;  // number of points in graph
+void TrajectoryWidget::addRandomGraph()
+{
+  int n = 50; // number of points in graph
   double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
@@ -100,7 +104,8 @@ void TrajectoryWidget::addRandomGraph() {
   double r3 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
   double r4 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
   QVector<double> x(n), y(n);
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++)
+  {
     x[i] = (i / (double)n - 0.5) * 10.0 * xScale + xOffset;
     y[i] = (qSin(x[i] * r1 * 5) * qSin(qCos(x[i] * r2) * r4 * 3) + r3 * qCos(qSin(x[i]) * r4 * 2)) * yScale + yOffset;
   }
@@ -110,14 +115,15 @@ void TrajectoryWidget::addRandomGraph() {
   this->graph()->setName(QString("New graph %1").arg(this->graphCount() - 1));
   this->graph()->setData(x, y);
   this->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand() % 5 + 1));
-  if (std::rand() % 100 > 50) this->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand() % 14 + 1)));
+  if (std::rand() % 100 > 50)
+    this->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand() % 14 + 1)));
   QPen graphPen;
   graphPen.setColor(QColor(std::rand() % 245 + 10, std::rand() % 245 + 10, std::rand() % 245 + 10));
   graphPen.setWidthF(std::rand() / (double)RAND_MAX * 2 + 1);
   this->graph()->setPen(graphPen);
   this->replot();
 }
-QString TrajectoryWidget::StepString(double const step)  // 分辨率文字
+QString TrajectoryWidget::StepString(double const step) // 分辨率文字
 {
   QString label = "";
 
@@ -132,7 +138,8 @@ QString TrajectoryWidget::StepString(double const step)  // 分辨率文字
   return label;
 }
 
-void TrajectoryWidget::mouseWheel(QWheelEvent *event) {
+void TrajectoryWidget::mouseWheel(QWheelEvent *event)
+{
   double const step = map_ticker_->Step();
 
   // if (step < 1e-3 || step >= 2e4) {
@@ -144,7 +151,8 @@ void TrajectoryWidget::mouseWheel(QWheelEvent *event) {
   // qDebug() << " step = " << step;
 }
 
-void TrajectoryWidget::SyncData() {
+void TrajectoryWidget::SyncData()
+{
   // if (!this->isVisible()) {
   //   return;
   // }
@@ -167,7 +175,8 @@ void TrajectoryWidget::SyncData() {
   // this->replot();
 }
 
-void TrajectoryWidget::graphClicked(QCPAbstractPlottable *plottable, int dataIndex) {
+void TrajectoryWidget::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
+{
   // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
   // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
   double dataValue = plottable->interface1D()->dataMainValue(dataIndex);
@@ -175,31 +184,54 @@ void TrajectoryWidget::graphClicked(QCPAbstractPlottable *plottable, int dataInd
   qDebug() << " " << message;
 }
 
-void TrajectoryWidget::selectionChanged() {
+void TrajectoryWidget::selectionChanged()
+{
   // synchronize selection of graphs with selection of corresponding legend items:
-  for (int i = 0; i < this->graphCount(); ++i) {
+  for (int i = 0; i < this->graphCount(); ++i)
+  {
     QCPGraph *graph = this->graph(i);
     QCPPlottableLegendItem *item = this->legend->itemWithPlottable(graph);
-    if (item->selected() || graph->selected()) {
+    if (item->selected() || graph->selected())
+    {
       item->setSelected(true);
       //      graph->setSelection(QCPDataSelection(graph->data()->dataRange()));
     }
   }
 
-  for (auto [key, curve] : all_curve_) {
+  for (auto [key, curve] : all_curve_)
+  {
   }
 
   qDebug() << " selectionChanged ";
 }
 
-void TrajectoryWidget::keyPressEvent(QKeyEvent *event) {
-  if (event->key() == Qt::Key_S) {
-    if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect) {
+void TrajectoryWidget::keyPressEvent(QKeyEvent *event)
+{
+  if (event->key() == Qt::Key_S)
+  {
+    if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect)
+    {
       this->setSelectionRectMode(QCP::SelectionRectMode::srmNone);
       QWidget::setCursor(Qt::ArrowCursor);
-    } else {
+    }
+    else
+    {
       this->setSelectionRectMode(QCP::SelectionRectMode::srmSelect);
       QWidget::setCursor(Qt::CrossCursor);
     }
   }
+}
+
+void TrajectoryWidget::ChangeScatterShape(QCPScatterStyle::ScatterShape const type)
+{
+  this->graph()->setScatterStyle(type);
+  this->replot();
+  qDebug() << "scatter type = " << type <<" changed !";
+}
+
+void TrajectoryWidget::ChangeLineStyle(QCPGraph::LineStyle const type)
+{
+  this->graph()->setLineStyle(type);
+  this->replot();
+  qDebug() << "line type = " << type <<" changed !";
 }

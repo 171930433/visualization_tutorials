@@ -46,7 +46,7 @@ namespace zhito
 
     // Next come a couple of public Qt slots.
   public Q_SLOTS:
-
+    void Swap2Central(bool insert = false);
     // Here we declare some internal slots.
   protected Q_SLOTS:
 
