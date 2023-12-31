@@ -41,6 +41,8 @@
 
 class QLineEdit;
 class QCustomPlot;
+class DataTableDisplay;
+
 
 class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed
 {
@@ -220,9 +222,12 @@ namespace rviz_plugin_tutorials
 
     QCustomPlot *plot_;
     void setupTrajectoryDemo(QCustomPlot *customPlot);
-    
+
     DataTableWidget *data_table_;
     std::vector<MyStruct> datas_;
+
+    //
+    DataTableDisplay *raw_data_display_ = nullptr;
   };
 
 } // end namespace rviz_plugin_tutorials

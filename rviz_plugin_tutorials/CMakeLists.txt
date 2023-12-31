@@ -46,8 +46,10 @@ set(SRC_FILES
   src/grid_display2.cpp
   src/qcustomplot.cpp
 #  因为存在moc,所以需要包含头文件
-  src/data_table_widget.h
-  src/data_table_model
+  src/data_table_model.h
+  src/data_table_widget.cpp
+  src/data_table_display.cpp
+  src/data_table_panel.cpp
 )
 
 # # Header files

@@ -10,42 +10,73 @@
 #include "data_table_model.h"
 
 #include <string>
+#include <eigen3/Eigen/Dense>
 
 // 示例结构体
+
+enum class Color
+{
+    Red,
+    Green
+};
+
 struct MyStruct
 {
     int a;
     double b;
     std::string c;
+    Eigen::Vector3d acc_ = Eigen::Vector3d::Identity();
+    Color color_ = Color::Red;
 };
+Q_DECLARE_METATYPE(Eigen::Vector3d);
+Q_DECLARE_METATYPE(Color);
+BOOST_HANA_ADAPT_STRUCT(MyStruct, a, b, c, acc_, color_);
 
-BOOST_HANA_ADAPT_STRUCT(MyStruct, a, b, c);
+// 转换函数
+template <typename T, typename std::enable_if<!std::is_enum<T>::value, T>::type * = nullptr>
+inline QVariant convertToVariant(const T &value)
+{
+    return QVariant::fromValue(value);
+}
+
+// 特化对于 std::string 的转换
+template <>
+inline QVariant convertToVariant<std::string>(const std::string &value)
+{
+    return QVariant(QString::fromStdString(value));
+}
+
+// 特化对于 Eigen::Vector3d 的转换
+template <>
+inline QVariant convertToVariant<Eigen::Vector3d>(const Eigen::Vector3d &value)
+{
+    return QVariant(QString("%1 %2 %3").arg(value.x()).arg(value.y()).arg(value.z()));
+}
+
+// 通用的枚举到 QVariant 的转换函数
+template <typename T, typename = std::enable_if_t<std::is_enum<T>::value>>
+QVariant convertToEnumVariant(const T &value)
+{
+    return QVariant(static_cast<int>(value));
+}
+
+// 特化 convertToVariant 函数，用于所有枚举类型
+template <typename T>
+inline typename std::enable_if_t<std::is_enum<T>::value, QVariant>
+convertToVariant(const T &value)
+{
+    return convertToEnumVariant(value);
+}
+
+class DataTableDisplay;
+class TeleopPanel;
 
 class DataTableWidget : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit DataTableWidget(QWidget *parent = nullptr) : QWidget(parent)
-    {
-        mainTableView_ = new QTableView(this);
-        subTableView_ = new QTableView(this);
-
-        QVBoxLayout *layout = new QVBoxLayout(this);
-        layout->addWidget(mainTableView_);
-        layout->addWidget(subTableView_);
-
-        // 存在两份表格数据,需要优化
-        mainModel_ = new MyTableModel(this);
-        subModel_ = new MyTableModel(this);
-
-        mainTableView_->setModel(mainModel_);
-        subTableView_->setModel(subModel_);
-
-        // 连接信号和槽以同步主副表格
-        connect(mainTableView_->selectionModel(), &QItemSelectionModel::selectionChanged, [this](const QItemSelection &selected, const QItemSelection &deselected)
-                { this->OnMainSelectionChanged(selected, deselected); });
-    }
+    explicit DataTableWidget(QWidget *parent = nullptr);
 
     template <typename T>
     void setData(const std::vector<T> &newData)
@@ -57,6 +88,7 @@ public:
         boost::hana::for_each(boost::hana::keys(T{}), [&](auto key)
                               { headers << QString::fromStdString(boost::hana::to<char const *>(key)); });
 
+        qDebug() << " headers = " << headers;
         // 设置表头
         mainModel_->setHeaders(headers);
         subModel_->setHeaders(headers);
@@ -78,32 +110,21 @@ public:
         subModel_->setData(view_data_);
     }
 
-    void OnMainSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected)
-    {
-        if (selected.indexes().isEmpty())
-            return;
-
-        int currentRow = selected.indexes().first().row();
-        subModel_->UpdateStart(currentRow * mainModel_->gettDisplayInterval());
-        // 选中中间行
-        auto *selectionModel = subTableView_->selectionModel();
-        auto indexToSelect = subModel_->index(subModel_->getSubTableRange() / 2, 0);
-        selectionModel->select(indexToSelect, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
-        // 将选中的行滚动到视图的中间
-        subTableView_->scrollTo(indexToSelect, QAbstractItemView::PositionAtCenter);
-    }
-    void setMainInterval(int interval)
-    {
-        mainModel_->setDisplayInterval(interval);
-    }
-    void setSubRange(int range) { subModel_->setSubTableRange(range); }
-
+public slots:
+    void setMainInterval(int interval);
+    void setSubRange(int range);
+    void OnMainSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+private:
+    void Scrol2SubMiddle();
 private:
     QTableView *mainTableView_;
     QTableView *subTableView_;
     MyTableModel *mainModel_;
     MyTableModel *subModel_;
     QVector<QVector<QVariant>> view_data_; // 存储数据的二维数组,持有显示数据的资源
+
+    friend DataTableDisplay;
+    friend TeleopPanel;
 };
 
 #endif // DATATABLEWIDGET_H

@@ -10,20 +10,6 @@
 
 namespace hana = boost::hana;
 
-// 转换函数
-template <typename T>
-inline QVariant convertToVariant(const T &value)
-{
-    return QVariant::fromValue(value);
-}
-
-// 特化对于 std::string 的转换
-template <>
-inline QVariant convertToVariant<std::string>(const std::string &value)
-{
-    return QVariant(QString::fromStdString(value));
-}
-
 class MyTableModel : public QAbstractTableModel
 {
     Q_OBJECT
@@ -58,6 +44,8 @@ public:
     void setDisplayInterval(int interval)
     {
         interval_ = interval;
+        emit dataChanged(index(0, 0), index(rowCount(), columnCount()));
+        emit layoutChanged();
     }
     int gettDisplayInterval() const { return interval_; }
 
@@ -65,7 +53,9 @@ public:
     void setSubTableRange(int range)
     {
         range_ = range;
-        end_ = range_;
+        end_ = start_ + range_; // 子表设置完range后,显示行数即确定
+        emit dataChanged(index(0, 0), index(rowCount(), columnCount()));
+        emit layoutChanged();
     }
     int getSubTableRange() const { return (end_ - start_); }
     int rowCount(const QModelIndex &parent = QModelIndex()) const override
