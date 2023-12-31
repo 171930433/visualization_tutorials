@@ -1,4 +1,4 @@
-#include "data_table_widget.h"
+#include "data_table/data_table_widget.h"
 
 DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
 {

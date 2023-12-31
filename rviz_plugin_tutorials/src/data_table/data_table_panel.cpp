@@ -36,7 +36,7 @@
 #include <rviz/visualization_manager.h>
 #include <rviz/display_group.h>
 
-#include "data_table_display.h"
+#include "data_table/data_table_display.h"
 
 namespace rviz_plugin_tutorials
 {

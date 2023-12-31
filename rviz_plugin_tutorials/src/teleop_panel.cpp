@@ -50,7 +50,6 @@
 #include <rviz/display_group.h>
 
 // #include <rviz/default_plugin/grid_display.h>
-#include "data_table_display.h"
 
 namespace rviz_plugin_tutorials
 {
@@ -120,27 +119,13 @@ namespace rviz_plugin_tutorials
     output_topic_editor_ = new QLineEdit;
     topic_layout->addWidget(output_topic_editor_);
 
-    // Then create the control widget.
-    // drive_widget_ = new DriveWidget;
-
-    data_table_ = new DataTableWidget;
-    data_table_->setMainInterval(100);
-    data_table_->setSubRange(200);
-
-    // 构造数据
-    int count = 100 * 10000;
-    datas_.reserve(count);
-    for (int i = 0; i < count; ++i)
-    {
-      datas_.emplace_back(MyStruct{i, i * 1.0, std::to_string(2 * i), Eigen::Vector3d::Identity().array() + i});
-    }
-    data_table_->setData(datas_);
+  
 
     // Lay out the topic field above the control widget.
     QVBoxLayout *layout = new QVBoxLayout;
     layout->addLayout(topic_layout);
     // layout->addWidget(data_table_, 1);
-    layout->addWidget(data_table_, 1);
+    // layout->addWidget(data_table_, 1);
     setLayout(layout);
 
     // Create a timer for sending the output.  Motor controllers want to
@@ -168,14 +153,6 @@ namespace rviz_plugin_tutorials
 
   void TeleopPanel::onInitialize()
   {
-    //
-    // raw_data_display_ = vis_manager_->createDisplay("rviz/Grid", "DataGrid",true);
-    raw_data_display_ = new DataTableDisplay();
-    // 给view
-    raw_data_display_->setDataTableView(data_table_);
-    raw_data_display_->setName(QString("wodelaojia"));
-    vis_manager_->addDisplay(raw_data_display_,true);
-
     return;
     // 切换主窗口
     this->layout()->addWidget(vis_manager_->getRenderPanel());

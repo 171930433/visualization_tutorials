@@ -69,7 +69,6 @@ convertToVariant(const T &value)
 }
 
 class DataTableDisplay;
-class TeleopPanel;
 
 class DataTableWidget : public QWidget
 {
@@ -124,7 +123,6 @@ private:
     QVector<QVector<QVariant>> view_data_; // 存储数据的二维数组,持有显示数据的资源
 
     friend DataTableDisplay;
-    friend TeleopPanel;
 };
 
 #endif // DATATABLEWIDGET_H

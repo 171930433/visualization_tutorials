@@ -7,7 +7,10 @@ cmake_minimum_required(VERSION 3.0.2)
 project(rviz_plugin_tutorials)
 find_package(catkin REQUIRED COMPONENTS rviz)
 catkin_package()
-include_directories(${catkin_INCLUDE_DIRS})
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_LIST_DIR}/src
+)
 link_directories(${catkin_LIBRARY_DIRS})
 
 
@@ -46,10 +49,10 @@ set(SRC_FILES
   src/grid_display2.cpp
   src/qcustomplot.cpp
 #  因为存在moc,所以需要包含头文件
-  src/data_table_model.h
-  src/data_table_widget.cpp
-  src/data_table_display.cpp
-  src/data_table_panel.cpp
+  src/data_table/data_table_model.h
+  src/data_table/data_table_widget.cpp
+  src/data_table/data_table_display.cpp
+  src/data_table/data_table_panel.cpp
 )
 
 # # Header files

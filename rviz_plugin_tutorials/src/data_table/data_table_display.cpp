@@ -1,7 +1,7 @@
 #include "data_table_display.h"
 #include <rviz/properties/int_property.h>
 
-#include "data_table_widget.h"
+#include "data_table/data_table_widget.h"
 
 DataTableDisplay::DataTableDisplay()
 {
