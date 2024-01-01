@@ -38,5 +38,4 @@ public:
 protected:
   Type type_ = Type::None;
   QCPRange time_range_;     // 当前所有数据的范围
-  QCPRange selected_range_; // 当前感兴趣的范围
 };

@@ -69,15 +69,17 @@ convertToVariant(const T &value)
 }
 
 class DataTableDisplay;
-
+class DisplaySyncBase;
 class DataTableWidget : public QWidget, public ITimeSync
 {
     Q_OBJECT
 
 public:
     explicit DataTableWidget(QWidget *parent = nullptr);
-    void FocusPoint(double const t0) override;
-    void FouseRange(QCPRange const &time_range) override;
+
+    void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
+    DisplaySyncBase *getDisplaySync() override;
+
     template <typename T>
     void setData(const std::vector<T> &newData)
     {
@@ -115,6 +117,10 @@ public slots:
     void setSubRange(int range);
     void OnMainSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
+protected:
+    void FocusPoint(double const t0) override;
+    void FouseRange(QCPRange const &time_range) override;
+
 private:
     void Scrol2SubMiddle();
 
@@ -126,6 +132,7 @@ private:
     QVector<QVector<QVariant>> view_data_; // 存储数据的二维数组,持有显示数据的资源
 
     friend DataTableDisplay;
+    DisplaySyncBase *sync_display_ = nullptr;
 };
 
 #endif // DATATABLEWIDGET_H

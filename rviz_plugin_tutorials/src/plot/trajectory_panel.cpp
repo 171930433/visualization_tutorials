@@ -88,8 +88,10 @@ namespace zhito
     //
     // raw_data_display_ = vis_manager_->createDisplay("rviz/Grid", "DataGrid",true);
     raw_data_display_ = new TrajectoryDisplay();
-    // 给view
+    // !!!!!!! 需要一个manager类来做管理
     raw_data_display_->setView(plot_);
+    plot_->setDisplaySync(raw_data_display_);
+    //
     raw_data_display_->setPanel(this);
     raw_data_display_->setName(QString("Trajectory"));
     vis_manager_->addDisplay(raw_data_display_, true);

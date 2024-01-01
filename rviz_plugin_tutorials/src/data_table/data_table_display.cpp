@@ -9,6 +9,7 @@ DataTableDisplay::DataTableDisplay()
 DataTableDisplay::~DataTableDisplay()
 {
 }
+ITimeSync *DataTableDisplay::getView() { return view_; }
 
 // Overrides from Display
 void DataTableDisplay::onInitialize()

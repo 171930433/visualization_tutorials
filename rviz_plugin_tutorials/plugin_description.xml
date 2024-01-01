@@ -34,7 +34,7 @@
   </class>
   <!--  -->
   <class name="rviz_plugin_tutorials/TimeSync"
-         type="TimeSyncDisplay"
+         type="DisplaySyncManager"
          base_class_type="rviz::Display">
     <description>
       TimeSync.

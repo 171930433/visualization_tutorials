@@ -111,12 +111,14 @@ public:
   TrajectoryWidget(QWidget *parent = nullptr);
   void SyncDataAndView() override { SyncData(); }
   std::map<std::string, QCPCurve *> Curves() const { return all_curve_; }
-  void FocusPoint(double const t0) override;
-  void FouseRange(QCPRange const &time_range) override;
+  void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
+  DisplaySyncBase *getDisplaySync() override;
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
   void resizeEvent(QResizeEvent *event) override;
+  void FocusPoint(double const t0) override;
+  void FouseRange(QCPRange const &time_range) override;
 
 protected:
   void setupTrajectoryDemo();
@@ -132,6 +134,7 @@ private:
   QTimer dataTimer_;
   std::map<std::string, QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
+  DisplaySyncBase * sync_display_ = nullptr;
 private slots:
   void mouseWheel(QWheelEvent *);
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);

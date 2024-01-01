@@ -68,8 +68,10 @@ namespace rviz_plugin_tutorials
     //
     // raw_data_display_ = vis_manager_->createDisplay("rviz/Grid", "DataGrid",true);
     raw_data_display_ = new DataTableDisplay();
-    // 给view
-    raw_data_display_->setDataTableView(data_table_);
+    // !!!!!!!!!!!!!!!!!!
+    raw_data_display_->setView(data_table_);
+    data_table_->setDisplaySync(raw_data_display_);
+    //
     raw_data_display_->setName(QString("DataTable"));
     vis_manager_->addDisplay(raw_data_display_, true);
   }

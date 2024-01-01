@@ -60,6 +60,7 @@ set(SRC_FILES
   src/plot/trajectory_panel.cpp
   # sync
   src/time_sync.cpp
+  src/display_sync_base.cpp
 )
 
 # # Header files

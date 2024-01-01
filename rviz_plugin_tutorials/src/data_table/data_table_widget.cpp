@@ -1,5 +1,10 @@
 #include "data_table/data_table_widget.h"
 
+DisplaySyncBase *DataTableWidget::getDisplaySync()
+{
+  return sync_display_;
+}
+
 DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
 {
   // qRegisterMetaType<Eigen::Vector3d>("Vector3d");
@@ -44,6 +49,10 @@ void DataTableWidget::OnMainSelectionChanged(const QItemSelection &selected, con
   int currentRow = selected.indexes().first().row();
   subModel_->UpdateStart(currentRow * mainModel_->gettDisplayInterval());
   Scrol2SubMiddle();
+  // 获得时间索引
+  double t0_s = view_data_[currentRow * mainModel_->gettDisplayInterval()][0].toDouble();
+  // this->setPoint(t0_s);
+  this->onFocusPoint(t0_s, false);
 }
 
 void DataTableWidget::Scrol2SubMiddle()
@@ -60,7 +69,7 @@ void DataTableWidget::FocusPoint(double const t0)
 {
   // 1. 根据t0计算index
   auto it = std::lower_bound(view_data_.constBegin(), view_data_.constEnd(), QVariant(t0), [](QVector<QVariant> const &v1, QVariant const &v2)
-                                   { return v1[0] < v2; });
+                             { return v1[0] < v2; });
   // 主表focus
   double const index = std::distance(view_data_.constBegin(), it);
   int const main_focus_index = std::round(index / mainModel_->gettDisplayInterval());

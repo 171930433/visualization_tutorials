@@ -10,6 +10,8 @@
 // #include <rviz/properties/tf_frame_property.h>
 #include <rviz/display.h>
 
+#include "display_sync_base.h"
+
 namespace rviz
 {
     class IntProperty;
@@ -17,7 +19,7 @@ namespace rviz
 
 class DataTableWidget;
 
-class DataTableDisplay : public rviz::Display
+class DataTableDisplay : public DisplaySyncBase
 {
     Q_OBJECT
 public:
@@ -25,7 +27,8 @@ public:
     ~DataTableDisplay() override;
 
     // 需要在 Initialize 之前调用,以确定在onInitialize 绑定有效
-    void setDataTableView(DataTableWidget *view) { view_ = view; }
+    void setView(DataTableWidget *view) { view_ = view; }
+    ITimeSync *getView() override;
 
     // Overrides from Display
     void onInitialize() override;
@@ -34,6 +37,7 @@ public:
 private Q_SLOTS:
     void UpdateInterval();
     void UpdateRange();
+
 private:
     DataTableWidget *view_ = nullptr;
 

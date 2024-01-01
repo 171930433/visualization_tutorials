@@ -10,7 +10,7 @@
 // #include <rviz/properties/tf_frame_property.h>
 #include <rviz/display.h>
 
-#include "time_sync.h"
+#include "display_sync_base.h"
 
 namespace rviz
 {
@@ -45,7 +45,7 @@ protected:
   QCPCurve *graph_;
 };
 
-class TrajectoryDisplay : public rviz::Display, public DisplaySyncBase
+class TrajectoryDisplay : public DisplaySyncBase
 {
   Q_OBJECT
 public:
@@ -54,6 +54,7 @@ public:
 
   // 需要在 Initialize 之前调用,以确定在onInitialize 绑定有效
   void setView(TrajectoryWidget *view) { view_ = view; }
+  ITimeSync *getView() override;
   void setPanel(zhito::TrajectoryPanel *panel) { panel_ = panel; }
 
   // Overrides from Display

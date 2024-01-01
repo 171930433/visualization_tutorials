@@ -9,6 +9,11 @@
 // #include "cacher/cacher.hpp"
 // #include "cyber_message_filter_display.h"
 
+DisplaySyncBase *TrajectoryWidget::getDisplaySync()
+{
+  return sync_display_;
+}
+
 TrajectoryWidget::TrajectoryWidget(QWidget *parent) : PlotBase(parent)
 {
   type_ = Type::Trajectory;
@@ -314,11 +319,17 @@ void TrajectoryWidget::FocusPoint(double const t0)
   double const x = first_curve->dataMainKey(dataIndex);
   double const y = first_curve->dataMainValue(dataIndex);
 
-  QString const str = QString("t0 = %1, finded to_s = %1").arg(t0, 0, 'f', 3).arg(t0_s, 0, 'f', 3);
+  QString const str = QString("t0 = %1, finded to_s = %2").arg(t0, 0, 'f', 3).arg(t0_s, 0, 'f', 3);
   qDebug() << str;
 
   this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
   this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+
+  // 选中点
+  QCPDataRange index_range{dataIndex, dataIndex};
+  first_curve->setSelection(QCPDataSelection{index_range});
+
+  this->replot();
 }
 
 void TrajectoryWidget::FouseRange(QCPRange const &time_range)
