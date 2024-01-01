@@ -45,7 +45,7 @@ void GraphProperty::UpdateLineStyle()
   graph_->setLineStyle(type);
   graph_->parentPlot()->replot();
 }
-TrajectoryDisplay::TrajectoryDisplay()
+TrajectoryDisplay::TrajectoryDisplay() : DisplaySyncBase(this, this->view_)
 {
 }
 TrajectoryDisplay::~TrajectoryDisplay()
@@ -55,6 +55,7 @@ TrajectoryDisplay::~TrajectoryDisplay()
 // Overrides from Display
 void TrajectoryDisplay::onInitialize()
 {
+  DisplaySyncBase::onInitialize(context_);
   swap2central_ = new rviz::BoolProperty("Set in central", false, "swap the trajectory and render view", this, SLOT(Swap2Central()));
 }
 

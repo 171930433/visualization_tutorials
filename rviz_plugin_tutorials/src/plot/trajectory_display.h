@@ -10,6 +10,8 @@
 // #include <rviz/properties/tf_frame_property.h>
 #include <rviz/display.h>
 
+#include "time_sync.h"
+
 namespace rviz
 {
   class IntProperty;
@@ -43,7 +45,7 @@ protected:
   QCPCurve *graph_;
 };
 
-class TrajectoryDisplay : public rviz::Display
+class TrajectoryDisplay : public rviz::Display, public DisplaySyncBase
 {
   Q_OBJECT
 public:
