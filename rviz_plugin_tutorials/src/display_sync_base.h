@@ -32,8 +32,8 @@ Q_SIGNALS:
   void FocusPointChanged(double const t0);
   void FouseRangeChanged(QCPRange const &time_range);
 public Q_SLOTS:
-  void onFocusPoint(double const t0, bool update_view = true);
-  void onFouseRange(QCPRange const &time_range, bool update_view = true);
+  void onFocusPoint(double const t0, bool update_view = true, bool emit_signal = true);
+  void onFouseRange(QCPRange const &time_range, bool update_view = true, bool emit_signal = true);
 
 protected:
 public:
@@ -69,5 +69,6 @@ private:
   rviz::EnumProperty *sync_mode_ = nullptr;
   std::map<std::string, rviz::BoolProperty *> sync_properties_;
 
+  //! 同一个类型的display名称一致，使用名称做索引时需要注意
   std::map<std::string, DisplaySyncBase *> syncers_;
 };

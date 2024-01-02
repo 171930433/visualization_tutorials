@@ -16,7 +16,7 @@ DisplaySyncBase::~DisplaySyncBase()
 {
 }
 
-void DisplaySyncBase::onFocusPoint(double const t0, bool update_view)
+void DisplaySyncBase::onFocusPoint(double const t0, bool update_view, bool emit_signal)
 {
   qDebug() << this->getName() << "DisplaySyncBase::onFocusPoint" << QString("%1").arg(t0, 0, 'f', 3);
 
@@ -27,10 +27,13 @@ void DisplaySyncBase::onFocusPoint(double const t0, bool update_view)
     {
       getView()->FocusPoint(selected_t0_s_);
     }
-    Q_EMIT FocusPointChanged(t0);
+    if (emit_signal)
+    {
+      Q_EMIT FocusPointChanged(t0);
+    }
   }
 }
-void DisplaySyncBase::onFouseRange(QCPRange const &time_range, bool update_view)
+void DisplaySyncBase::onFouseRange(QCPRange const &time_range, bool update_view, bool emit_signal)
 {
   if (time_range != selected_range_)
   {
@@ -39,7 +42,10 @@ void DisplaySyncBase::onFouseRange(QCPRange const &time_range, bool update_view)
     {
       getView()->FouseRange(selected_range_);
     }
-    Q_EMIT FouseRangeChanged(selected_range_);
+    if (emit_signal)
+    {
+      Q_EMIT FouseRangeChanged(selected_range_);
+    }
   }
 }
 
@@ -104,7 +110,7 @@ void DisplaySyncManager::onFouseRangeChanged(QCPRange const &time_range)
 {
   for (auto [key, sync] : syncers_)
   {
-    sync->onFouseRange(time_range);
+    sync->onFouseRange(time_range, true, false);
   }
 }
 

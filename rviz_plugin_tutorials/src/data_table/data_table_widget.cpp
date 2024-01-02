@@ -52,7 +52,7 @@ void DataTableWidget::OnMainSelectionChanged(const QItemSelection &selected, con
   // 获得时间索引
   double t0_s = view_data_[currentRow * mainModel_->gettDisplayInterval()][0].toDouble();
   // this->setPoint(t0_s);
-  this->onFocusPoint(t0_s, false);
+  this->onFocusPoint(t0_s, false, true);
 }
 
 void DataTableWidget::Scrol2SubMiddle()
