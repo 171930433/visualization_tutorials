@@ -138,7 +138,7 @@ private:
 private slots:
   void mouseWheel(QWheelEvent *);
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
-  void selectionChanged();
+  void onSelectionChangedByUser();  // 相应用户的选择改变
 public slots:
   void SyncData();
   void ChangeScatterShape(QCPScatterStyle::ScatterShape const type);

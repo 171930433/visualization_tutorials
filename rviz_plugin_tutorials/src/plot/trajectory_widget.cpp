@@ -88,8 +88,8 @@ void TrajectoryWidget::setupTrajectoryDemo()
   // connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 
   // connect slot that ties some axis selections together (especially opposite axes):
-  connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(selectionChanged()));
-  // connect(this, SIGNAL(selectionChanged()), this, SLOT(selectionChanged()));
+  connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
+  // connect(this, SIGNAL(onSelectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
 
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel(QWheelEvent *)));
 
@@ -98,7 +98,7 @@ void TrajectoryWidget::setupTrajectoryDemo()
   dataTimer_.start(100); // Interval 0 means to refresh as fast as possible
 
   // connect slot that shows a message in the status bar when a graph is clicked:
-  connect(this, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *, int)));
+  // connect(this, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *, int)));
 }
 
 void TrajectoryWidget::addRandomTrajectory()
@@ -235,42 +235,63 @@ void TrajectoryWidget::graphClicked(QCPAbstractPlottable *plottable, int dataInd
   QString message = QString("Clicked on graph '%1' at data point #%2, t0=%5 x= %3 y = %4.").arg(plottable->name()).arg(dataIndex).arg(x).arg(y).arg(t0_s, 0, 'f', 3);
   qDebug() << " " << message;
 
-  FocusPoint(t0_s);
+  // FocusPoint(t0_s);
 }
 
-void TrajectoryWidget::selectionChanged()
+void TrajectoryWidget::onSelectionChangedByUser()
 {
   // synchronize selection of graphs with selection of corresponding legend items:
-  for (int i = 0; i < this->graphCount(); ++i)
-  {
-    QCPGraph *graph = this->graph(i);
-    QCPPlottableLegendItem *item = this->legend->itemWithPlottable(graph);
-    if (item->selected() || graph->selected())
-    {
-      item->setSelected(true);
-      //      graph->setSelection(QCPDataSelection(graph->data()->dataRange()));
-    }
-  }
+  // for (int i = 0; i < this->graphCount(); ++i)
+  // {
+  //   QCPGraph *graph = this->graph(i);
+  //   QCPPlottableLegendItem *item = this->legend->itemWithPlottable(graph);
+  //   if (item->selected() || graph->selected())
+  //   {
+  //     item->setSelected(true);
+  //     //      graph->setSelection(QCPDataSelection(graph->data()->dataRange()));
+  //   }
+  // }
+  qDebug() << " onSelectionChangedByUser begin";
 
   auto *first_curve = all_curve_.begin()->second;
   for (auto [key, curve] : all_curve_)
   {
+    if (curve->selection().isEmpty())
+    {
+      continue;
+    }
     auto const &range = curve->selection().dataRange();
     if (!range.isEmpty())
     {
       double const start = curve->dataSortKey(range.begin());
       double const end = curve->dataSortKey(range.end());
+
       QString str = QString("%1 selected %2 points, t0_s in range [%3,%4]").arg(curve->name()).arg(curve->selection().dataPointCount()).arg(start, 0, 'f', 3).arg(end, 0, 'f', 3);
       qDebug() << str;
 
+      // 选中点居中
       if (curve == first_curve)
       {
-        FouseRange(QCPRange{start, end});
+        double const x = first_curve->dataMainKey(range.begin());
+        double const y = first_curve->dataMainValue(range.begin());
+
+        this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
+        this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+        // FouseRange(QCPRange{start, end});
+        this->replot();
+
+        if (range.size() == 1)
+        {
+          this->onFocusPoint(start, false, true);
+        }
+        else
+        {
+        }
       }
     }
   }
 
-  qDebug() << " selectionChanged ";
+  qDebug() << " onSelectionChangedByUser end";
 }
 
 void TrajectoryWidget::keyPressEvent(QKeyEvent *event)
@@ -331,7 +352,7 @@ void TrajectoryWidget::FocusPoint(double const t0)
   first_curve->setSelection(QCPDataSelection{index_range});
 
   // 当前选中点以改变消息发出
-  this->onFocusPoint(t0, false, true);
+  // this->onFocusPoint(t0, false, true);
 
   this->replot();
 }

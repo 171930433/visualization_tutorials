@@ -18,9 +18,9 @@ DisplaySyncBase::~DisplaySyncBase()
 
 void DisplaySyncBase::onFocusPoint(double const t0, bool update_view, bool emit_signal)
 {
-  qDebug() << this->getName() << "DisplaySyncBase::onFocusPoint" << QString("%1").arg(t0, 0, 'f', 3);
-
-  if (t0 != selected_t0_s_)
+  qDebug() << this->getName() << "DisplaySyncBase::onFocusPoint" << QString("%1").arg(t0, 0, 'f', 3) << QString("update_view=%1 emit_signal=%2").arg(update_view).arg(emit_signal);
+  qDebug() << QString("t0=%1 selected_t0_s_=%2 thesame=%3").arg(t0, 0, 'f', 3).arg(selected_t0_s_, 0, 'f', 3).arg(std::abs(t0 != selected_t0_s_) <= 1e-6);
+  if (std::abs(t0 - selected_t0_s_) >= 1e-6)
   {
     selected_t0_s_ = t0;
     if (update_view)
@@ -99,12 +99,13 @@ void DisplaySyncManager::onDisplayAdded(rviz::Display *display)
 
 void DisplaySyncManager::onFocusPointChanged(double const t0)
 {
-  qDebug() << "DisplaySyncManager::onFocusPointChanged" << QString("%1").arg(t0, 0, 'f', 3);
+  qDebug() << "begin----------------DisplaySyncManager::onFocusPointChanged" << QString("%1").arg(t0, 0, 'f', 3);
 
   for (auto [key, sync] : syncers_)
   {
-    sync->onFocusPoint(t0);
+    sync->onFocusPoint(t0, true, false);
   }
+  qDebug() << "end-------------------DisplaySyncManager::onFocusPointChanged" << QString("%1").arg(t0, 0, 'f', 3);
 }
 void DisplaySyncManager::onFouseRangeChanged(QCPRange const &time_range)
 {

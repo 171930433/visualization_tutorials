@@ -87,7 +87,7 @@ void DataTableWidget::FocusPoint(double const t0)
 
 
   qDebug() << QString(" main to %1, sub to %2 ").arg(main_focus_index).arg(sub_focus_index);
-  this->onFocusPoint(t0, true, false);
+  // this->onFocusPoint(t0, true, false);
 }
 
 void DataTableWidget::FouseRange(QCPRange const &time_range)
