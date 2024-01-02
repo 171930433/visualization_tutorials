@@ -116,6 +116,7 @@ public slots:
     void setMainInterval(int interval);
     void setSubRange(int range);
     void OnMainSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+    void OnSubSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
 protected:
     void FocusPoint(double const t0) override;
