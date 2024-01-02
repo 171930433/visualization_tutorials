@@ -19,7 +19,7 @@ DisplaySyncBase::~DisplaySyncBase()
 void DisplaySyncBase::onFocusPoint(double const t0, bool update_view, bool emit_signal)
 {
   qDebug() << this->getName() << "DisplaySyncBase::onFocusPoint" << QString("%1").arg(t0, 0, 'f', 3) << QString("update_view=%1 emit_signal=%2").arg(update_view).arg(emit_signal);
-  qDebug() << QString("t0=%1 selected_t0_s_=%2 thesame=%3").arg(t0, 0, 'f', 3).arg(selected_t0_s_, 0, 'f', 3).arg(std::abs(t0 != selected_t0_s_) <= 1e-6);
+  qDebug() << QString("t0=%1 selected_t0_s_=%2 thesame=%3 == %4").arg(t0, 0, 'f', 3).arg(selected_t0_s_, 0, 'f', 3).arg(std::abs(t0 - selected_t0_s_) >= 1e-6).arg(t0 != selected_t0_s_);
   if (std::abs(t0 - selected_t0_s_) >= 1e-6)
   {
     selected_t0_s_ = t0;

@@ -333,23 +333,30 @@ void TrajectoryWidget::ChangeLineStyle(QCPGraph::LineStyle const type)
 
 void TrajectoryWidget::FocusPoint(double const t0)
 {
-  // 1. 先检查所有的数据区间是否包含待查找点
   auto *first_curve = all_curve_.begin()->second;
-  auto const dataIndex = first_curve->findBegin(t0, true) + 1;
 
-  double const t0_s = first_curve->dataSortKey(dataIndex);
-  double const x = first_curve->dataMainKey(dataIndex);
-  double const y = first_curve->dataMainValue(dataIndex);
+  for (auto [key, curve] : all_curve_)
+  {
+    // 1. 先检查所有的数据区间是否包含待查找点
+    auto const dataIndex = curve->findBegin(t0, true) + 1;
 
-  QString const str = QString("t0 = %1, finded to_s = %2").arg(t0, 0, 'f', 3).arg(t0_s, 0, 'f', 3);
-  qDebug() << str;
+    double const t0_s = curve->dataSortKey(dataIndex);
+    double const x = curve->dataMainKey(dataIndex);
+    double const y = curve->dataMainValue(dataIndex);
 
-  this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
-  this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+    QString const str = QString("t0 = %1, finded to_s = %2").arg(t0, 0, 'f', 3).arg(t0_s, 0, 'f', 3);
+    qDebug() << str;
 
-  // 选中点
-  QCPDataRange index_range{dataIndex, dataIndex + 1};
-  first_curve->setSelection(QCPDataSelection{index_range});
+    // 选中点
+    QCPDataRange index_range{dataIndex, dataIndex + 1};
+    curve->setSelection(QCPDataSelection{index_range});
+    // 该点剧中
+    if (curve == first_curve)
+    {
+      this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
+      this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+    }
+  }
 
   // 当前选中点以改变消息发出
   // this->onFocusPoint(t0, false, true);
@@ -359,19 +366,38 @@ void TrajectoryWidget::FocusPoint(double const t0)
 
 void TrajectoryWidget::FouseRange(QCPRange const &time_range)
 {
-  // 1. 先检查所有的数据区间是否包含待查找区间
-  double const t0_s = time_range.center();
-  FocusPoint(t0_s);
-  // 2. 选中待选择点
+
+  qDebug() << " TrajectoryWidget::FouseRange called";
+
   auto *first_curve = all_curve_.begin()->second;
-  auto const start_Index = first_curve->findBegin(time_range.lower);
-  auto const end_Index = first_curve->findBegin(time_range.upper);
-  // 3. 清空原先选中的点
-  auto const selected = first_curve->selection();
-  QString str1 = QString("origin [%1,%2]").arg(selected.dataRange().begin()).arg(selected.dataRange().end());
-  qDebug() << str1;
-  QCPDataRange index_range{start_Index, end_Index};
-  first_curve->setSelection(QCPDataSelection{index_range});
-  QString str2 = QString("after [%1,%2]").arg(start_Index).arg(end_Index);
-  qDebug() << str2;
+
+  for (auto [key, curve] : all_curve_)
+  {
+    // 1. 先检查所有的数据区间是否包含待查找点
+    auto const si = curve->findBegin(time_range.lower, true) + 1; // start index
+    auto const ei = curve->findBegin(time_range.upper, true) + 1; // end index
+
+    double const t0_s_s = curve->dataSortKey(si);
+    double const t0_s_e = curve->dataSortKey(ei);
+    double const x = curve->dataMainKey(si);
+    double const y = curve->dataMainValue(si);
+
+    QString const str = QString("t0 = %1, finded range = [%2,%3]").arg(t0_s_s, 0, 'f', 3).arg(t0_s_s, 0, 'f', 3).arg(t0_s_e, 0, 'f', 3);
+    qDebug() << str;
+
+    // 选中点
+    QCPDataRange index_range{si, ei + 1};
+    curve->setSelection(QCPDataSelection{index_range});
+    // 起点剧中
+    if (curve == first_curve)
+    {
+      this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
+      this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+    }
+  }
+
+  // 当前选中点以改变消息发出
+  // this->onFocusPoint(t0, false, true);
+
+  this->replot();
 }
