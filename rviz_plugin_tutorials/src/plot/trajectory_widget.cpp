@@ -263,8 +263,6 @@ void TrajectoryWidget::selectionChanged()
       QString str = QString("%1 selected %2 points, t0_s in range [%3,%4]").arg(curve->name()).arg(curve->selection().dataPointCount()).arg(start, 0, 'f', 3).arg(end, 0, 'f', 3);
       qDebug() << str;
 
-      
-
       if (curve == first_curve)
       {
         FouseRange(QCPRange{start, end});
@@ -316,7 +314,7 @@ void TrajectoryWidget::FocusPoint(double const t0)
 {
   // 1. 先检查所有的数据区间是否包含待查找点
   auto *first_curve = all_curve_.begin()->second;
-  auto const dataIndex = first_curve->findBegin(t0, true)+1;
+  auto const dataIndex = first_curve->findBegin(t0, true) + 1;
 
   double const t0_s = first_curve->dataSortKey(dataIndex);
   double const x = first_curve->dataMainKey(dataIndex);
@@ -331,6 +329,9 @@ void TrajectoryWidget::FocusPoint(double const t0)
   // 选中点
   QCPDataRange index_range{dataIndex, dataIndex + 1};
   first_curve->setSelection(QCPDataSelection{index_range});
+
+  // 当前选中点以改变消息发出
+  this->onFocusPoint(t0, false, true);
 
   this->replot();
 }
