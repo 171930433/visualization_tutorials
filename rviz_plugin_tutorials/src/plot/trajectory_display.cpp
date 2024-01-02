@@ -13,12 +13,26 @@ GraphProperty::GraphProperty(QCPCurve *graph, Property *parent)
   setDisableChildrenIfFalse(true);
   connect(this, SIGNAL(changed()), this, SLOT(UpdateEnable()));
 
-  scatter_type_ = new rviz::EnumProperty("Point type", "Cross", "the point type of trajectory", this, SLOT(UpdateScatterShape()));
-  scatter_type_->addOption("Circle", QCPScatterStyle::ScatterShape::ssCircle);
-  scatter_type_->addOption("Cross", QCPScatterStyle::ScatterShape::ssCross);
-  scatter_type_->addOption("CrossCircle", QCPScatterStyle::ScatterShape::ssCrossCircle);
-  scatter_type_->addOption("CrossSquare", QCPScatterStyle::ScatterShape::ssCrossSquare);
-  scatter_type_->addOption("Diamond", QCPScatterStyle::ScatterShape::ssDiamond);
+  scatter_type_ = new rviz::EnumProperty("Point type", "None", "the point type of trajectory", this, SLOT(UpdateScatterShape()));
+  scatter_type_->addOption("None", QCPScatterStyle::ScatterShape::ssNone);
+  scatter_type_->addOption("ssDot", QCPScatterStyle::ScatterShape::ssDot);
+  scatter_type_->addOption("ssCross", QCPScatterStyle::ScatterShape::ssCross);
+  scatter_type_->addOption("ssPlus", QCPScatterStyle::ScatterShape::ssPlus);
+  scatter_type_->addOption("ssCircle", QCPScatterStyle::ScatterShape::ssCircle);
+  scatter_type_->addOption("ssDisc", QCPScatterStyle::ScatterShape::ssDisc);
+  scatter_type_->addOption("ssSquare", QCPScatterStyle::ScatterShape::ssSquare);
+  scatter_type_->addOption("ssDiamond", QCPScatterStyle::ScatterShape::ssDiamond);
+  scatter_type_->addOption("ssStar", QCPScatterStyle::ScatterShape::ssStar);
+  scatter_type_->addOption("ssTriangle", QCPScatterStyle::ScatterShape::ssTriangle);
+  // scatter_type_->addOption("ssTriangleInverted", QCPScatterStyle::ScatterShape::ssTriangleInverted);
+  // scatter_type_->addOption("ssCrossSquare", QCPScatterStyle::ScatterShape::ssCrossSquare);
+  // scatter_type_->addOption("ssPlusSquare", QCPScatterStyle::ScatterShape::ssPlusSquare);
+  // scatter_type_->addOption("ssCrossCircle", QCPScatterStyle::ScatterShape::ssCrossCircle);
+  // scatter_type_->addOption("ssPlusCircle", QCPScatterStyle::ScatterShape::ssPlusCircle);
+  // scatter_type_->addOption("ssPeace", QCPScatterStyle::ScatterShape::ssPeace);
+  // scatter_type_->addOption("ssPixmap", QCPScatterStyle::ScatterShape::ssPixmap);
+  // scatter_type_->addOption("ssCustom", QCPScatterStyle::ScatterShape::ssCustom);
+
 
   line_type_ = new rviz::EnumProperty("line type", "Line", "the line type of trajectory", this, SLOT(UpdateLineStyle()));
   line_type_->addOption("None", QCPCurve::LineStyle::lsNone);

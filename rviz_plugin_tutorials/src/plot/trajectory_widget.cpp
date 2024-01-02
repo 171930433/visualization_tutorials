@@ -103,7 +103,7 @@ void TrajectoryWidget::setupTrajectoryDemo()
 
 void TrajectoryWidget::addRandomTrajectory()
 {
-  int n = 1 * 1000; // number of points in graph
+  int n = 100 * 1000; // number of points in graph
   double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
@@ -122,7 +122,7 @@ void TrajectoryWidget::addRandomTrajectory()
 
   QCPCurve *frame = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
   frame->setName(QString("curve-%1").arg(all_curve_.size()));
-  frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
+  frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssNone);
   frame->setLineStyle(QCPCurve::LineStyle::lsLine);
   frame->setSelectable(QCP::stDataRange);
   frame->setData(time_index, x, y);
