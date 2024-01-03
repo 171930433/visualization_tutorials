@@ -88,8 +88,8 @@ void DisplaySyncManager::onDisplayAdded(rviz::Display *display)
     return;
   }
 
-  syncers_[sync_one->getName().toStdString()] = sync_one;
-  sync_properties_[sync_one->getName().toStdString()] = new rviz::BoolProperty(sync_one->getName(), true, "sync options", this);
+  syncers_.push_back(sync_one);
+  sync_properties_[sync_one] = new rviz::BoolProperty(sync_one->getName(), true, "sync options", this);
   // 消息绑定
   connect(sync_one, SIGNAL(FocusPointChanged(double const)), this, SLOT(onFocusPointChanged(double const)));
   connect(sync_one, SIGNAL(FouseRangeChanged(QCPRange const &)), this, SLOT(onFouseRangeChanged(QCPRange const &)));
@@ -101,7 +101,7 @@ void DisplaySyncManager::onFocusPointChanged(double const t0)
 {
   qDebug() << "begin----------------DisplaySyncManager::onFocusPointChanged" << QString("%1").arg(t0, 0, 'f', 3);
 
-  for (auto [key, sync] : syncers_)
+  for (auto sync : syncers_)
   {
     sync->onFocusPoint(t0, true, false);
   }
@@ -109,7 +109,7 @@ void DisplaySyncManager::onFocusPointChanged(double const t0)
 }
 void DisplaySyncManager::onFouseRangeChanged(QCPRange const &time_range)
 {
-  for (auto [key, sync] : syncers_)
+  for (auto sync : syncers_)
   {
     sync->onFouseRange(time_range, true, false);
   }
@@ -123,8 +123,10 @@ void DisplaySyncManager::onDisplayRemoved(rviz::Display *display)
     return;
   }
 
-  syncers_.erase(sync_one->getName().toStdString());
-  sync_properties_.erase(sync_one->getName().toStdString());
+  syncers_.remove(sync_one);
+  // 删除当前display
+  this->takeChild(sync_properties_[sync_one]);
+  sync_properties_.erase(sync_one);
 }
 
 #include <pluginlib/class_list_macros.h>

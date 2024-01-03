@@ -7,17 +7,11 @@
 #endif
 
 #include <memory>
-#include "plot/plot_base.h"
-
-class QLineEdit;
-class QComboBox;
-class QVBoxLayout;
-class QCustomPlot;
-class QCPAxisRect;
-class PlotBase;
+// #include "plot/plot_base.h"
 
 class TrajectoryWidget;
 class TrajectoryDisplay;
+
 namespace zhito
 {
   // namespace lm {
@@ -32,7 +26,7 @@ namespace zhito
     Q_OBJECT
   public:
     TrajectoryPanel(QWidget *parent = 0);
-    ~TrajectoryPanel();
+    ~TrajectoryPanel() override;
 
     void UpdateView();
 

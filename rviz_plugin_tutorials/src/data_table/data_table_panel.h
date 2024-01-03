@@ -21,6 +21,7 @@ namespace rviz_plugin_tutorials
     Q_OBJECT
   public:
     DataTablePanel(QWidget *parent = 0);
+    ~DataTablePanel() override;
 
     void onInitialize() override;
     // Now we declare overrides of rviz::Panel functions for saving and
@@ -36,7 +37,6 @@ namespace rviz_plugin_tutorials
   protected Q_SLOTS:
 
   protected:
-
     DataTableWidget *data_table_;
     std::vector<MyStruct> datas_;
 
@@ -45,4 +45,3 @@ namespace rviz_plugin_tutorials
   };
 
 } // end namespace rviz_plugin_tutorials
-

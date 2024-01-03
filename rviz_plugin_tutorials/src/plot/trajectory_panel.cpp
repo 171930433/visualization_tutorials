@@ -46,12 +46,15 @@
 #include <rviz/render_panel.h>
 #include <rviz/visualization_frame.h>
 #include <rviz/window_manager_interface.h>
+#include <rviz/display_group.h>
+
 
 namespace zhito
 {
 
   TrajectoryPanel::~TrajectoryPanel()
   {
+    vis_manager_->getRootDisplayGroup()->takeDisplay(raw_data_display_);
   }
 
   void TrajectoryPanel::UpdateView()

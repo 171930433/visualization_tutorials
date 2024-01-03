@@ -41,6 +41,11 @@
 namespace rviz_plugin_tutorials
 {
 
+  DataTablePanel::~DataTablePanel()
+  {
+    vis_manager_->getRootDisplayGroup()->takeDisplay(raw_data_display_);
+  }
+
   DataTablePanel::DataTablePanel(QWidget *parent)
       : rviz::Panel(parent)
   {

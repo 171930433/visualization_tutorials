@@ -67,8 +67,8 @@ private Q_SLOTS:
 
 private:
   rviz::EnumProperty *sync_mode_ = nullptr;
-  std::map<std::string, rviz::BoolProperty *> sync_properties_;
 
   //! 同一个类型的display名称一致，使用名称做索引时需要注意
-  std::map<std::string, DisplaySyncBase *> syncers_;
+  std::list<DisplaySyncBase *> syncers_;
+  std::map<DisplaySyncBase *, rviz::BoolProperty *> sync_properties_;
 };
