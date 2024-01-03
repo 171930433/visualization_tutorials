@@ -114,6 +114,9 @@ public:
   void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
   DisplaySyncBase *getDisplaySync() override;
 
+public:
+  void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
+
 protected:
   void keyPressEvent(QKeyEvent *event) override;
   void resizeEvent(QResizeEvent *event) override;
@@ -134,11 +137,13 @@ private:
   QTimer dataTimer_;
   std::map<std::string, QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
-  DisplaySyncBase * sync_display_ = nullptr;
+  DisplaySyncBase *sync_display_ = nullptr;
+  bool focus_when_select_ = true;
+  void FoucuPositionByIndex(QCPCurve * curve, int const dataIndex);
 private slots:
   void mouseWheel(QWheelEvent *);
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
-  void onSelectionChangedByUser();  // 相应用户的选择改变
+  void onSelectionChangedByUser(); // 相应用户的选择改变
 public slots:
   void SyncData();
   void ChangeScatterShape(QCPScatterStyle::ScatterShape const type);

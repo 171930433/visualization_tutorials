@@ -61,6 +61,7 @@ set(SRC_FILES
   # sync
   src/time_sync.cpp
   src/display_sync_base.cpp
+  src/time_sync_tool.cpp
 )
 
 # # Header files

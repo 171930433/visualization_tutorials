@@ -103,7 +103,7 @@ void TrajectoryWidget::setupTrajectoryDemo()
 
 void TrajectoryWidget::addRandomTrajectory()
 {
-  int n = 100 * 1000; // number of points in graph
+  int n = 1 * 1000; // number of points in graph
   double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
@@ -264,21 +264,25 @@ void TrajectoryWidget::onSelectionChangedByUser()
     if (!range.isEmpty())
     {
       double const start = curve->dataSortKey(range.begin());
-      double const end = curve->dataSortKey(range.end());
+      // double const end = curve->dataSortKey(range.end());
 
-      QString str = QString("%1 selected %2 points, t0_s in range [%3,%4]").arg(curve->name()).arg(curve->selection().dataPointCount()).arg(start, 0, 'f', 3).arg(end, 0, 'f', 3);
-      qDebug() << str;
+      // QString str = QString("%1 selected %2 points, t0_s in range [%3,%4]").arg(curve->name()).arg(curve->selection().dataPointCount()).arg(start, 0, 'f', 3).arg(end, 0, 'f', 3);
+      // qDebug() << str;
 
       // 选中点居中
       if (curve == first_curve)
       {
-        double const x = first_curve->dataMainKey(range.begin());
-        double const y = first_curve->dataMainValue(range.begin());
+        // double const x = first_curve->dataMainKey(range.begin());
+        // double const y = first_curve->dataMainValue(range.begin());
 
-        this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
-        this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+        // this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
+        // this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
         // FouseRange(QCPRange{start, end});
-        this->replot();
+
+        if (focus_when_select_)
+        {
+          FoucuPositionByIndex(curve, range.begin());
+        }
 
         if (range.size() == 1)
         {
@@ -291,6 +295,7 @@ void TrajectoryWidget::onSelectionChangedByUser()
     }
   }
 
+  this->replot();
   qDebug() << " onSelectionChangedByUser end";
 }
 
@@ -340,12 +345,12 @@ void TrajectoryWidget::FocusPoint(double const t0)
     // 1. 先检查所有的数据区间是否包含待查找点
     auto const dataIndex = curve->findBegin(t0, true) + 1;
 
-    double const t0_s = curve->dataSortKey(dataIndex);
-    double const x = curve->dataMainKey(dataIndex);
-    double const y = curve->dataMainValue(dataIndex);
+    // double const t0_s = curve->dataSortKey(dataIndex);
+    // double const x = curve->dataMainKey(dataIndex);
+    // double const y = curve->dataMainValue(dataIndex);
 
-    QString const str = QString("t0 = %1, finded to_s = %2").arg(t0, 0, 'f', 3).arg(t0_s, 0, 'f', 3);
-    qDebug() << str;
+    // QString const str = QString("t0 = %1, finded to_s = %2").arg(t0, 0, 'f', 3).arg(t0_s, 0, 'f', 3);
+    // qDebug() << str;
 
     // 选中点
     QCPDataRange index_range{dataIndex, dataIndex + 1};
@@ -353,8 +358,10 @@ void TrajectoryWidget::FocusPoint(double const t0)
     // 该点剧中
     if (curve == first_curve)
     {
-      this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
-      this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+      if (focus_when_select_)
+      {
+        FoucuPositionByIndex(curve, dataIndex);
+      }
     }
   }
 
@@ -377,13 +384,13 @@ void TrajectoryWidget::FouseRange(QCPRange const &time_range)
     auto const si = curve->findBegin(time_range.lower, true) + 1; // start index
     auto const ei = curve->findBegin(time_range.upper, true) + 1; // end index
 
-    double const t0_s_s = curve->dataSortKey(si);
-    double const t0_s_e = curve->dataSortKey(ei);
-    double const x = curve->dataMainKey(si);
-    double const y = curve->dataMainValue(si);
+    // double const t0_s_s = curve->dataSortKey(si);
+    // double const t0_s_e = curve->dataSortKey(ei);
+    // double const x = curve->dataMainKey(si);
+    // double const y = curve->dataMainValue(si);
 
-    QString const str = QString("t0 = %1, finded range = [%2,%3]").arg(t0_s_s, 0, 'f', 3).arg(t0_s_s, 0, 'f', 3).arg(t0_s_e, 0, 'f', 3);
-    qDebug() << str;
+    // QString const str = QString("t0 = %1, finded range = [%2,%3]").arg(t0_s_s, 0, 'f', 3).arg(t0_s_s, 0, 'f', 3).arg(t0_s_e, 0, 'f', 3);
+    // qDebug() << str;
 
     // 选中点
     QCPDataRange index_range{si, ei + 1};
@@ -391,8 +398,10 @@ void TrajectoryWidget::FouseRange(QCPRange const &time_range)
     // 起点剧中
     if (curve == first_curve)
     {
-      this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
-      this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+      if (focus_when_select_)
+      {
+        FoucuPositionByIndex(curve, si);
+      }
     }
   }
 
@@ -400,4 +409,15 @@ void TrajectoryWidget::FouseRange(QCPRange const &time_range)
   // this->onFocusPoint(t0, false, true);
 
   this->replot();
+}
+
+void TrajectoryWidget::FoucuPositionByIndex(QCPCurve *curve, int const dataIndex)
+{
+  double const x = curve->dataMainKey(dataIndex);
+  double const y = curve->dataMainValue(dataIndex);
+
+  this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
+  this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+
+  // this->replot();
 }

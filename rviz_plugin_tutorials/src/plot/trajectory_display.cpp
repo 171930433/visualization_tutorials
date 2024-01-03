@@ -33,7 +33,6 @@ GraphProperty::GraphProperty(QCPCurve *graph, Property *parent)
   // scatter_type_->addOption("ssPixmap", QCPScatterStyle::ScatterShape::ssPixmap);
   // scatter_type_->addOption("ssCustom", QCPScatterStyle::ScatterShape::ssCustom);
 
-
   line_type_ = new rviz::EnumProperty("line type", "Line", "the line type of trajectory", this, SLOT(UpdateLineStyle()));
   line_type_->addOption("None", QCPCurve::LineStyle::lsNone);
   line_type_->addOption("Line", QCPCurve::LineStyle::lsLine);
@@ -71,6 +70,7 @@ ITimeSync *TrajectoryDisplay::getView() { return view_; }
 void TrajectoryDisplay::onInitialize()
 {
   swap2central_ = new rviz::BoolProperty("Set in central", false, "swap the trajectory and render view", this, SLOT(Swap2Central()));
+  focus_when_select_ = new rviz::BoolProperty("foucs when select", true, "focus the selected points", this, SLOT(UpdateFocusWhenSelect()));
 }
 
 void TrajectoryDisplay::update(float dt, float ros_dt)
@@ -93,4 +93,9 @@ void TrajectoryDisplay::update(float dt, float ros_dt)
 void TrajectoryDisplay::Swap2Central()
 {
   panel_->Swap2Central(swap2central_->getBool());
+}
+
+void TrajectoryDisplay::UpdateFocusWhenSelect()
+{
+  view_->setFocusWhenSelect(focus_when_select_->getBool());
 }

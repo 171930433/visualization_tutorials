@@ -65,6 +65,7 @@ private Q_SLOTS:
   void UpdateScatterShape();
   void UpdateLineStyle();
   void Swap2Central(); // 将当前视图放置在central widget位置
+  void UpdateFocusWhenSelect(); // 将当前视图放置在central widget位置
 
 private:
   TrajectoryWidget *view_ = nullptr;
@@ -73,6 +74,7 @@ private:
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;
   rviz::BoolProperty *swap2central_ = nullptr;
+  rviz::BoolProperty *focus_when_select_ = nullptr; // 选中时居中
 
   std::map<std::string, GraphProperty *> graphs_;
 };
