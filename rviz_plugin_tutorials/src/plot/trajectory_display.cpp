@@ -2,6 +2,7 @@
 #include <rviz/properties/int_property.h>
 #include <rviz/properties/enum_property.h>
 #include <rviz/properties/bool_property.h>
+#include <rviz/visualization_manager.h>
 
 #include "plot/trajectory_widget.h"
 #include "plot/trajectory_panel.h"
@@ -60,9 +61,16 @@ void GraphProperty::UpdateLineStyle()
 }
 TrajectoryDisplay::TrajectoryDisplay()
 {
+  panel_ = new zhito::TrajectoryPanel();
+  view_ = panel_->getView();
+  view_->setDisplaySync(this);
 }
 TrajectoryDisplay::~TrajectoryDisplay()
 {
+  if (initialized())
+  {
+    delete panel_;
+  }
 }
 ITimeSync *TrajectoryDisplay::getView() { return view_; }
 
@@ -71,6 +79,9 @@ void TrajectoryDisplay::onInitialize()
 {
   swap2central_ = new rviz::BoolProperty("Set in central", false, "swap the trajectory and render view", this, SLOT(Swap2Central()));
   focus_when_select_ = new rviz::BoolProperty("foucs when select", true, "focus the selected points", this, SLOT(UpdateFocusWhenSelect()));
+
+  panel_->initialize(qobject_cast<rviz::VisualizationManager *>(context_));
+  setAssociatedWidget(panel_);
 }
 
 void TrajectoryDisplay::update(float dt, float ros_dt)
@@ -99,3 +110,6 @@ void TrajectoryDisplay::UpdateFocusWhenSelect()
 {
   view_->setFocusWhenSelect(focus_when_select_->getBool());
 }
+
+#include <pluginlib/class_list_macros.h>
+PLUGINLIB_EXPORT_CLASS(TrajectoryDisplay, rviz::Display)

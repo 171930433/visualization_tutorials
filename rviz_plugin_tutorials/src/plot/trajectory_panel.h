@@ -18,7 +18,6 @@ namespace zhito
   // class LMComponent;
   // }
 
-
   class TrajectoryPanel : public rviz::Panel
   {
     // This class uses Qt slots and is a subclass of QObject, so it needs
@@ -29,7 +28,7 @@ namespace zhito
     ~TrajectoryPanel() override;
 
     void UpdateView();
-
+    TrajectoryWidget *getView() { return plot_; }
     void onInitialize() override;
 
     // Now we declare overrides of rviz::Panel functions for saving and
@@ -50,11 +49,10 @@ namespace zhito
 
     QVBoxLayout *v_layout_ = nullptr;
 
-    TrajectoryWidget* plot_ = nullptr;
+    TrajectoryWidget *plot_ = nullptr;
     TrajectoryDisplay *raw_data_display_ = nullptr;
 
   private slots:
   };
 
 } // namespace zhito
-

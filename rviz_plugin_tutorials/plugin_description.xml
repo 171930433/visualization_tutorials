@@ -15,13 +15,6 @@
     </description>
   </class>
   <!--  -->
-  <class name="rviz_plugin_tutorials/Trajectory"
-         type="zhito::TrajectoryPanel"
-         base_class_type="rviz::Panel">
-    <description>
-      A panel widget allowing Trajectory.
-    </description>
-  </class>
   <!--  -->
   
   <class name="rviz_plugin_tutorials/Imu"
@@ -38,6 +31,14 @@
          base_class_type="rviz::Display">
     <description>
       TimeSync.
+    </description>
+  </class>
+  <!--  -->
+  <class name="rviz_plugin_tutorials/TrajectoryDisplay"
+         type="TrajectoryDisplay"
+         base_class_type="rviz::Display">
+    <description>
+      TrajectoryDisplay .
     </description>
   </class>
   <!--  -->

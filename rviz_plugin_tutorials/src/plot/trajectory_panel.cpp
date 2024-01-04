@@ -90,14 +90,14 @@ namespace zhito
   {
     //
     // raw_data_display_ = vis_manager_->createDisplay("rviz/Grid", "DataGrid",true);
-    raw_data_display_ = new TrajectoryDisplay();
-    // !!!!!!! 需要一个manager类来做管理
-    raw_data_display_->setView(plot_);
-    plot_->setDisplaySync(raw_data_display_);
-    //
-    raw_data_display_->setPanel(this);
-    raw_data_display_->setName(QString("Trajectory"));
-    vis_manager_->addDisplay(raw_data_display_, true);
+    // raw_data_display_ = new TrajectoryDisplay();
+    // // !!!!!!! 需要一个manager类来做管理
+    // raw_data_display_->setView(plot_);
+    // plot_->setDisplaySync(raw_data_display_);
+    // //
+    // raw_data_display_->setPanel(this);
+    // raw_data_display_->setName(QString("Trajectory"));
+    // vis_manager_->addDisplay(raw_data_display_, true);
 
     // 当前panel可以最大化
     auto main_window = vis_manager_->getWindowManager()->getParentWindow();
@@ -128,21 +128,8 @@ namespace zhito
       v_layout_->insertWidget(0, plot_, 1);
     }
 
-    // 切换主窗口
-    // this->layout()->addWidget();
-    // this->layout()->update();
-    //
-
-    // plot_->setEnabled(false);
-    // main_window->takeCentralWidget();
-    // main_window->setCentralWidget(plot_);
-
-    // main_window->dock
-    // cw_layoyt->takeAt(1);
     cw_layoyt->update();
     v_layout_->update();
-    // plot_->setVisible(true);
-    // main_window->centralWidget()->layout()->update();
   }
 
 } // namespace zhito
