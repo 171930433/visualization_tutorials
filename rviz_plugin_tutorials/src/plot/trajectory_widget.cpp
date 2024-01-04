@@ -123,13 +123,32 @@ void TrajectoryWidget::addRandomTrajectory()
   QCPCurve *frame = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
   frame->setName(QString("curve-%1").arg(all_curve_.size()));
   frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssNone);
+  // frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
   frame->setLineStyle(QCPCurve::LineStyle::lsLine);
   frame->setSelectable(QCP::stDataRange);
   frame->setData(time_index, x, y);
   QPen graphPen;
   graphPen.setColor(QColor(0, 0, 0));
-  graphPen.setWidthF(std::rand() / (double)RAND_MAX * 2 + 1);
+  graphPen.setWidthF(2);
   frame->setPen(graphPen);
+
+  // 定制选中样式
+  QCPSelectionDecorator *decorator = frame->selectionDecorator();
+  QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
+  selectedScatterStyle.setSize(10); // 选中点的大小
+  decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+
+  // QCPSelectionDecorator *decorator = new QCPSelectionDecorator();
+  // QCPScatterStyle selectedScatterStyle;
+  // selectedScatterStyle.setShape(QCPScatterStyle::ssNone);
+  // selectedScatterStyle.setPen(QPen(Qt::red)); // 选中点的颜色
+  // selectedScatterStyle.setBrush(Qt::red);     // 可以设置填充色
+  // selectedScatterStyle.setSize(10);           // 选中点的大小
+  // decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::spAll);
+  // frame->setSelectionDecorator(decorator);
+
+  // frame->selectionDecorator()->brush().setColor(Qt::red);
+  // frame->selectionDecorator()->scatterStyle().setSize(6);
 
   all_curve_[frame->name().toStdString()] = frame;
 
@@ -322,19 +341,19 @@ void TrajectoryWidget::resizeEvent(QResizeEvent *event)
   this->replot();
 }
 
-void TrajectoryWidget::ChangeScatterShape(QCPScatterStyle::ScatterShape const type)
-{
-  this->graph()->setScatterStyle(type);
-  this->replot();
-  qDebug() << "scatter type = " << type << " changed !";
-}
+// void TrajectoryWidget::ChangeScatterShape(QCPScatterStyle::ScatterShape const type)
+// {
+//   this->graph()->setScatterStyle(type);
+//   this->replot();
+//   qDebug() << "scatter type = " << type << " changed !";
+// }
 
-void TrajectoryWidget::ChangeLineStyle(QCPGraph::LineStyle const type)
-{
-  this->graph()->setLineStyle(type);
-  this->replot();
-  qDebug() << "line type = " << type << " changed !";
-}
+// void TrajectoryWidget::ChangeLineStyle(QCPGraph::LineStyle const type)
+// {
+//   this->graph()->setLineStyle(type);
+//   this->replot();
+//   qDebug() << "line type = " << type << " changed !";
+// }
 
 void TrajectoryWidget::FocusPoint(double const t0)
 {

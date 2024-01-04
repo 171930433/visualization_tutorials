@@ -93,14 +93,18 @@ void DataTableWidget::FocusPoint(double const t0)
   auto it = std::lower_bound(view_data_.constBegin(), view_data_.constEnd(), QVariant(t0), [](QVector<QVariant> const &v1, QVariant const &v2)
                              { return v1[0] < v2; });
   // 主表focus
-  double const index = std::distance(view_data_.constBegin(), it) - 1;
+  double const index = std::distance(view_data_.constBegin(), it);
   int const main_focus_index = std::round(index / mainModel_->gettDisplayInterval());
   auto const main_index = mainModel_->index(main_focus_index, 0);
   mainTableView_->scrollTo(main_index, QAbstractItemView::PositionAtTop);
   // 选中
   auto *selectionModel = mainTableView_->selectionModel();
+  disconnect(mainTableView_->selectionModel(), &QItemSelectionModel::selectionChanged, 0, 0);
+
   selectionModel->select(main_index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 
+  connect(mainTableView_->selectionModel(), &QItemSelectionModel::selectionChanged, [this](const QItemSelection &selected, const QItemSelection &deselected)
+          { this->OnMainSelectionChanged(selected, deselected); });
   // 附表区域更新
   subModel_->UpdateStart(main_focus_index * mainModel_->gettDisplayInterval());
 
@@ -110,13 +114,47 @@ void DataTableWidget::FocusPoint(double const t0)
   subTableView_->scrollTo(sub_index, QAbstractItemView::PositionAtTop);
   // 选中
   selectionModel = subTableView_->selectionModel();
+
+  disconnect(subTableView_->selectionModel(), &QItemSelectionModel::selectionChanged, 0, 0);
+
   selectionModel->select(sub_index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
 
+  connect(subTableView_->selectionModel(), &QItemSelectionModel::selectionChanged, [this](const QItemSelection &selected, const QItemSelection &deselected)
+          { this->OnSubSelectionChanged(selected, deselected); });
   qDebug() << QString(" main to %1, sub to %2 ").arg(main_focus_index).arg(sub_focus_index);
   // this->onFocusPoint(t0, true, false);
 }
 
 void DataTableWidget::FouseRange(QCPRange const &time_range)
 {
+  qDebug() << QString(" DataTableWidget::FouseRange called ,time_range = [%1,%2]").arg(time_range.lower, 0, 'f', 3).arg(time_range.upper, 0, 'f', 3);
+  // 1. 根据t0计算index
+  double const t0 = time_range.lower;
+  auto it = std::lower_bound(view_data_.constBegin(), view_data_.constEnd(), QVariant(t0), [](QVector<QVariant> const &v1, QVariant const &v2)
+                             { return v1[0] < v2; });
+  // 主表focus
+  double const index = std::distance(view_data_.constBegin(), it);
+  int const main_focus_index = std::round(index / mainModel_->gettDisplayInterval());
+  auto const main_index = mainModel_->index(main_focus_index, 0);
+  mainTableView_->scrollTo(main_index, QAbstractItemView::PositionAtTop);
+  // 选中
+  auto *selectionModel = mainTableView_->selectionModel();
+  disconnect(mainTableView_->selectionModel(), &QItemSelectionModel::selectionChanged, 0, 0);
+
+  selectionModel->select(main_index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+
+  connect(mainTableView_->selectionModel(), &QItemSelectionModel::selectionChanged, [this](const QItemSelection &selected, const QItemSelection &deselected)
+          { this->OnMainSelectionChanged(selected, deselected); });
+  // 附表区域更新
+  subModel_->UpdateStart(main_focus_index * mainModel_->gettDisplayInterval());
+
+  // 副表focuss
+  int const sub_focus_index = index - (main_focus_index * mainModel_->gettDisplayInterval() - subModel_->getSubTableRange() / 2);
+  auto const sub_index = subModel_->index(sub_focus_index, 0);
+  subTableView_->scrollTo(sub_index, QAbstractItemView::PositionAtTop);
+
+  // qDebug() << QString(" main to %1, sub to %2 ").arg(main_focus_index).arg(sub_focus_index);
+  // this->onFocusPoint(t0, true, false);
+
   return;
 }
