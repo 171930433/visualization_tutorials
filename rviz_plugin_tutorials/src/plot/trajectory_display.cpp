@@ -7,8 +7,15 @@
 #include "plot/trajectory_widget.h"
 #include "plot/trajectory_panel.h"
 
+int GraphProperty::graph_counts_ = 0;
+
+GraphProperty::~GraphProperty()
+{
+  graph_counts_--;
+}
+
 GraphProperty::GraphProperty(QCPCurve *graph, Property *parent)
-    : rviz::BoolProperty(graph->name(), true, "options", parent),
+    : rviz::BoolProperty(QString("curve-%1").arg(graph_counts_++), true, "options", parent),
       graph_(graph)
 {
   setDisableChildrenIfFalse(true);
@@ -40,6 +47,8 @@ GraphProperty::GraphProperty(QCPCurve *graph, Property *parent)
 }
 void GraphProperty::UpdateEnable()
 {
+  if (!graph_)
+    return;
   graph_->setVisible(this->getBool());
   graph_->parentPlot()->replot();
   // qDebug() << " GraphProperty::UpdateEnable() called " << this->getBool();
@@ -47,6 +56,8 @@ void GraphProperty::UpdateEnable()
 
 void GraphProperty::UpdateScatterShape()
 {
+  if (!graph_)
+    return;
   auto const type = static_cast<QCPScatterStyle::ScatterShape>(scatter_type_->getOptionInt());
   graph_->setScatterStyle(type);
   graph_->parentPlot()->replot();
@@ -54,6 +65,8 @@ void GraphProperty::UpdateScatterShape()
 
 void GraphProperty::UpdateLineStyle()
 {
+  if (!graph_)
+    return;
   auto const type = static_cast<QCPCurve::LineStyle>(line_type_->getOptionInt());
   // view_->setMainInterval(main_interval_->getInt());
   graph_->setLineStyle(type);
@@ -64,6 +77,15 @@ TrajectoryDisplay::TrajectoryDisplay()
   panel_ = new zhito::TrajectoryPanel();
   view_ = panel_->getView();
   view_->setDisplaySync(this);
+
+  swap2central_ = new rviz::BoolProperty("Set in central", false, "swap the trajectory and render view", this, SLOT(Swap2Central()));
+  focus_when_select_ = new rviz::BoolProperty("foucs when select", true, "focus the selected points", this, SLOT(UpdateFocusWhenSelect()));
+  counts_prop_ = new rviz::IntProperty("graph counts", 3, "the number of graph counts", this, SLOT(UpdateGraphCount()));
+  counts_prop_->setMin(1);
+  counts_prop_->setMax(10);
+  graphs_.push_back(std::make_shared<GraphProperty>(nullptr, this));
+  graphs_.push_back(std::make_shared<GraphProperty>(nullptr, this));
+  graphs_.push_back(std::make_shared<GraphProperty>(nullptr, this));
 }
 TrajectoryDisplay::~TrajectoryDisplay()
 {
@@ -77,8 +99,6 @@ ITimeSync *TrajectoryDisplay::getView() { return view_; }
 // Overrides from Display
 void TrajectoryDisplay::onInitialize()
 {
-  swap2central_ = new rviz::BoolProperty("Set in central", false, "swap the trajectory and render view", this, SLOT(Swap2Central()));
-  focus_when_select_ = new rviz::BoolProperty("foucs when select", true, "focus the selected points", this, SLOT(UpdateFocusWhenSelect()));
 
   panel_->initialize(qobject_cast<rviz::VisualizationManager *>(context_));
   setAssociatedWidget(panel_);
@@ -86,19 +106,6 @@ void TrajectoryDisplay::onInitialize()
 
 void TrajectoryDisplay::update(float dt, float ros_dt)
 {
-  // int const count = view_->graphCount();
-  // for (int i = 0; i < count; ++i)
-  // {
-  //     auto *graph = view_->graph(i);
-  // }
-
-  for (auto &[name, curve] : view_->Curves())
-  {
-    if (graphs_.count(name) <= 0)
-    {
-      graphs_[name] = new GraphProperty(curve, this);
-    }
-  }
 }
 
 void TrajectoryDisplay::Swap2Central()
@@ -109,6 +116,29 @@ void TrajectoryDisplay::Swap2Central()
 void TrajectoryDisplay::UpdateFocusWhenSelect()
 {
   view_->setFocusWhenSelect(focus_when_select_->getBool());
+}
+
+void TrajectoryDisplay::UpdateGraphCount()
+{
+  int const new_count = counts_prop_->getInt();
+  for (auto graph : graphs_)
+  {
+    this->takeChild(graph.get());
+  }
+  graphs_.clear();
+  for (int i = 0; i < new_count; ++i)
+  {
+    graphs_.push_back(std::make_shared<GraphProperty>(nullptr, this));
+  }
+}
+
+void TrajectoryDisplay::load(const rviz::Config &config)
+{
+  rviz::Display::load(config);
+}
+void TrajectoryDisplay::save(rviz::Config config) const
+{
+  rviz::Display::save(config);
 }
 
 #include <pluginlib/class_list_macros.h>

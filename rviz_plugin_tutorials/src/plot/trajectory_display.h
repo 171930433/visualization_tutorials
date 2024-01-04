@@ -33,13 +33,14 @@ class GraphProperty : public rviz::BoolProperty
   Q_OBJECT
 public:
   GraphProperty(QCPCurve *graph, Property *parent = nullptr);
-
+  ~GraphProperty();
 private Q_SLOTS:
   void UpdateScatterShape();
   void UpdateLineStyle();
   void UpdateEnable();
 
 protected:
+  static int graph_counts_;
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;
   QCPCurve *graph_;
@@ -58,14 +59,16 @@ public:
   void setPanel(zhito::TrajectoryPanel *panel) { panel_ = panel; }
 
   // Overrides from Display
+  virtual void load(const rviz::Config &config);
+  virtual void save(rviz::Config config) const;
   void onInitialize() override;
   void update(float dt, float ros_dt) override;
-
 private Q_SLOTS:
   void UpdateScatterShape();
   void UpdateLineStyle();
   void Swap2Central();          // 将当前视图放置在central widget位置
   void UpdateFocusWhenSelect(); // 将当前视图放置在central widget位置
+  void UpdateGraphCount();      //
 
 private:
   TrajectoryWidget *view_ = nullptr;
@@ -74,7 +77,9 @@ private:
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;
   rviz::BoolProperty *swap2central_ = nullptr;
+  rviz::IntProperty *counts_prop_ = nullptr;        // 轨迹数目
   rviz::BoolProperty *focus_when_select_ = nullptr; // 选中时居中
 
-  std::map<std::string, GraphProperty *> graphs_;
+  // std::list<GraphProperty *> graphs_;
+  std::list<std::shared_ptr<GraphProperty>> graphs_;
 };
