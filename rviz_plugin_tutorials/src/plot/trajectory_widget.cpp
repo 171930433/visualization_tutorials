@@ -59,8 +59,8 @@ void TrajectoryWidget::setupTrajectoryDemo()
   // addRandomGraph();
   // addRandomGraph();
   // addRandomGraph();
-  addRandomTrajectory();
-  addRandomTrajectory();
+  // addRandomTrajectory();
+  // addRandomTrajectory();
   // all_curve_["gnss"] = new QCPCurve(this->xAxis, this->yAxis);
   // all_curve_["gnss"]->setPen(QPen(QColor(255, 110, 40)));
   // all_curve_["gnss"]->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
@@ -101,7 +101,39 @@ void TrajectoryWidget::setupTrajectoryDemo()
   // connect(this, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *, int)));
 }
 
-void TrajectoryWidget::addRandomTrajectory()
+void TrajectoryWidget::RemoveCurve(QCPCurve *curve)
+{
+  if (!curve)
+  {
+    return;
+  }
+  for (auto it = all_curve_.begin(); it != all_curve_.end(); ++it)
+  {
+    if (*it == curve)
+    {
+      all_curve_.erase(it);
+      break;
+    }
+  }
+  this->removePlottable(curve);
+  curve = nullptr;
+}
+
+QCPCurve *TrajectoryWidget::ContainsCurve(QString const &name)
+{
+  QCPCurve * result = nullptr;
+  for (auto it = all_curve_.begin(); it != all_curve_.end(); ++it)
+  {
+    if ((*it)->name() == name)
+    {
+      result = *it;
+      break;
+    }
+  }
+  return result;
+}
+
+QCPCurve *TrajectoryWidget::addRandomTrajectory(QString const &name)
 {
   int n = 1 * 1000; // number of points in graph
   double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
@@ -121,7 +153,7 @@ void TrajectoryWidget::addRandomTrajectory()
   }
 
   QCPCurve *frame = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
-  frame->setName(QString("curve-%1").arg(all_curve_.size()));
+  frame->setName(name);
   frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssNone);
   // frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
   frame->setLineStyle(QCPCurve::LineStyle::lsLine);
@@ -135,7 +167,7 @@ void TrajectoryWidget::addRandomTrajectory()
   // 定制选中样式
   QCPSelectionDecorator *decorator = frame->selectionDecorator();
   QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
-  selectedScatterStyle.setSize(10); // 选中点的大小
+  selectedScatterStyle.setSize(10);                                                           // 选中点的大小
   decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
 
   // QCPSelectionDecorator *decorator = new QCPSelectionDecorator();
@@ -150,9 +182,10 @@ void TrajectoryWidget::addRandomTrajectory()
   // frame->selectionDecorator()->brush().setColor(Qt::red);
   // frame->selectionDecorator()->scatterStyle().setSize(6);
 
-  all_curve_[frame->name().toStdString()] = frame;
+  // all_curve_[frame->name().toStdString()] = frame;
+  all_curve_.push_back(frame);
 
-  this->replot();
+  return frame;
 }
 
 void TrajectoryWidget::addRandomGraph()
@@ -272,8 +305,9 @@ void TrajectoryWidget::onSelectionChangedByUser()
   // }
   qDebug() << " onSelectionChangedByUser begin";
 
-  auto *first_curve = all_curve_.begin()->second;
-  for (auto [key, curve] : all_curve_)
+  // auto *first_curve = all_curve_.begin()->second;
+  auto *first_curve = all_curve_.front();
+  for (auto curve : all_curve_)
   {
     if (curve->selection().isEmpty())
     {
@@ -357,9 +391,9 @@ void TrajectoryWidget::resizeEvent(QResizeEvent *event)
 
 void TrajectoryWidget::FocusPoint(double const t0)
 {
-  auto *first_curve = all_curve_.begin()->second;
+  auto *first_curve = all_curve_.front();
 
-  for (auto [key, curve] : all_curve_)
+  for (auto curve : all_curve_)
   {
     // 1. 先检查所有的数据区间是否包含待查找点
     auto const dataIndex = curve->findBegin(t0, true) + 1;
@@ -395,9 +429,9 @@ void TrajectoryWidget::FouseRange(QCPRange const &time_range)
 
   qDebug() << " TrajectoryWidget::FouseRange called";
 
-  auto *first_curve = all_curve_.begin()->second;
+  auto *first_curve = all_curve_.front();
 
-  for (auto [key, curve] : all_curve_)
+  for (auto curve : all_curve_)
   {
     // 1. 先检查所有的数据区间是否包含待查找点
     auto const si = curve->findBegin(time_range.lower, true) + 1; // start index

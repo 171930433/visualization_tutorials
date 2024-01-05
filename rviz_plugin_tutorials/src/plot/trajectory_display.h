@@ -11,7 +11,8 @@
 #include <rviz/display.h>
 
 #include "display_sync_base.h"
-
+#include "trajectory_widget.h"
+#include <deque>
 namespace rviz
 {
   class IntProperty;
@@ -32,18 +33,25 @@ class GraphProperty : public rviz::BoolProperty
 {
   Q_OBJECT
 public:
-  GraphProperty(QCPCurve *graph, Property *parent = nullptr);
+  GraphProperty(TrajectoryWidget *plot, Property *parent = nullptr);
   ~GraphProperty();
 private Q_SLOTS:
   void UpdateScatterShape();
   void UpdateLineStyle();
   void UpdateEnable();
+  void UpdateTopic();
+  void SyncInfo();
+
+protected:
 
 protected:
   static int graph_counts_;
+  QTimer dataTimer_; // 检查是否有数据更新
+  rviz::EnumProperty *channel_name_prop_ = nullptr;
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;
-  QCPCurve *graph_;
+  QCPCurve *curve_;
+  TrajectoryWidget *plot_ = nullptr;
 };
 
 class TrajectoryDisplay : public DisplaySyncBase
@@ -81,5 +89,6 @@ private:
   rviz::BoolProperty *focus_when_select_ = nullptr; // 选中时居中
 
   // std::list<GraphProperty *> graphs_;
-  std::list<std::shared_ptr<GraphProperty>> graphs_;
+  // std::list<std::shared_ptr<GraphProperty>> graphs_;
+  std::deque<std::shared_ptr<GraphProperty>> graphs_;
 };

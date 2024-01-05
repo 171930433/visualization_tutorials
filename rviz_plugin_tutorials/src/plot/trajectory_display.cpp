@@ -14,12 +14,23 @@ GraphProperty::~GraphProperty()
   graph_counts_--;
 }
 
-GraphProperty::GraphProperty(QCPCurve *graph, Property *parent)
+void GraphProperty::SyncInfo()
+{
+  // 去buffer里面查询通道更新
+  // 去buffer里面查询数据更新
+}
+
+GraphProperty::GraphProperty(TrajectoryWidget *plot, Property *parent)
     : rviz::BoolProperty(QString("curve-%1").arg(graph_counts_++), true, "options", parent),
-      graph_(graph)
+      plot_(plot)
 {
   setDisableChildrenIfFalse(true);
   connect(this, SIGNAL(changed()), this, SLOT(UpdateEnable()));
+
+  channel_name_prop_ = new rviz::EnumProperty("topic name", "None", "the topic of trajectory", this, SLOT(UpdateTopic()));
+  channel_name_prop_->addOption("None", 0);
+  channel_name_prop_->addOption("random-0", 1);
+  channel_name_prop_->addOption("random-1", 2);
 
   scatter_type_ = new rviz::EnumProperty("Point type", "None", "the point type of trajectory", this, SLOT(UpdateScatterShape()));
   scatter_type_->addOption("None", QCPScatterStyle::ScatterShape::ssNone);
@@ -44,33 +55,53 @@ GraphProperty::GraphProperty(QCPCurve *graph, Property *parent)
   line_type_ = new rviz::EnumProperty("line type", "Line", "the line type of trajectory", this, SLOT(UpdateLineStyle()));
   line_type_->addOption("None", QCPCurve::LineStyle::lsNone);
   line_type_->addOption("Line", QCPCurve::LineStyle::lsLine);
+
+  // 数据通道更新，数据更新
+  connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncInfo()));
+  dataTimer_.start(500); // Interval 0 means to refresh as fast as possible
 }
+void GraphProperty::UpdateTopic()
+{
+  QString name = channel_name_prop_->getValue().toString();
+  // 删除当前轨迹
+  if (channel_name_prop_->getOptionInt() == 0)
+  {
+    plot_->RemoveCurve(curve_);
+  }
+  else
+  {
+    auto* re = plot_->ContainsCurve(name);
+    curve_ = (re ? re : plot_->addRandomTrajectory(name));
+  }
+  plot_->replot();
+}
+
 void GraphProperty::UpdateEnable()
 {
-  if (!graph_)
+  if (!curve_)
     return;
-  graph_->setVisible(this->getBool());
-  graph_->parentPlot()->replot();
+  curve_->setVisible(this->getBool());
+  plot_->replot();
   // qDebug() << " GraphProperty::UpdateEnable() called " << this->getBool();
 }
 
 void GraphProperty::UpdateScatterShape()
 {
-  if (!graph_)
+  if (!curve_)
     return;
   auto const type = static_cast<QCPScatterStyle::ScatterShape>(scatter_type_->getOptionInt());
-  graph_->setScatterStyle(type);
-  graph_->parentPlot()->replot();
+  curve_->setScatterStyle(type);
+  plot_->replot();
 }
 
 void GraphProperty::UpdateLineStyle()
 {
-  if (!graph_)
+  if (!curve_)
     return;
   auto const type = static_cast<QCPCurve::LineStyle>(line_type_->getOptionInt());
   // view_->setMainInterval(main_interval_->getInt());
-  graph_->setLineStyle(type);
-  graph_->parentPlot()->replot();
+  curve_->setLineStyle(type);
+  plot_->replot();
 }
 TrajectoryDisplay::TrajectoryDisplay()
 {
@@ -83,9 +114,10 @@ TrajectoryDisplay::TrajectoryDisplay()
   counts_prop_ = new rviz::IntProperty("graph counts", 3, "the number of graph counts", this, SLOT(UpdateGraphCount()));
   counts_prop_->setMin(1);
   counts_prop_->setMax(10);
-  graphs_.push_back(std::make_shared<GraphProperty>(nullptr, this));
-  graphs_.push_back(std::make_shared<GraphProperty>(nullptr, this));
-  graphs_.push_back(std::make_shared<GraphProperty>(nullptr, this));
+  for (int i = 0; i < counts_prop_->getValue().toInt(); ++i)
+  {
+    graphs_.push_back(std::make_shared<GraphProperty>(view_, this));
+  }
 }
 TrajectoryDisplay::~TrajectoryDisplay()
 {
@@ -121,14 +153,22 @@ void TrajectoryDisplay::UpdateFocusWhenSelect()
 void TrajectoryDisplay::UpdateGraphCount()
 {
   int const new_count = counts_prop_->getInt();
-  for (auto graph : graphs_)
+  int const old_count = graphs_.size();
+
+  if (new_count < old_count) // 删除元素
   {
-    this->takeChild(graph.get());
+    for (int i = new_count; i < old_count; ++i)
+    {
+      this->takeChild(graphs_.back().get());
+      graphs_.pop_back();
+    }
   }
-  graphs_.clear();
-  for (int i = 0; i < new_count; ++i)
+  else
   {
-    graphs_.push_back(std::make_shared<GraphProperty>(nullptr, this));
+    for (int i = old_count; i < new_count; ++i)
+    {
+      graphs_.push_back(std::make_shared<GraphProperty>(view_, this));
+    }
   }
 }
 

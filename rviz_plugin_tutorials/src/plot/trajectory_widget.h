@@ -2,7 +2,7 @@
 #include "plot/plot_base.h"
 
 #include <ros/time.h>
-
+#include <deque>
 class QWidget;
 
 class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed
@@ -110,12 +110,15 @@ class TrajectoryWidget : public PlotBase
 public:
   TrajectoryWidget(QWidget *parent = nullptr);
   void SyncDataAndView() override { SyncData(); }
-  std::map<std::string, QCPCurve *> Curves() const { return all_curve_; }
+  std::deque<QCPCurve *> Curves() const { return all_curve_; }
   void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
   DisplaySyncBase *getDisplaySync() override;
 
 public:
   void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
+  QCPCurve* addRandomTrajectory(QString const &name);
+  void RemoveCurve(QCPCurve*);
+  QCPCurve* ContainsCurve(QString const& name);
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
@@ -126,7 +129,6 @@ protected:
 protected:
   void setupTrajectoryDemo();
   void addRandomGraph();
-  void addRandomTrajectory();
 
 private:
   QSharedPointer<QCPMapAxisTickerFixed> map_ticker_;
@@ -135,7 +137,8 @@ private:
 
 private:
   QTimer dataTimer_;
-  std::map<std::string, QCPCurve *> all_curve_;
+  // std::map<std::string, QCPCurve *> all_curve_;
+  std::deque<QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
   DisplaySyncBase *sync_display_ = nullptr;
   bool focus_when_select_ = true;
