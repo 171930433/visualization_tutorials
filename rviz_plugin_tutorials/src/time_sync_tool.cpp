@@ -48,9 +48,9 @@
 #include "time_sync_tool.h"
 #include "display_sync_base.h"
 
-DisplaySyncManager::DisplaySyncManager()
+DisplaySyncManager::DisplaySyncManager(Property *tool_root) : tool_root_(tool_root)
 {
-  sync_mode_ = new rviz::EnumProperty("sync mode", "One2X", "the point type of trajectory", this);
+  sync_mode_ = new rviz::EnumProperty("sync mode", "One2X", "the point type of trajectory", tool_root_);
   sync_mode_->addOption("None", TimeSyncMode::None);
   sync_mode_->addOption("SyncMain", TimeSyncMode::SyncMain);
   sync_mode_->addOption("SyncAll", TimeSyncMode::SyncAll);
@@ -62,11 +62,11 @@ DisplaySyncManager::~DisplaySyncManager()
   // sync_properties_.clear();
 }
 
-void DisplaySyncManager::onInitialize()
+void DisplaySyncManager::Initialize(rviz::VisualizationManager * context)
 {
   // 载入当前已经加载的时间同步型display
-  auto vm = qobject_cast<rviz::VisualizationManager *>(context_);
-  auto dg = vm->getRootDisplayGroup();
+  // auto vm = qobject_cast<rviz::VisualizationManager *>(context);
+  auto dg = context->getRootDisplayGroup();
   int const count = dg->numDisplays();
   for (int i = 0; i < count; i++)
   {
@@ -86,7 +86,7 @@ void DisplaySyncManager::onDisplayAdded(rviz::Display *display)
   }
 
   syncers_.push_back(sync_one);
-  sync_properties_[sync_one] = new rviz::BoolProperty(sync_one->getName(), true, "sync options", this);
+  sync_properties_[sync_one] = new rviz::BoolProperty(sync_one->getName(), true, "sync options", tool_root_);
   // 消息绑定
   connect(sync_one, SIGNAL(FocusPointChanged(double const)), this, SLOT(onFocusPointChanged(double const)));
   connect(sync_one, SIGNAL(FouseRangeChanged(QCPRange const &)), this, SLOT(onFouseRangeChanged(QCPRange const &)));
@@ -127,8 +127,9 @@ void DisplaySyncManager::onDisplayRemoved(rviz::Display *display)
   }
 
   syncers_.remove(sync_one);
-  // 删除当前display
-  this->takeChild(sync_properties_[sync_one]);
+  // 删除当前property
+  tool_root_->takeChild(sync_properties_[sync_one]);
+  // this->takeChild(sync_properties_[sync_one]);
   sync_properties_.erase(sync_one);
 }
 
@@ -144,10 +145,9 @@ namespace rviz_plugin_tutorials
   //
   // Here we set the "shortcut_key_" member variable defined in the
   // superclass to declare which key will activate the tool.
-  TimeSyncTool::TimeSyncTool()
+  TimeSyncTool::TimeSyncTool() : is_toggled_on_(false)
   {
-    sync_manager_ = new DisplaySyncManager();
-    sync_manager_->setName(QString("time_sync_manager"));
+    sync_manager_ = new DisplaySyncManager(getPropertyContainer());
   }
 
   // The destructor destroys the Ogre scene nodes for the flags so they
@@ -156,7 +156,7 @@ namespace rviz_plugin_tutorials
   // button.
   TimeSyncTool::~TimeSyncTool()
   {
-    context_->getRootDisplayGroup()->takeDisplay(sync_manager_);
+    // context_->getRootDisplayGroup()->takeDisplay(sync_manager_);
   }
 
   // onInitialize() is called by the superclass after scene_manager_ and
@@ -172,7 +172,9 @@ namespace rviz_plugin_tutorials
   // set it invisible.
   void TimeSyncTool::onInitialize()
   {
-    qobject_cast<rviz::VisualizationManager *>(context_)->addDisplay(sync_manager_, true);
+    sync_manager_->Initialize(qobject_cast<rviz::VisualizationManager *>(context_));
+    this->setName(QString("time_sync_manager"));
+    // qobject_cast<rviz::VisualizationManager *>(context_)->addDisplay(sync_manager_, true);
   }
 
   // Activation and deactivation

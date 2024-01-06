@@ -30,9 +30,9 @@
 
 #include <rviz/tool.h>
 #include <rviz/display.h>
+#include <rviz/properties/bool_property.h>
 #include <map>
 #include "plot/qcustomplot.h"
-
 
 namespace Ogre
 {
@@ -58,13 +58,14 @@ enum TimeSyncMode
   SyncAll   // 所有节点同步
 };
 
-class DisplaySyncManager : public rviz::Display
+class DisplaySyncManager : public rviz::BoolProperty
 {
   Q_OBJECT
 public:
   DisplaySyncManager();
+  DisplaySyncManager(Property *tool_root);
   ~DisplaySyncManager();
-  void onInitialize() override;
+  void Initialize(rviz::VisualizationManager * context);
 
 protected:
 public:
@@ -76,7 +77,7 @@ private Q_SLOTS:
 
 private:
   rviz::EnumProperty *sync_mode_ = nullptr;
-
+  rviz::Property *tool_root_ = nullptr;
   //! 同一个类型的display名称一致，使用名称做索引时需要注意
   std::list<DisplaySyncBase *> syncers_;
   std::map<DisplaySyncBase *, rviz::BoolProperty *> sync_properties_;
@@ -106,6 +107,7 @@ namespace rviz_plugin_tutorials
 
   private:
     DisplaySyncManager *sync_manager_ = nullptr;
+    bool is_toggled_on_;
   };
   // END_TUTORIAL
 
