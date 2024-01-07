@@ -8,14 +8,14 @@ project(librviz_tutorial)
 find_package(catkin REQUIRED COMPONENTS rviz roscpp)
 catkin_package()
 include_directories(${catkin_INCLUDE_DIRS}
-${CMAKE_CURRENT_SOURCE_DIR}/src/Qt-Advanced-Docking-System/src
+# ${CMAKE_CURRENT_SOURCE_DIR}/src/Qt-Advanced-Docking-System/src
 )
 link_directories(${catkin_LIBRARY_DIRS})
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
 
-add_subdirectory(src/Qt-Advanced-Docking-System)
+# add_subdirectory(src/Qt-Advanced-Docking-System)
 
 ## This plugin includes Qt widgets, so we must include Qt.
 ## We'll use the version that rviz used so they are compatible.
@@ -42,6 +42,8 @@ set(SRC_FILES
   src/myviz.cpp
   src/main.cpp
   src/mainwindow.cpp
+  src/visualizer_app2.cpp
+  src/visualization_frame2.cpp
 )
 
 ## Add the "myviz" executable and specify the list of source files we

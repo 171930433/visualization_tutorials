@@ -26,23 +26,53 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
 
 #include <QApplication>
+#include <QObject>
 
-#include "visualizer_app2.h"
+#ifndef Q_MOC_RUN // See: https://bugreports.qt-project.org/browse/QTBUG-22829
+#include <ros/ros.h>
+#include <rviz/rviz_export.h>
+#include <rviz/SendFilePath.h>
+#endif
 
-int main(int argc, char** argv)
+class QTimer;
+
+namespace rviz
 {
-  QApplication qapp(argc, argv);
+class VisualizationFrame2;
 
-  rviz::VisualizerApp2 vapp;
-  vapp.setApp(&qapp);
-  if (vapp.init(argc, argv))
-  {
-    return qapp.exec();
-  }
-  else
-  {
-    return 1;
-  }
-}
+class RVIZ_EXPORT VisualizerApp2 : public QObject
+{
+  Q_OBJECT
+public:
+  VisualizerApp2();
+  ~VisualizerApp2() override;
+
+  void setApp(QApplication* app);
+
+  /** Start everything.  Pass in command line arguments.
+   * @return false on failure, true on success. */
+  bool init(int argc, char** argv);
+
+private Q_SLOTS:
+  /** If ros::ok() is false, close all windows. */
+  void checkContinue();
+
+private:
+  void startContinueChecker();
+  bool loadConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
+  bool saveConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
+
+  QApplication* app_;
+  QTimer* continue_timer_;
+  VisualizationFrame2* frame_;
+  ros::NodeHandlePtr nh_;
+  ros::ServiceServer reload_shaders_service_;
+  ros::ServiceServer load_config_service_;
+  ros::ServiceServer save_config_service_;
+};
+
+} // end namespace rviz
+
