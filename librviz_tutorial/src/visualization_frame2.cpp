@@ -901,6 +901,13 @@ namespace rviz
       restoreState(QByteArray::fromHex(qPrintable(main_window_config)));
     }
 
+    QString ads_dock_state;
+    if (config.mapGetString("Ads dock State", &ads_dock_state))
+    {
+      dock_manager_->restoreState(QByteArray::fromHex(qPrintable(ads_dock_state)));
+      qDebug() << " load state = " << qPrintable(ads_dock_state);
+    }
+
     // load panel dock widget states (collapsed or not)
     QList<PanelDockWidget *> dock_widgets = findChildren<PanelDockWidget *>();
 
@@ -947,6 +954,10 @@ namespace rviz
     QByteArray window_state = saveState().toHex();
     config.mapSetValue("QMainWindow State", window_state.constData());
 
+    QByteArray ads_dock_state = dock_manager_->saveState().toHex();
+    config.mapSetValue("Ads dock State", ads_dock_state.constData());
+    qDebug() << "save ads_dock_state = " << ads_dock_state;
+
     config.mapSetValue("Hide Left Dock", hide_left_dock_button_->isChecked());
     config.mapSetValue("Hide Right Dock", hide_right_dock_button_->isChecked());
 
@@ -963,7 +974,12 @@ namespace rviz
   {
     // First destroy any existing custom panels.
     for (int i = custom_panels_.size() - 1; i >= 0; --i)
+    {
+      view_menu_->removeAction(custom_panels_[i].dock_widget_->toggleViewAction());
+      dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
       delete custom_panels_[i].dock;
+      // dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
+    }
     custom_panels_.clear();
 
     // Then load the ones in the config.
@@ -1373,13 +1389,11 @@ namespace rviz
 
           qDebug() << "   !!!!custom_panels_[i].dock_widget_ = " << custom_panels_[i].dock_widget_;
 
-          custom_panels_[i].dock_widget_->setFeature(ads::CDockWidget::DeleteContentOnClose, true);
+          // custom_panels_[i].dock_widget_->setFeature(ads::CDockWidget::DeleteContentOnClose, true);
+          // custom_panels_[i].dock_widget_->toggleView(false);
           view_menu_->removeAction(custom_panels_[i].dock_widget_->toggleViewAction());
-          custom_panels_[i].dock_widget_->toggleView(false);
+          dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
           delete custom_panels_[i].dock;
-          // delete custom_panels_[i].dock_widget_;
-          // custom_panels_[i].dock_widget_->toggleView(custom_panels_[i].dock_widget_->isClosed());
-
           return;
         }
       }
@@ -1433,9 +1447,10 @@ namespace rviz
     // qDebug() << "record.dock_widget_ " << record.dock_widget_;
     record.panel = panel;
     record.name = name;
-    record.delete_action = delete_view_menu_->addAction(name, this, SLOT(onDeletePanel())); // 增加待删除菜单，删除pannel对应资源,触发 destroyed 消息
-    connect(record.dock, &QObject::destroyed, this, &VisualizationFrame2::onPanelDeleted);  // 关闭后清楚buffer对象，和相应菜单
-    custom_panels_.append(record);                                                          // custom_panels_ 存储所有pannels
+    record.delete_action = delete_view_menu_->addAction(name, this, SLOT(onDeletePanel()));        // 增加待删除菜单，删除pannel对应资源,触发 destroyed 消息
+    connect(record.dock, &QObject::destroyed, this, &VisualizationFrame2::onPanelDeleted);         // 关闭后清楚buffer对象，和相应菜单
+    connect(record.dock_widget_, &QObject::destroyed, this, &VisualizationFrame2::onPanelDeleted); // 关闭后清楚buffer对象，和相应菜单
+    custom_panels_.append(record);                                                                 // custom_panels_ 存储所有pannels
     delete_view_menu_->setEnabled(true);
 
     panel->initialize(manager_); //! panel 获取 manager_ 指针
