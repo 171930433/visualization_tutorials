@@ -121,7 +121,7 @@ void TrajectoryWidget::RemoveCurve(QCPCurve *curve)
 
 QCPCurve *TrajectoryWidget::ContainsCurve(QString const &name)
 {
-  QCPCurve * result = nullptr;
+  QCPCurve *result = nullptr;
   for (auto it = all_curve_.begin(); it != all_curve_.end(); ++it)
   {
     if ((*it)->name() == name)
@@ -131,6 +131,44 @@ QCPCurve *TrajectoryWidget::ContainsCurve(QString const &name)
     }
   }
   return result;
+}
+
+QCPCurve *TrajectoryWidget::addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas)
+{
+  int const n = datas.size();
+  QVector<double> x(n), y(n), time_index(n);
+  QStringList const header = GetFildNames(*datas.begin()->second);
+  int i = 0;
+  for (auto const &kv : datas)
+  {
+    auto const &message = *kv.second;
+    time_index[i] = kv.first / 1e3;
+    x[i] = GetValueByHeaderName(message, QString("pos-x")).toDouble();
+    y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble();
+    ++i;
+  }
+
+  QCPCurve *frame = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
+  frame->setName(name);
+  frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssNone);
+  // frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
+  frame->setLineStyle(QCPCurve::LineStyle::lsLine);
+  frame->setSelectable(QCP::stDataRange);
+  frame->setData(time_index, x, y);
+  QPen graphPen;
+  graphPen.setColor(QColor(0, 0, 0));
+  graphPen.setWidthF(2);
+  frame->setPen(graphPen);
+
+  // 定制选中样式
+  QCPSelectionDecorator *decorator = frame->selectionDecorator();
+  QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
+  selectedScatterStyle.setSize(10);                                                           // 选中点的大小
+  decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+
+  all_curve_.push_back(frame);
+
+  return frame;
 }
 
 QCPCurve *TrajectoryWidget::addRandomTrajectory(QString const &name)

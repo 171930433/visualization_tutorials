@@ -73,7 +73,7 @@ void GraphProperty::UpdateTopic()
   else
   {
     auto *re = plot_->ContainsCurve(name);
-    curve_ = (re ? re : plot_->addRandomTrajectory(name));
+    curve_ = (re ? re : plot_->addTrajectory(name, g_messages));
   }
   plot_->replot();
 }

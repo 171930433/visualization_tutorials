@@ -1,6 +1,6 @@
 #pragma once
 #include "plot/plot_base.h"
-
+#include "protobuf_helper.h"
 #include <ros/time.h>
 #include <deque>
 class QWidget;
@@ -116,9 +116,10 @@ public:
 
 public:
   void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
-  QCPCurve* addRandomTrajectory(QString const &name);
-  void RemoveCurve(QCPCurve*);
-  QCPCurve* ContainsCurve(QString const& name);
+  QCPCurve *addRandomTrajectory(QString const &name);
+  void RemoveCurve(QCPCurve *);
+  QCPCurve *ContainsCurve(QString const &name);
+  QCPCurve *addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas);
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
@@ -142,7 +143,7 @@ private:
   double current_t0_s_ = 0;
   DisplaySyncBase *sync_display_ = nullptr;
   bool focus_when_select_ = true;
-  void FoucuPositionByIndex(QCPCurve * curve, int const dataIndex);
+  void FoucuPositionByIndex(QCPCurve *curve, int const dataIndex);
 private slots:
   void mouseWheel(QWheelEvent *);
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
