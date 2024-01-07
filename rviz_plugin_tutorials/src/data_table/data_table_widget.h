@@ -80,15 +80,14 @@ public:
     void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
     DisplaySyncBase *getDisplaySync() override;
 
-    template <typename T>
-    void setData(const std::vector<T> &newData)
+    void setData(const std::map<size_t, spMessage> &newData)
     {
 
-        QStringList headers;
+        QStringList headers = GetFildNames(*newData.begin()->second);
 
         // 使用 Boost.Hana 获取字段名
-        boost::hana::for_each(boost::hana::keys(T{}), [&](auto key)
-                              { headers << QString::fromStdString(boost::hana::to<char const *>(key)); });
+        // boost::hana::for_each(boost::hana::keys(T{}), [&](auto key)
+        //                       { headers << QString::fromStdString(boost::hana::to<char const *>(key)); });
 
         qDebug() << " headers = " << headers;
         // 设置表头
@@ -96,20 +95,20 @@ public:
         subModel_->setHeaders(headers);
 
         // 数据转换
-        view_data_.clear();
-        view_data_.reserve(newData.size());
+        // view_data_.clear();
+        // view_data_.reserve(newData.size());
 
-        for (const auto &item : newData)
-        {
-            QVector<QVariant> rowData;
-            hana::for_each(hana::members(item), [&](const auto &field)
-                           { rowData.push_back(convertToVariant(field)); });
+        // for (const auto &item : newData)
+        // {
+        //     QVector<QVariant> rowData;
+        //     hana::for_each(hana::members(item), [&](const auto &field)
+        //                    { rowData.push_back(convertToVariant(field)); });
 
-            view_data_.push_back(rowData);
-        }
+        //     view_data_.push_back(rowData);
+        // }
         // 转换数据到适合模型的格式
-        mainModel_->setData(view_data_);
-        subModel_->setData(view_data_);
+        mainModel_->setData(newData);
+        subModel_->setData(newData);
     }
 
 public slots:

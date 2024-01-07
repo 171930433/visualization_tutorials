@@ -33,9 +33,20 @@ else()
   set(QT_LIBRARIES Qt5::Widgets Qt5::Core Qt5::Gui)
 endif()
 
+find_package(Protobuf REQUIRED)
+set(PROTO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proto")
+file(GLOB PROTO_FILES "${PROTO_PATH}/*.proto")
+# 使用protoc生成源码
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+# 包含生成的源码文件
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
 ## I prefer the Qt signals and slots to avoid defining "emit", "slots",
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
 # add_definitions(-DQT_NO_KEYWORDS)
+
+
+
 
 ## Here we specify the list of source files.
 ## The generated MOC files are included automatically as headers.
@@ -62,13 +73,12 @@ set(SRC_FILES
   src/time_sync.cpp
   src/display_sync_base.cpp
   src/time_sync_tool.cpp
+  # proto
+  src/protobuf_helper.cpp
+  ${PROTO_SRCS} ${PROTO_HDRS}
 )
 
-# # Header files
-# set(HEADERS
-# src/qcustomplot.h
-# src/teleop_panel.h
-# )
+
 
 # qt5_wrap_cpp(MOC_SOURCES ${HEADERS})
 
@@ -91,7 +101,7 @@ add_library(${PROJECT_NAME} ${SRC_FILES})
 ## library and names the actual file something like
 ## "librviz_plugin_tutorials.so", or whatever is appropriate for your
 ## particular OS.
-target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${QT_LIBRARIES} ${catkin_LIBRARIES} ${PROTOBUF_LIBRARY})
 ## END_TUTORIAL
 
 ## Install rules

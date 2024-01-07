@@ -1,0 +1,28 @@
+syntax = "proto3";
+package demo;
+
+message Header
+{
+    double t0 = 1;
+    double t1 = 2;
+    int64 index = 3;
+}
+
+message PointXYZ
+{
+    double x = 1;
+    double y = 2;
+    double z = 3;
+}
+
+message Person {
+Header header = 1;
+string name = 2;
+enum Status {
+    Fix = 0;
+    Float = 1;
+}
+Status status = 4;
+PointXYZ pos = 25;
+PointXYZ acc = 30;
+}

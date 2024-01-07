@@ -7,6 +7,8 @@
 #include "plot/trajectory_widget.h"
 #include "plot/trajectory_panel.h"
 
+#include "protobuf_helper.h"
+
 int GraphProperty::graph_counts_ = 0;
 
 GraphProperty::~GraphProperty()
@@ -70,7 +72,7 @@ void GraphProperty::UpdateTopic()
   }
   else
   {
-    auto* re = plot_->ContainsCurve(name);
+    auto *re = plot_->ContainsCurve(name);
     curve_ = (re ? re : plot_->addRandomTrajectory(name));
   }
   plot_->replot();
@@ -105,6 +107,8 @@ void GraphProperty::UpdateLineStyle()
 }
 TrajectoryDisplay::TrajectoryDisplay()
 {
+  InitPersons();
+
   panel_ = new zhito::TrajectoryPanel();
   view_ = panel_->getView();
   view_->setDisplaySync(this);
@@ -119,6 +123,7 @@ TrajectoryDisplay::TrajectoryDisplay()
     graphs_.push_back(std::make_shared<GraphProperty>(view_, this));
   }
 }
+
 TrajectoryDisplay::~TrajectoryDisplay()
 {
   if (initialized())

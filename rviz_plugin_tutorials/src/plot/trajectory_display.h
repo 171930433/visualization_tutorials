@@ -77,7 +77,6 @@ private Q_SLOTS:
   void Swap2Central();          // 将当前视图放置在central widget位置
   void UpdateFocusWhenSelect(); // 将当前视图放置在central widget位置
   void UpdateGraphCount();      //
-
 private:
   TrajectoryWidget *view_ = nullptr;
   zhito::TrajectoryPanel *panel_ = nullptr;

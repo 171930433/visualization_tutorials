@@ -38,6 +38,8 @@
 
 #include "data_table/data_table_display.h"
 
+#include "protobuf_helper.h"
+
 namespace rviz_plugin_tutorials
 {
 
@@ -49,18 +51,14 @@ namespace rviz_plugin_tutorials
   DataTablePanel::DataTablePanel(QWidget *parent)
       : rviz::Panel(parent)
   {
+    InitPersons();
+
     data_table_ = new DataTableWidget;
     data_table_->setMainInterval(100);
     data_table_->setSubRange(200);
 
     // 构造数据
-    int count = 1 * 1000;
-    datas_.reserve(count);
-    for (int i = 0; i < count; ++i)
-    {
-      datas_.emplace_back(MyStruct{i + 1e8, i + 1, std::to_string(2 * i), Eigen::Vector3d::Identity().array() + i});
-    }
-    data_table_->setData(datas_);
+    data_table_->setData(g_messages);
 
     // Lay out the topic field above the control widget.
     QVBoxLayout *layout = new QVBoxLayout;
