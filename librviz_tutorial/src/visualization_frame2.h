@@ -56,6 +56,7 @@ class QToolButton;
 namespace ads
 {
 class CDockManager;
+class CDockWidget;
 }
 
 namespace rviz
@@ -383,6 +384,7 @@ protected:
     QString name;
     QString class_id;
     QAction* delete_action;
+    ads::CDockWidget* dock_widget_;
   };
   QList<PanelRecord> custom_panels_;
 
