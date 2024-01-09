@@ -9,8 +9,8 @@ DataTableDisplay::DataTableDisplay()
 
   view_ = new DataTableWidget();
   view_->setData(g_messages);
-  view_->setMainInterval(100);
-  view_->setSubRange(200);
+  // view_->setMainInterval(100);
+  // view_->setSubRange(200);
   view_->setDisplaySync(this);
 }
 DataTableDisplay::~DataTableDisplay()

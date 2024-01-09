@@ -3,7 +3,7 @@
 
 void ITimeSync::onFocusPoint(double const t0, bool update_view, bool emit_signal)
 {
-  qDebug() << getDisplaySync()->getName() << " ITimeSync::onFocusPoint " << QString("%1").arg(t0, 0, 'f', 3);
+  // qDebug() << getDisplaySync()->getName() << " ITimeSync::onFocusPoint " << QString("%1").arg(t0, 0, 'f', 3);
   getDisplaySync()->onFocusPoint(t0, update_view, emit_signal);
 }
 void ITimeSync::onFouseRange(QCPRange const &time_range, bool update_view, bool emit_signal)

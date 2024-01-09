@@ -1,7 +1,7 @@
-#ifndef MYTABLEMODEL_H
-#define MYTABLEMODEL_H
+#pragma once
 
 #include <QAbstractTableModel>
+#include <QSortFilterProxyModel>
 #include <vector>
 #include <QStringList>
 #include <QVariant>
@@ -42,8 +42,8 @@ public:
     }
     size_t size() const { return values_.size(); }
     bool empty() const { return values_.empty(); }
-    V const &back() const { return values_.front(); }
-    V const &front() const { return values_.back(); }
+    V const &back() const { return values_.back(); }
+    V const &front() const { return values_.front(); }
 
     const V &getByKey(const K &key) const
     {
@@ -64,7 +64,6 @@ public:
 class MyTableModel : public QAbstractTableModel
 {
     Q_OBJECT
-
 public:
     MyTableModel(QObject *parent = nullptr)
         : QAbstractTableModel(parent)
@@ -76,18 +75,6 @@ public:
     {
         beginResetModel();
         index_map_.setMap(newData);
-        // map_datas_ = &newData;
-        // datas_.reserve(newData.size());
-        // for (auto kv : newData)
-        // {
-        //     datas_.push_back(kv.second);
-        // }
-        // 主表的范围在设定数据时才可确定
-        if (!end_)
-        {
-            end_ = index_map_.size() - 1;
-        }
-        // 副表在设置range时即可确定
         endResetModel();
     }
 
@@ -97,51 +84,14 @@ public:
         headers_ = headers;
     }
 
-    // 设置主表显示间隔
-    void setDisplayInterval(int interval)
-    {
-        interval_ = interval;
-        emit dataChanged(index(0, 0), index(rowCount(), columnCount()));
-        emit layoutChanged();
-    }
-    int gettDisplayInterval() const { return interval_; }
-
-    // 设置子表显示范围
-    void setSubTableRange(int range)
-    {
-        range_ = range;
-        end_ = start_ + range_; // 子表设置完range后,显示行数即确定
-        emit dataChanged(index(0, 0), index(rowCount(), columnCount()));
-        emit layoutChanged();
-    }
-    int getSubTableRange() const { return (end_ - start_); }
     int rowCount(const QModelIndex &parent = QModelIndex()) const override
     {
-        if (index_map_.empty())
-        {
-            return 0;
-        }
-        return (end_ - start_) / interval_;
+        return index_map_.size();
     }
 
     int columnCount(const QModelIndex &parent = QModelIndex()) const override
     {
-        if (index_map_.empty())
-        {
-            return 0;
-        }
         return headers_.size();
-    }
-
-    void UpdateStart(int start)
-    {
-        int s0 = start * interval_ - range_ / 2;
-        start_ = (s0 < 0 ? 0 : s0);
-        int end = start * interval_ + range_ / 2;
-        end_ = (end > index_map_.size() - 1 ? index_map_.size() - 1 : end);
-        int dynamic_range = end_ - start_;
-        emit dataChanged(index(0, 0), index(start_ - end_, columnCount()));
-        qDebug() << QString("start = %1 end = %2").arg(start_).arg(end_);
     }
 
     QVariant data(const QModelIndex &index, int role) const override
@@ -155,15 +105,11 @@ public:
             return QVariant();
         }
 
-        int rowIndex = index.row() * interval_ + start_;
-        // qDebug() << QString("rowIndex = %1").arg(rowIndex);
-        if (rowIndex >= index_map_.size())
+        if (index.row() >= index_map_.size())
         {
             return QVariant();
         }
-        // return QVariant();
-        return GetValueByHeaderName(*index_map_.getByIndex(rowIndex), headers_[index.column()]);
-        // return data_->operator[](rowIndex)[index.column()];
+        return GetValueByHeaderName(*index_map_.getByIndex(index.row()), headers_[index.column()]);
     }
     QVariant LastData(int col) const
     {
@@ -196,20 +142,76 @@ public:
     // std::vector<spMessage> const &AllDatas() const { return datas_; }
     QModelIndex getIndexByt0(double const t0) const
     {
-        auto index = index_map_.getIndexByKey(t0 * 1e3);
-        int index2 = (index - start_) / interval_;
+        auto index2 = index_map_.getIndexByKey(t0 * 1e3);
         return this->index(index2, 0);
     }
 
 private:
-    // std::vector<spMessage> datas_;
-    // std::map<size_t, spMessage> *map_datas_ = nullptr;
     IndexedMap<size_t, spMessage> index_map_;
     QStringList headers_; // 存储表头
-    int interval_ = 1;    // 主表显示间隔
-    int range_ = 1;       // 子表显示范围
-    int start_ = 0;       // 开始行数
-    int end_ = 0;         // 结束行数
 };
 
-#endif // MYTABLEMODEL_H
+class MainProxyModel : public QSortFilterProxyModel
+{
+public:
+    MainProxyModel(QObject *parent = nullptr) : QSortFilterProxyModel(parent) {}
+
+    void setInterval(int interval)
+    {
+        if (interval != interval_)
+        {
+            interval_ = interval;
+            invalidateFilter(); // 重新应用过滤器
+        }
+    }
+    int getInterval() const { return interval_; }
+
+
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
+    {
+        return sourceRow % interval_ == 0;
+    }
+
+private:
+    int interval_ = 100;
+};
+
+class SubProxyModel : public QSortFilterProxyModel
+{
+public:
+    SubProxyModel(QObject *parent = nullptr) : QSortFilterProxyModel(parent) {}
+
+    void setMiddleRow(int row)
+    {
+        if (row != middle_row_)
+        {
+            middle_row_ = row;
+            invalidateFilter(); // 重新应用过滤器
+        }
+    }
+    int getStartRow() const { return middle_row_; }
+
+    void setRange(int range)
+    {
+        if (range != range_)
+        {
+            range_ = range;
+            invalidateFilter(); // 重新应用过滤器
+        }
+    }
+    int getRange() const { return range_; }
+
+protected:
+    bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
+    {
+        // 示例过滤逻辑: 只显示与选中行前后10行的数据
+        int lowerBound = std::max(0, middle_row_ - range_);
+        int upperBound = middle_row_ + range_;
+        return sourceRow >= lowerBound && sourceRow <= upperBound;
+    }
+
+private:
+    int middle_row_ = 0;
+    int range_ = 100;
+};

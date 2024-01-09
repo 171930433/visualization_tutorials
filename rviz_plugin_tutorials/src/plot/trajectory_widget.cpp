@@ -465,7 +465,7 @@ void TrajectoryWidget::FocusPoint(double const t0)
 void TrajectoryWidget::FouseRange(QCPRange const &time_range)
 {
 
-  qDebug() << " TrajectoryWidget::FouseRange called";
+  // qDebug() << " TrajectoryWidget::FouseRange called";
 
   auto *first_curve = all_curve_.front();
 

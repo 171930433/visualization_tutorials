@@ -29,12 +29,14 @@ public:
         QStringList headers = GetFildNames(*newData.begin()->second);
         qDebug() << " headers = " << headers;
         // 设置表头
-        mainModel_->setHeaders(headers);
-        subModel_->setHeaders(headers);
+        model_->setHeaders(headers);
+        // mainModel_->setHeaders(headers);
+        // subModel_->setHeaders(headers);
 
         // 转换数据到适合模型的格式
-        mainModel_->setData(newData);
-        subModel_->setData(newData);
+        model_->setData(newData);
+        // mainModel_->setData(newData);
+        // subModel_->setData(newData);
     }
 
 public slots:
@@ -53,8 +55,11 @@ private:
 private:
     QTableView *mainTableView_;
     QTableView *subTableView_;
-    MyTableModel *mainModel_;
-    MyTableModel *subModel_;
+    // MyTableModel *mainModel_;
+    // MyTableModel *subModel_;
+    MyTableModel *model_;
+    MainProxyModel *main_proxy_;
+    SubProxyModel *sub_proxy_;
 
     friend DataTableDisplay;
     DisplaySyncBase *sync_display_ = nullptr;
