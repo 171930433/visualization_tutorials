@@ -148,27 +148,32 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name, std::map<size_t, 
     ++i;
   }
 
-  QCPCurve *frame = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
-  frame->setName(name);
-  frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssNone);
-  // frame->setScatterStyle(QCPScatterStyle::ScatterShape::ssCross);
-  frame->setLineStyle(QCPCurve::LineStyle::lsLine);
-  frame->setSelectable(QCP::stDataRange);
-  frame->setData(time_index, x, y);
-  QPen graphPen;
-  graphPen.setColor(QColor(0, 0, 0));
-  graphPen.setWidthF(2);
-  frame->setPen(graphPen);
+  QCPCurve *curve = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
+  curve->setName(name);
+  curve->setSelectable(QCP::stDataRange);
+  curve->setData(time_index, x, y);
+
+  // 设置散点样式和颜色
+  QCPScatterStyle scatterStyle;
+  scatterStyle.setShape(QCPScatterStyle::ScatterShape::ssNone); // 设置散点形状为None
+  scatterStyle.setPen(QPen(Qt::blue));                          // 散点轮廓颜色为蓝色
+  scatterStyle.setBrush(Qt::blue);                              // 散点填充颜色为黄色
+  scatterStyle.setSize(5);                                      // 散点大小为1
+  curve->setScatterStyle(scatterStyle);
+
+  // 设置直线样式
+  curve->setLineStyle(QCPCurve::LineStyle::lsLine);
+  curve->setPen(QPen(Qt::gray, 1));
 
   // 定制选中样式
-  QCPSelectionDecorator *decorator = frame->selectionDecorator();
+  QCPSelectionDecorator *decorator = curve->selectionDecorator();
   QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
   selectedScatterStyle.setSize(10);                                                           // 选中点的大小
   decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
 
-  all_curve_.push_back(frame);
+  all_curve_.push_back(curve);
 
-  return frame;
+  return curve;
 }
 
 QCPCurve *TrajectoryWidget::addRandomTrajectory(QString const &name)

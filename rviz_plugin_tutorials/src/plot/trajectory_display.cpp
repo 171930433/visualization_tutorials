@@ -2,6 +2,7 @@
 #include <rviz/properties/int_property.h>
 #include <rviz/properties/enum_property.h>
 #include <rviz/properties/bool_property.h>
+#include <rviz/properties/color_property.h>
 #include <rviz/visualization_manager.h>
 
 #include "plot/trajectory_widget.h"
@@ -32,6 +33,7 @@ GraphProperty::GraphProperty(TrajectoryWidget *plot, Property *parent)
   channel_name_prop_->addOption("random-0", 1);
   channel_name_prop_->addOption("random-1", 2);
 
+  // scatter
   scatter_type_ = new rviz::EnumProperty("Point type", "None", "the point type of trajectory", this, SLOT(UpdateScatterShape()));
   scatter_type_->addOption("None", QCPScatterStyle::ScatterShape::ssNone);
   scatter_type_->addOption("ssDot", QCPScatterStyle::ScatterShape::ssDot);
@@ -52,9 +54,20 @@ GraphProperty::GraphProperty(TrajectoryWidget *plot, Property *parent)
   // scatter_type_->addOption("ssPixmap", QCPScatterStyle::ScatterShape::ssPixmap);
   // scatter_type_->addOption("ssCustom", QCPScatterStyle::ScatterShape::ssCustom);
 
+  scatter_color_ = new rviz::ColorProperty("scatter color", QColor(Qt::blue), "set the color of all scatter", this, SLOT(UpdateScatterColor()));
+
+  scatter_size_ = new rviz::IntProperty("scatter size", 1, "the size of all scatter", this, SLOT(UpdateScatterSize()));
+  scatter_size_->setMin(1);
+  scatter_size_->setMax(10);
+  // line
   line_type_ = new rviz::EnumProperty("line type", "Line", "the line type of trajectory", this, SLOT(UpdateLineStyle()));
   line_type_->addOption("None", QCPCurve::LineStyle::lsNone);
   line_type_->addOption("Line", QCPCurve::LineStyle::lsLine);
+
+  line_color_ = new rviz::ColorProperty("line color", QColor(Qt::gray), "set the color of line", this, SLOT(UpdateLineColor()));
+  line_width_ = new rviz::IntProperty("line width", 1, "the line width of trajectory", this, SLOT(UpdateLineWidth()));
+  line_width_->setMin(1);
+  line_width_->setMax(10);
 
   // 数据通道更新，数据更新
   connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncInfo()));
@@ -76,6 +89,7 @@ void GraphProperty::UpdateTopic()
   plot_->replot();
 }
 
+
 void GraphProperty::UpdateEnable()
 {
   if (!curve_)
@@ -84,25 +98,72 @@ void GraphProperty::UpdateEnable()
   plot_->replot();
   // qDebug() << " GraphProperty::UpdateEnable() called " << this->getBool();
 }
+void GraphProperty::UpdateScatterSize()
+{
+  if (!curve_)
+    return;
+  auto const size = scatter_size_->getInt();
+  auto new_scatter_style = curve_->scatterStyle();
+  new_scatter_style.setSize(size);
+  curve_->setScatterStyle(new_scatter_style);
+  plot_->replot();
+}
 
 void GraphProperty::UpdateScatterShape()
 {
   if (!curve_)
     return;
   auto const type = static_cast<QCPScatterStyle::ScatterShape>(scatter_type_->getOptionInt());
-  curve_->setScatterStyle(type);
+  auto new_scatter_style = curve_->scatterStyle();
+  new_scatter_style.setShape(type);
+  curve_->setScatterStyle(new_scatter_style);
   plot_->replot();
 }
-
+void GraphProperty::UpdateScatterColor()
+{
+  if (!curve_)
+    return;
+  auto const new_color = scatter_color_->getColor();
+  auto new_scatter_style = curve_->scatterStyle();
+  QPen new_pen = new_scatter_style.pen();
+  new_pen.setColor(new_color);
+  new_scatter_style.setPen(new_pen);
+  curve_->setScatterStyle(new_scatter_style);
+  plot_->replot();
+}
 void GraphProperty::UpdateLineStyle()
 {
   if (!curve_)
     return;
   auto const type = static_cast<QCPCurve::LineStyle>(line_type_->getOptionInt());
-  // view_->setMainInterval(main_interval_->getInt());
+  line_width_->setHidden(type == QCPCurve::LineStyle::lsNone ? true : false);
+  line_color_->setHidden(type == QCPCurve::LineStyle::lsNone ? true : false);
   curve_->setLineStyle(type);
   plot_->replot();
 }
+
+void GraphProperty::UpdateLineColor()
+{
+  if (!curve_)
+    return;
+  auto const new_color = line_color_->getColor();
+  QPen new_pen = curve_->pen();
+  new_pen.setColor(new_color);
+  curve_->setPen(new_pen);
+  plot_->replot();
+}
+
+void GraphProperty::UpdateLineWidth()
+{
+  if (!curve_)
+    return;
+  auto const new_width = line_width_->getInt();
+  QPen new_pen = curve_->pen();
+  new_pen.setWidthF(new_width);
+  curve_->setPen(new_pen);
+  plot_->replot();
+}
+
 TrajectoryDisplay::TrajectoryDisplay()
 {
   InitPersons();
@@ -135,10 +196,6 @@ void TrajectoryDisplay::onInitialize()
 }
 
 void TrajectoryDisplay::update(float dt, float ros_dt)
-{
-}
-
-void TrajectoryDisplay::Swap2Central()
 {
 }
 

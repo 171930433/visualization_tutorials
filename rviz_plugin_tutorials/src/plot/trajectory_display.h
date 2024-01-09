@@ -19,6 +19,7 @@ namespace rviz
   class EnumProperty;
   class BoolProperty;
   class GroupProperty;
+  class ColorProperty;
 }
 
 namespace zhito
@@ -37,19 +38,30 @@ public:
   ~GraphProperty();
 private Q_SLOTS:
   void UpdateScatterShape();
+  void UpdateScatterColor();
+  void UpdateScatterSize();
+  // void UpdateScatterStyle();
   void UpdateLineStyle();
+  void UpdateLineWidth();
+  void UpdateLineColor();
   void UpdateEnable();
   void UpdateTopic();
   void SyncInfo();
 
 protected:
-
 protected:
   static int graph_counts_;
   QTimer dataTimer_; // 检查是否有数据更新
   rviz::EnumProperty *channel_name_prop_ = nullptr;
+  // scatter
   rviz::EnumProperty *scatter_type_ = nullptr;
-  rviz::EnumProperty *line_type_ = nullptr;
+  rviz::ColorProperty *scatter_color_ = nullptr; // scatter color
+  rviz::IntProperty *scatter_size_ = nullptr;    // scatter size
+  // line
+  rviz::EnumProperty *line_type_ = nullptr;   // line type
+  rviz::IntProperty *line_width_ = nullptr;   // line width
+  rviz::ColorProperty *line_color_ = nullptr; // line color
+
   QCPCurve *curve_;
   TrajectoryWidget *plot_ = nullptr;
 };
@@ -67,9 +79,7 @@ public:
   void onInitialize() override;
   void update(float dt, float ros_dt) override;
 private Q_SLOTS:
-  void UpdateScatterShape();
-  void UpdateLineStyle();
-  void Swap2Central();          // 将当前视图放置在central widget位置
+
   void UpdateFocusWhenSelect(); // 将当前视图放置在central widget位置
   void UpdateGraphCount();      //
 private:
@@ -77,11 +87,8 @@ private:
 
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;
-  rviz::BoolProperty *swap2central_ = nullptr;
   rviz::IntProperty *counts_prop_ = nullptr;        // 轨迹数目
   rviz::BoolProperty *focus_when_select_ = nullptr; // 选中时居中
 
-  // std::list<GraphProperty *> graphs_;
-  // std::list<std::shared_ptr<GraphProperty>> graphs_;
   std::deque<std::shared_ptr<GraphProperty>> graphs_;
 };
