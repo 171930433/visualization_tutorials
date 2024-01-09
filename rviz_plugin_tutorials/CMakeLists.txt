@@ -76,11 +76,6 @@ set(SRC_FILES
   ${PROTO_SRCS} ${PROTO_HDRS}
 )
 
-
-
-# qt5_wrap_cpp(MOC_SOURCES ${HEADERS})
-
-
 ## An rviz plugin is just a shared library, so here we declare the
 ## library to be called ``${PROJECT_NAME}`` (which is
 ## "rviz_plugin_tutorials", or whatever your version of this project

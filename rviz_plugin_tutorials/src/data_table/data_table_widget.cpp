@@ -52,7 +52,6 @@ void DataTableWidget::OnMainSelectionChanged(const QItemSelection &selected, con
   subModel_->UpdateStart(currentRow * mainModel_->gettDisplayInterval());
   Scrol2SubMiddle();
   // 获得时间索引
-  // double t0_s = view_data_[currentRow * mainModel_->gettDisplayInterval()][0].toDouble();
   double t0_s = mainModel_->data(mainModel_->index(currentRow * mainModel_->gettDisplayInterval(), 0), Qt::DisplayRole).toDouble();
   // this->setPoint(t0_s);
   QCPRange time_range;

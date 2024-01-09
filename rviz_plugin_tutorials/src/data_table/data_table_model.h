@@ -2,20 +2,16 @@
 #define MYTABLEMODEL_H
 
 #include <QAbstractTableModel>
-#include <boost/hana.hpp>
 #include <vector>
 #include <QStringList>
 #include <QVariant>
 #include <qdebug.h>
-#include "protobuf_helper.h"
 #include <map>
 #include <utility>
-
-namespace hana = boost::hana;
-
 #include <vector>
-#include <map>
 #include <iostream>
+
+#include "protobuf_helper.h"
 
 template <typename K, typename V>
 class IndexedMap
