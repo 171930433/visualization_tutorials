@@ -127,15 +127,10 @@ TrajectoryDisplay::~TrajectoryDisplay()
     delete view_;
   }
 }
-ITimeSync *TrajectoryDisplay::getView()
-{
-  return dynamic_cast<ITimeSync *>(this->getAssociatedWidget());
-}
 
 // Overrides from Display
 void TrajectoryDisplay::onInitialize()
 {
-
   setAssociatedWidget(view_);
 }
 

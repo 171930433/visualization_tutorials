@@ -62,13 +62,11 @@ set(SRC_FILES
   src/data_table/data_table_model.h
   src/data_table/data_table_widget.cpp
   src/data_table/data_table_display.cpp
-  src/data_table/data_table_panel.cpp
   # plot 2d
   src/plot/qcustomplot.cpp
   src/plot/plot_base.cpp
   src/plot/trajectory_display.cpp
   src/plot/trajectory_widget.cpp
-  # src/plot/trajectory_panel.cpp
   # sync
   src/time_sync.cpp
   src/display_sync_base.cpp

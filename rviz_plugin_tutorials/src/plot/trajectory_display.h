@@ -61,8 +61,6 @@ public:
   TrajectoryDisplay();
   ~TrajectoryDisplay() override;
 
-  ITimeSync *getView() override;
-
   // Overrides from Display
   virtual void load(const rviz::Config &config);
   virtual void save(rviz::Config config) const;

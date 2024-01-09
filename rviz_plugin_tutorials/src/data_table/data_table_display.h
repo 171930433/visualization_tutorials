@@ -26,10 +26,6 @@ public:
     DataTableDisplay();
     ~DataTableDisplay() override;
 
-    // 需要在 Initialize 之前调用,以确定在onInitialize 绑定有效
-    void setView(DataTableWidget *view) { view_ = view; }
-    ITimeSync *getView() override;
-
     // Overrides from Display
     void onInitialize() override;
     void update(float dt, float ros_dt) override;

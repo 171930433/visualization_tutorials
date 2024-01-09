@@ -6,28 +6,13 @@
 
 class ITimeSync;
 
-// namespace rviz
-// {
-//   class EnumProperty;
-//   class BoolProperty;
-//   class GroupProperty;
-//   class DisplayContext;
-// }
-
-// class DisplayViewManager
-// {
-// public:
-//   DisplaySyncBase *sync_display_ = nullptr;
-//   ITimeSync *view_ = nullptr;
-// };
-
 class DisplaySyncBase : public rviz::Display
 {
   Q_OBJECT
 public:
   DisplaySyncBase();
   virtual ~DisplaySyncBase();
-  virtual ITimeSync *getView() = 0;
+  virtual ITimeSync *getView();
 Q_SIGNALS:
   void FocusPointChanged(double const t0);
   void FouseRangeChanged(QCPRange const &time_range);

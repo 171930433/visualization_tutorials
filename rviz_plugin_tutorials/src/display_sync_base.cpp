@@ -16,6 +16,11 @@ DisplaySyncBase::~DisplaySyncBase()
 {
 }
 
+ITimeSync *DisplaySyncBase::getView()
+{
+  return dynamic_cast<ITimeSync *>(this->getAssociatedWidget());
+};
+
 void DisplaySyncBase::onFocusPoint(double const t0, bool update_view, bool emit_signal)
 {
   // qDebug() << this->getName() << "DisplaySyncBase::onFocusPoint" << QString("%1").arg(t0, 0, 'f', 3) << QString("update_view=%1 emit_signal=%2").arg(update_view).arg(emit_signal);
