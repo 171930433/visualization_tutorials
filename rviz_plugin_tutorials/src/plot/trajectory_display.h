@@ -49,6 +49,9 @@ private Q_SLOTS:
   void SyncInfo();
 
 protected:
+  QPen getLinePen() const;
+  QCPScatterStyle getScatterStyle() const;
+
 protected:
   static int graph_counts_;
   QTimer dataTimer_; // 检查是否有数据更新

@@ -84,12 +84,26 @@ void GraphProperty::UpdateTopic()
   else
   {
     auto *re = plot_->ContainsCurve(name);
-    curve_ = (re ? re : plot_->addTrajectory(name, g_messages));
+    curve_ = (re ? re : plot_->addTrajectory(name, g_messages, getScatterStyle(), getLinePen()));
   }
   plot_->replot();
 }
 
+QPen GraphProperty::getLinePen() const
+{
+  QPen line_pen;
+  line_pen.setColor(line_color_->getColor());
+  line_pen.setWidth(line_width_->getInt());
+  return line_pen;
+}
+QCPScatterStyle GraphProperty::getScatterStyle() const
+{
+  auto const shape = static_cast<QCPScatterStyle::ScatterShape>(scatter_type_->getOptionInt());
+  auto const color = scatter_color_->getColor();
+  double const size = scatter_size_->getInt();
 
+  return QCPScatterStyle{shape, color, size};
+}
 void GraphProperty::UpdateEnable()
 {
   if (!curve_)
@@ -172,7 +186,7 @@ TrajectoryDisplay::TrajectoryDisplay()
 
   // swap2central_ = new rviz::BoolProperty("Set in central", false, "swap the trajectory and render view", this, SLOT(Swap2Central()));
   focus_when_select_ = new rviz::BoolProperty("foucs when select", true, "focus the selected points", this, SLOT(UpdateFocusWhenSelect()));
-  counts_prop_ = new rviz::IntProperty("graph counts", 3, "the number of graph counts", this, SLOT(UpdateGraphCount()));
+  counts_prop_ = new rviz::IntProperty("graph counts", 1, "the number of graph counts", this, SLOT(UpdateGraphCount()));
   counts_prop_->setMin(1);
   counts_prop_->setMax(10);
   for (int i = 0; i < counts_prop_->getValue().toInt(); ++i)
@@ -186,6 +200,7 @@ TrajectoryDisplay::~TrajectoryDisplay()
   if (initialized())
   {
     delete view_;
+    graphs_.clear();
   }
 }
 
@@ -224,11 +239,17 @@ void TrajectoryDisplay::UpdateGraphCount()
       graphs_.push_back(std::make_shared<GraphProperty>(view_, this));
     }
   }
+  // qDebug() <<" UpdateGraphCount called";
 }
 
 void TrajectoryDisplay::load(const rviz::Config &config)
 {
+//   qDebug() << config.getValue();
+// qDebug() << "before graph size = " << graphs_.size();
+
   rviz::Display::load(config);
+// qDebug() << "end graph size = " << graphs_.size();
+
 }
 void TrajectoryDisplay::save(rviz::Config config) const
 {

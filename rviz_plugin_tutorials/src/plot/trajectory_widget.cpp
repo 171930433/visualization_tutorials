@@ -133,7 +133,11 @@ QCPCurve *TrajectoryWidget::ContainsCurve(QString const &name)
   return result;
 }
 
-QCPCurve *TrajectoryWidget::addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas)
+QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                      // curve legend
+                                          std::map<size_t, spMessage> const &datas, // 数据消息
+                                          QCPScatterStyle const &ss,                // 散点样式
+                                          QPen const &lp                            // line pen
+)
 {
   int const n = datas.size();
   QVector<double> x(n), y(n), time_index(n);
@@ -154,16 +158,11 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name, std::map<size_t, 
   curve->setData(time_index, x, y);
 
   // 设置散点样式和颜色
-  QCPScatterStyle scatterStyle;
-  scatterStyle.setShape(QCPScatterStyle::ScatterShape::ssNone); // 设置散点形状为None
-  scatterStyle.setPen(QPen(Qt::blue));                          // 散点轮廓颜色为蓝色
-  scatterStyle.setBrush(Qt::blue);                              // 散点填充颜色为黄色
-  scatterStyle.setSize(5);                                      // 散点大小为1
-  curve->setScatterStyle(scatterStyle);
+  curve->setScatterStyle(ss);
 
   // 设置直线样式
   curve->setLineStyle(QCPCurve::LineStyle::lsLine);
-  curve->setPen(QPen(Qt::gray, 1));
+  curve->setPen(lp);
 
   // 定制选中样式
   QCPSelectionDecorator *decorator = curve->selectionDecorator();

@@ -119,7 +119,7 @@ public:
   QCPCurve *addRandomTrajectory(QString const &name);
   void RemoveCurve(QCPCurve *);
   QCPCurve *ContainsCurve(QString const &name);
-  QCPCurve *addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas);
+  QCPCurve *addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas, QCPScatterStyle const &ss, QPen const &lp);
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
