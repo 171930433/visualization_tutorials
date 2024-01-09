@@ -28,6 +28,13 @@ public:
             insert(kv.first, kv.second);
         }
     }
+    void AddMap(std::map<K, V> const &raw_map)
+    {
+        for (auto kv : raw_map)
+        {
+            insert(kv.first, kv.second);
+        }
+    }
     void insert(const K &key, const V &value)
     {
         if (key_to_index_.find(key) == key_to_index_.end())
@@ -76,6 +83,13 @@ public:
         beginResetModel();
         index_map_.setMap(newData);
         endResetModel();
+    }
+
+    void AddData(const std::map<size_t, spMessage> &newData)
+    {
+        beginInsertRows(QModelIndex(), rowCount(), newData.size());
+        index_map_.AddMap(newData);
+        endInsertRows();
     }
 
     // 设置表头
@@ -165,7 +179,6 @@ public:
         }
     }
     int getInterval() const { return interval_; }
-
 
 protected:
     bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
