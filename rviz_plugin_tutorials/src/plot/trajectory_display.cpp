@@ -5,8 +5,6 @@
 #include <rviz/visualization_manager.h>
 
 #include "plot/trajectory_widget.h"
-#include "plot/trajectory_panel.h"
-
 #include "protobuf_helper.h"
 
 int GraphProperty::graph_counts_ = 0;
@@ -108,9 +106,7 @@ void GraphProperty::UpdateLineStyle()
 TrajectoryDisplay::TrajectoryDisplay()
 {
   InitPersons();
-
-  panel_ = new zhito::TrajectoryPanel();
-  view_ = panel_->getView();
+  view_ = new TrajectoryWidget();
   view_->setDisplaySync(this);
 
   // swap2central_ = new rviz::BoolProperty("Set in central", false, "swap the trajectory and render view", this, SLOT(Swap2Central()));
@@ -128,17 +124,19 @@ TrajectoryDisplay::~TrajectoryDisplay()
 {
   if (initialized())
   {
-    delete panel_;
+    delete view_;
   }
 }
-ITimeSync *TrajectoryDisplay::getView() { return view_; }
+ITimeSync *TrajectoryDisplay::getView()
+{
+  return dynamic_cast<ITimeSync *>(this->getAssociatedWidget());
+}
 
 // Overrides from Display
 void TrajectoryDisplay::onInitialize()
 {
 
-  panel_->initialize(qobject_cast<rviz::VisualizationManager *>(context_));
-  setAssociatedWidget(panel_);
+  setAssociatedWidget(view_);
 }
 
 void TrajectoryDisplay::update(float dt, float ros_dt)
@@ -147,7 +145,6 @@ void TrajectoryDisplay::update(float dt, float ros_dt)
 
 void TrajectoryDisplay::Swap2Central()
 {
-  panel_->Swap2Central(swap2central_->getBool());
 }
 
 void TrajectoryDisplay::UpdateFocusWhenSelect()

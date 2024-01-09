@@ -61,10 +61,7 @@ public:
   TrajectoryDisplay();
   ~TrajectoryDisplay() override;
 
-  // 需要在 Initialize 之前调用,以确定在onInitialize 绑定有效
-  void setView(TrajectoryWidget *view) { view_ = view; }
   ITimeSync *getView() override;
-  void setPanel(zhito::TrajectoryPanel *panel) { panel_ = panel; }
 
   // Overrides from Display
   virtual void load(const rviz::Config &config);
@@ -79,7 +76,6 @@ private Q_SLOTS:
   void UpdateGraphCount();      //
 private:
   TrajectoryWidget *view_ = nullptr;
-  zhito::TrajectoryPanel *panel_ = nullptr;
 
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;

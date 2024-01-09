@@ -68,7 +68,7 @@ set(SRC_FILES
   src/plot/plot_base.cpp
   src/plot/trajectory_display.cpp
   src/plot/trajectory_widget.cpp
-  src/plot/trajectory_panel.cpp
+  # src/plot/trajectory_panel.cpp
   # sync
   src/time_sync.cpp
   src/display_sync_base.cpp
