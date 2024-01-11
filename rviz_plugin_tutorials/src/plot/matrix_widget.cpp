@@ -2,7 +2,8 @@
 
 #include "plot/matrix_widget.h"
 
-MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent) {
+MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
+{
   //
   type_ = Type::Matrix;
 
@@ -14,17 +15,23 @@ DisplaySyncBase *MatrixWidget::getDisplaySync()
   return sync_display_;
 }
 
-void MatrixWidget::ShowSubplot(int const index) {
+void MatrixWidget::ShowSubplot(int const index)
+{
   auto rect_show = this->plotLayout()->take(all_rects_[index]);
   // qDebug() <<  "this->plotLayout()->rowCount() = " << this->plotLayout()->rowCount();
-  if (rect_show) {
+  if (rect_show)
+  {
     all_rects_[index]->setVisible(false);
     this->plotLayout()->simplify();
-  } else {
+  }
+  else
+  {
     all_rects_[index]->setVisible(true);
-    int current_index = -1;  // 因为每次删除元素后，剩余元素会重新编号，所以需要重新计算当前rect的实际index
-    for (int i = 0; i <= index; ++i) {
-      if (all_rects_[i]->visible()) {
+    int current_index = -1; // 因为每次删除元素后，剩余元素会重新编号，所以需要重新计算当前rect的实际index
+    for (int i = 0; i <= index; ++i)
+    {
+      if (all_rects_[i]->visible())
+      {
         current_index++;
       }
     }
@@ -43,41 +50,53 @@ void MatrixWidget::ShowSubplot(int const index) {
   this->replot();
 }
 
-void MatrixWidget::contextMenuRequest(QPoint pos) {
+void MatrixWidget::contextMenuRequest(QPoint pos)
+{
   QMenu *menu = new QMenu(this);
   menu->setAttribute(Qt::WA_DeleteOnClose);
 
-  menu->addAction("X plot", this, [this] { ShowSubplot(0); });
-  menu->addAction("Y plot", this, [this] { ShowSubplot(1); });
-  menu->addAction("Z plot", this, [this] { ShowSubplot(2); });
+  menu->addAction("X plot", this, [this]
+                  { ShowSubplot(0); });
+  menu->addAction("Y plot", this, [this]
+                  { ShowSubplot(1); });
+  menu->addAction("Z plot", this, [this]
+                  { ShowSubplot(2); });
 
   menu->popup(this->mapToGlobal(pos));
 }
 
-void MatrixWidget::mouseWheel() {
+void MatrixWidget::mouseWheel()
+{
   bool x_selected = false;
-  for (auto [key, rect] : all_rects_) {
-    if (rect->axis(QCPAxis::atBottom)->selectedParts().testFlag(QCPAxis::spAxis)) {
+  for (auto [key, rect] : all_rects_)
+  {
+    if (rect->axis(QCPAxis::atBottom)->selectedParts().testFlag(QCPAxis::spAxis))
+    {
       x_selected = true;
       break;
     }
   }
 
-  for (auto [key, rect] : all_rects_) {
-    if (x_selected) {
+  for (auto [key, rect] : all_rects_)
+  {
+    if (x_selected)
+    {
       rect->setRangeZoom(Qt::Horizontal);
-    } else {
+    }
+    else
+    {
       rect->setRangeZoom(Qt::Vertical);
     }
   }
   // qDebug() <<" x_selected = " << x_selected;
 }
 
-void MatrixWidget::setupVector3Demo() {
+void MatrixWidget::setupVector3Demo()
+{
   // demoName = "Vector3 Demo";
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
 
-  this->plotLayout()->clear();  // let's start from scratch and remove the default axis rect
+  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
   // add the first axis rect in second row (row index 1):
   QCPAxisRect *topAxisRect = new QCPAxisRect(this);
   QCPAxisRect *middleAxisRect = new QCPAxisRect(this);
@@ -132,7 +151,8 @@ void MatrixWidget::setupVector3Demo() {
 
   QList<QCPAxis *> allAxes;
   allAxes << topAxisRect->axes() << middleAxisRect->axes() << bottomAxisRect->axes();
-  foreach (QCPAxis *axis, allAxes) {
+  foreach (QCPAxis *axis, allAxes)
+  {
     axis->setLayer("axes");
     axis->grid()->setLayer("grid");
   }
@@ -146,8 +166,9 @@ void MatrixWidget::setupVector3Demo() {
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
 }
 
-void MatrixWidget::addRandomGraph() {
-  int n = 500000;  // number of points in graph
+void MatrixWidget::addRandomGraph()
+{
+  int n = 500000; // number of points in graph
   double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
@@ -157,25 +178,68 @@ void MatrixWidget::addRandomGraph() {
   double r3 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
   double r4 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
   QVector<double> x(n), y(n);
-  for (int i = 0; i < n; i++) {
+  for (int i = 0; i < n; i++)
+  {
     x[i] = (i / (double)n - 0.5) * 10.0 * xScale + xOffset;
     y[i] = (qSin(x[i] * r1 * 5) * qSin(qCos(x[i] * r2) * r4 * 3) + r3 * qCos(qSin(x[i]) * r4 * 2)) * yScale + yOffset;
   }
 
-  for (auto [key, rect] : all_rects_) {
+  for (auto [key, rect] : all_rects_)
+  {
     QCPAxis *left = rect->axis(QCPAxis::atLeft);
     QCPAxis *bottom = rect->axis(QCPAxis::atBottom);
 
     this->addGraph(bottom, left);
+    this->graph()->setSelectable(QCP::stDataRange);
     this->graph()->setName(QString("New graph %1").arg(this->graphCount() - 1));
     this->graph()->setData(x, y);
     this->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand() % 5 + 1));
-    if (std::rand() % 100 > 50) this->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand() % 14 + 1)));
+    if (std::rand() % 100 > 50)
+      this->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand() % 14 + 1)));
     QPen graphPen;
     graphPen.setColor(QColor(std::rand() % 245 + 10, std::rand() % 245 + 10, std::rand() % 245 + 10));
     graphPen.setWidthF(std::rand() / (double)RAND_MAX * 2 + 1);
     this->graph()->setPen(graphPen);
+
+    // 定制选中样式
+    QCPSelectionDecorator *decorator = this->graph()->selectionDecorator();
+    QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
+    selectedScatterStyle.setSize(10);                                                           // 选中点的大小
+    decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
   }
+
+  this->replot();
+}
+
+void MatrixWidget::FoucuPositionByIndex(QCPPlottableInterface1D *curve, int const dataIndex)
+{
+  double const x = curve->dataMainKey(dataIndex);
+  double const y = curve->dataMainValue(dataIndex);
+
+  this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
+  this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
+}
+
+void MatrixWidget::FocusPoint(double const t0)
+{
+  // auto *first_curve = all_curve_.front();
+
+  for (int i = 0; i < this->graphCount(); ++i)
+  {
+    auto *single_graph = this->graph(i);
+
+    // 1. 先检查所有的数据区间是否包含待查找点
+    auto const dataIndex = single_graph->findBegin(t0, true) + 1;
+
+    // 选中点
+    QCPDataRange index_range{dataIndex, dataIndex + 1};
+    single_graph->setSelection(QCPDataSelection{index_range});
+    // 该点剧中
+    FoucuPositionByIndex(single_graph, dataIndex);
+  }
+
+  // 当前选中点以改变消息发出
+  // this->onFocusPoint(t0, false, true);
 
   this->replot();
 }

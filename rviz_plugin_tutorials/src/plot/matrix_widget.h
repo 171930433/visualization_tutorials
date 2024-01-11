@@ -28,6 +28,6 @@ protected:
   DisplaySyncBase *sync_display_ = nullptr;
 
 protected:
-  void FocusPoint(double const t0) override {}
+  void FocusPoint(double const t0) override;
   void FouseRange(QCPRange const &time_range) {}
 };
