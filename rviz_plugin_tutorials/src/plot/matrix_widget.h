@@ -14,6 +14,8 @@ public:
   void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
   DisplaySyncBase *getDisplaySync() override;
 
+  void AddSeries(QString const &name, QStringList const &field_names);
+
 protected:
   void setupVector3Demo();
   std::map<std::string, QCustomPlot *> all_plots_;
@@ -30,4 +32,5 @@ protected:
 protected:
   void FocusPoint(double const t0) override;
   void FouseRange(QCPRange const &time_range) {}
+  void FoucuPositionByIndex(QCPGraph *single_graph, int const dataIndex);
 };

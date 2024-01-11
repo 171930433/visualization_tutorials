@@ -33,6 +33,11 @@ public:
   MatrixDisplay();
   ~MatrixDisplay() override;
 
+
+public:
+  void AddSeries(QString const &name, QStringList const &field_names);
+
+
   // Overrides from Display
   virtual void load(const rviz::Config &config);
   virtual void save(rviz::Config config) const;

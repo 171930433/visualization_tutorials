@@ -1,4 +1,10 @@
 #include "data_table/data_table_widget.h"
+#include "data_table_display.h"
+#include <rviz/visualization_manager.h>
+#include <rviz/display_group.h>
+
+#include "display_sync_base.h"
+#include "plot/matrix_display.h"
 
 DisplaySyncBase *DataTableWidget::getDisplaySync()
 {
@@ -163,20 +169,37 @@ void DataTableWidget::showHeaderMenu(const QPoint &pos)
 {
   // auto const old = mainTableView_->selectionBehavior();
   // mainTableView_->setSelectionBehavior(QAbstractItemView::SelectColumns);
-  QStringList selectedHeaderStrings;
+  QStringList filed_names;
   // 获取每个选中列的表头字符串
   for (auto const &col : mainTableView_->selectionModel()->selectedColumns())
   {
     QString header = main_proxy_->headerData(col.column(), Qt::Horizontal).toString();
-    selectedHeaderStrings.append(header);
+    filed_names.append(header);
   }
+  qDebug() <<" showHeaderMenu " << filed_names.join('.');
 
   QMenu *menu = new QMenu(this);
-  menu->addAction(selectedHeaderStrings.join('-'));
+  menu->addAction("create matrix plot", this, [this, filed_names]()
+                  { this->CreateMatrixPlot("", filed_names); });
   menu->addAction("operator 2");
   // 添加更多操作...
 
   menu->popup(mainTableView_->horizontalHeader()->mapToGlobal(pos));
 
   // mainTableView_->setSelectionBehavior(old);
+}
+
+void DataTableWidget::CreateMatrixPlot(QString const &name, QStringList const &field_names)
+{
+  qDebug() <<" CreateMatrixPlot " << field_names.join('.');
+  if (!sync_display_)
+  {
+    return;
+  }
+  // qobject_cast<rviz::VisualizationManager*>(sync_display_->context_)->createDisplay()
+  auto *matrix_display = new MatrixDisplay();
+  sync_display_->getContext()->getRootDisplayGroup()->addDisplay(matrix_display);
+  matrix_display->initialize(sync_display_->getContext());
+
+  matrix_display->AddSeries(name, field_names);
 }

@@ -13,6 +13,7 @@ public:
   DisplaySyncBase();
   virtual ~DisplaySyncBase();
   virtual ITimeSync *getView();
+  rviz::DisplayContext* getContext() { return context_;}
 Q_SIGNALS:
   void FocusPointChanged(double const t0);
   void FouseRangeChanged(QCPRange const &time_range);

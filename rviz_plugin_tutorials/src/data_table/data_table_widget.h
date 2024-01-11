@@ -22,6 +22,7 @@ public:
 
     void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
     DisplaySyncBase *getDisplaySync() override;
+    void CreateMatrixPlot(QString const& name,QStringList const& field_names);
 
     void setData(const std::map<size_t, spMessage> &newData)
     {
@@ -62,6 +63,5 @@ private:
     MainProxyModel *main_proxy_;
     SubProxyModel *sub_proxy_;
 
-    friend DataTableDisplay;
     DisplaySyncBase *sync_display_ = nullptr;
 };

@@ -506,7 +506,7 @@ void TrajectoryWidget::FouseRange(QCPRange const &time_range)
   this->replot();
 }
 
-void TrajectoryWidget::FoucuPositionByIndex(QCPPlottableInterface1D *curve, int const dataIndex)
+void TrajectoryWidget::FoucuPositionByIndex(QCPCurve *curve, int const dataIndex)
 {
   double const x = curve->dataMainKey(dataIndex);
   double const y = curve->dataMainValue(dataIndex);

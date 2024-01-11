@@ -1,6 +1,7 @@
 #include <QWidget>
 
 #include "plot/matrix_widget.h"
+#include "protobuf_helper.h"
 
 MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
 {
@@ -111,9 +112,9 @@ void MatrixWidget::setupVector3Demo()
   topAxisRect->setRangeZoom(Qt::Vertical);
   middleAxisRect->setRangeZoom(Qt::Vertical);
   bottomAxisRect->setRangeZoom(Qt::Vertical);
-  topAxisRect->axis(QCPAxis::atLeft)->setLabel("y0 Axis");
-  middleAxisRect->axis(QCPAxis::atLeft)->setLabel("y1 Axis");
-  bottomAxisRect->axis(QCPAxis::atLeft)->setLabel("y2 Axis");
+  // topAxisRect->axis(QCPAxis::atLeft)->setLabel("y0 Axis");
+  // middleAxisRect->axis(QCPAxis::atLeft)->setLabel("y1 Axis");
+  // bottomAxisRect->axis(QCPAxis::atLeft)->setLabel("y2 Axis");
 
   // x轴的padding为0
   // topAxisRect->axis(QCPAxis::atBottom)->setPadding(0);
@@ -157,7 +158,7 @@ void MatrixWidget::setupVector3Demo()
     axis->grid()->setLayer("grid");
   }
 
-  addRandomGraph();
+  // addRandomGraph();
   this->rescaleAxes();
 
   this->setContextMenuPolicy(Qt::CustomContextMenu);
@@ -211,10 +212,10 @@ void MatrixWidget::addRandomGraph()
   this->replot();
 }
 
-void MatrixWidget::FoucuPositionByIndex(QCPPlottableInterface1D *curve, int const dataIndex)
+void MatrixWidget::FoucuPositionByIndex(QCPGraph *single_graph, int const dataIndex)
 {
-  double const x = curve->dataMainKey(dataIndex);
-  double const y = curve->dataMainValue(dataIndex);
+  double const x = single_graph->dataMainKey(dataIndex);
+  double const y = single_graph->dataMainValue(dataIndex);
 
   this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
   this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
@@ -235,11 +236,66 @@ void MatrixWidget::FocusPoint(double const t0)
     QCPDataRange index_range{dataIndex, dataIndex + 1};
     single_graph->setSelection(QCPDataSelection{index_range});
     // 该点剧中
-    FoucuPositionByIndex(single_graph, dataIndex);
+    // FoucuPositionByIndex(single_graph, dataIndex);
   }
 
   // 当前选中点以改变消息发出
   // this->onFocusPoint(t0, false, true);
 
   this->replot();
+}
+
+void MatrixWidget::AddSeries(QString const &name, QStringList const &field_names)
+{
+  qDebug() << QString("start %1").arg(field_names.join('.'));
+  //
+  auto const &datas = g_messages;
+
+  int const n = datas.size();
+  QVector<double> y[3], time_index(n);
+  for (int i = 0; i < 3; ++i)
+  {
+    y[i].resize(n);
+  }
+  // QStringList const header = GetFildNames(*datas.begin()->second);
+  int row = 0;
+  for (auto const &kv : datas)
+  {
+    auto const &message = *kv.second;
+    time_index[row] = kv.first / 1e3;
+    for (int i = 0; i < 3; ++i)
+    {
+      y[i][row] = GetValueByHeaderName(message, field_names[i]).toDouble();
+    }
+    ++row;
+  }
+
+  for (int i = 0; i < 3; ++i)
+  {
+    auto * rect = all_rects_[i];
+    auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
+
+    rect->axis(QCPAxis::atLeft)->setLabel(field_names[i]);
+    curve->setName(field_names[i]);
+    curve->setSelectable(QCP::stDataRange);
+    curve->setData(time_index, y[i]);
+
+    // 设置散点样式和颜色
+    curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCross, Qt::blue));
+
+    // 设置直线样式
+    curve->setLineStyle(QCPGraph::LineStyle::lsLine);
+    QPen lp;
+    lp.setWidthF(2);
+    lp.setColor(Qt::gray);
+    curve->setPen(lp);
+
+    // 定制选中样式
+    QCPSelectionDecorator *decorator = curve->selectionDecorator();
+    QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
+    selectedScatterStyle.setSize(10);                                                           // 选中点的大小
+    decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+  }
+
+  qDebug() << QString("end %1").arg(field_names.join('.'));
 }
