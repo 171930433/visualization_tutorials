@@ -12,6 +12,10 @@ DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
   mainTableView_ = new QTableView(this);
   subTableView_ = new QTableView(this);
 
+  mainTableView_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
+  connect(mainTableView_->horizontalHeader(), &QHeaderView::customContextMenuRequested,
+          this, &DataTableWidget::showHeaderMenu);
+
   QVBoxLayout *layout = new QVBoxLayout(this);
   layout->addWidget(mainTableView_);
   layout->addWidget(subTableView_);
@@ -153,4 +157,26 @@ void DataTableWidget::FouseRange(QCPRange const &time_range)
   // this->onFocusPoint(t0, true, false);
 
   return;
+}
+
+void DataTableWidget::showHeaderMenu(const QPoint &pos)
+{
+  // auto const old = mainTableView_->selectionBehavior();
+  // mainTableView_->setSelectionBehavior(QAbstractItemView::SelectColumns);
+  QStringList selectedHeaderStrings;
+  // 获取每个选中列的表头字符串
+  for (auto const &col : mainTableView_->selectionModel()->selectedColumns())
+  {
+    QString header = main_proxy_->headerData(col.column(), Qt::Horizontal).toString();
+    selectedHeaderStrings.append(header);
+  }
+
+  QMenu *menu = new QMenu(this);
+  menu->addAction(selectedHeaderStrings.join('-'));
+  menu->addAction("operator 2");
+  // 添加更多操作...
+
+  menu->popup(mainTableView_->horizontalHeader()->mapToGlobal(pos));
+
+  // mainTableView_->setSelectionBehavior(old);
 }

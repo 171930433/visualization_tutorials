@@ -7,14 +7,7 @@
     </description>
   </class>
   <!--  -->
-  <!-- <class name="rviz_plugin_tutorials/DataTable"
-         type="rviz_plugin_tutorials::DataTablePanel"
-         base_class_type="rviz::Panel">
-    <description>
-      A panel widget allowing data grid.
-    </description>
-  </class> -->
-  <!--  -->
+
   <!--  -->
   
   <class name="rviz_plugin_tutorials/Imu"
@@ -39,6 +32,15 @@
          base_class_type="rviz::Display">
     <description>
       TrajectoryDisplay .
+    </description>
+  </class>
+  <!--  -->
+   <!--  -->
+  <class name="rviz_plugin_tutorials/MatrixDisplay"
+         type="MatrixDisplay"
+         base_class_type="rviz::Display">
+    <description>
+      MatrixDisplay .
     </description>
   </class>
   <!--  -->

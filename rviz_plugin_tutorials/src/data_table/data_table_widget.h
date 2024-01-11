@@ -51,6 +51,7 @@ protected:
 
 private:
     void Scrol2SubMiddle();
+    void showHeaderMenu(const QPoint &pos);
 
 private:
     QTableView *mainTableView_;
