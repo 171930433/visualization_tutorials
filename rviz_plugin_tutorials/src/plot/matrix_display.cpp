@@ -19,7 +19,7 @@ MatrixDisplay::MatrixDisplay()
   for (int i = 0; i < 3; ++i)
   {
     field_prop_[i] = new rviz::StringProperty(QString("field-%1").arg(i), "", "vec3 plot field", this);
-    connect(field_prop_[i], SIGNAL(changed()), this, [this, i]()
+    connect(field_prop_[i], &Property::changed, [this, i]()
             { this->UpdateFieldName(i); });
   }
 }
@@ -32,6 +32,7 @@ void MatrixDisplay::UpdateFieldName(int const row)
 
 void MatrixDisplay::setChanelAndFieldNames(QString const &name, QStringList const &field_names)
 {
+  view_->AddSeries(name, field_names);
   for (int i = 0; i < 3; ++i)
   {
     field_prop_[i]->setString(field_names[i]);

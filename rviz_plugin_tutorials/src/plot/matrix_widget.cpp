@@ -256,24 +256,24 @@ void MatrixWidget::AddSeries(QString const &name, QStringList const &field_names
   //
   auto const &datas = g_messages;
 
-  int const n = datas.size();
-  QVector<double> y[3], time_index(n);
-  for (int i = 0; i < 3; ++i)
-  {
-    y[i].resize(n);
-  }
-  // QStringList const header = GetFildNames(*datas.begin()->second);
-  int row = 0;
-  for (auto const &kv : datas)
-  {
-    auto const &message = *kv.second;
-    time_index[row] = kv.first / 1e3;
-    for (int i = 0; i < 3; ++i)
-    {
-      y[i][row] = GetValueByHeaderName(message, field_names[i]).toDouble();
-    }
-    ++row;
-  }
+  // int const n = datas.size();
+  // QVector<double> y[3], time_index(n);
+  // for (int i = 0; i < 3; ++i)
+  // {
+  //   y[i].resize(n);
+  // }
+  // // QStringList const header = GetFildNames(*datas.begin()->second);
+  // int row = 0;
+  // for (auto const &kv : datas)
+  // {
+  //   auto const &message = *kv.second;
+  //   time_index[row] = kv.first / 1e3;
+  //   for (int i = 0; i < 3; ++i)
+  //   {
+  //     y[i][row] = GetValueByHeaderName(message, field_names[i]).toDouble();
+  //   }
+  //   ++row;
+  // }
 
   for (int i = 0; i < 3; ++i)
   {
@@ -283,7 +283,7 @@ void MatrixWidget::AddSeries(QString const &name, QStringList const &field_names
     rect->axis(QCPAxis::atLeft)->setLabel(field_names[i]);
     curve->setName(field_names[i]);
     curve->setSelectable(QCP::stDataRange);
-    curve->setData(time_index, y[i]);
+    // curve->setData(time_index, y[i]);
 
     // 设置散点样式和颜色
     curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCross, Qt::blue));
@@ -301,7 +301,7 @@ void MatrixWidget::AddSeries(QString const &name, QStringList const &field_names
     selectedScatterStyle.setSize(10);                                                           // 选中点的大小
     decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
   }
-  this->rescaleAxes();
+  // this->rescaleAxes();
 
   qDebug() << QString("end %1").arg(field_names.join('.'));
 }
@@ -313,26 +313,26 @@ void MatrixWidget::keyPressEvent(QKeyEvent *event)
 
 void MatrixWidget::UpdateFieldName(int const row, QString const &field_name)
 {
-  qDebug() << QString("UpdateFieldName start %1").arg(field_name);
+  qDebug() << QString("UpdateFieldName start %1, row = %2").arg(field_name).arg(row);
   //
   auto const &datas = g_messages;
 
   int const n = datas.size();
+  int i = 0;
   QVector<double> y(n), time_index(n);
   // QStringList const header = GetFildNames(*datas.begin()->second);
   for (auto const &kv : datas)
   {
     auto const &message = *kv.second;
-    time_index[row] = kv.first / 1e3;
-    for (int i = 0; i < 3; ++i)
-    {
-      y[i] = GetValueByHeaderName(message, field_name).toDouble();
-    }
+
+    time_index[i] = kv.first / 1e3;
+    y[i] = GetValueByHeaderName(message, field_name).toDouble();
+    ++i;
   }
 
   this->graph(row)->setData(time_index, y);
   this->rescaleAxes();
   this->replot();
 
-  qDebug() << QString("UpdateFieldName end %1").arg(field_name);
+  qDebug() << QString("UpdateFieldName end %1, size = %2").arg(field_name).arg(n);
 }
