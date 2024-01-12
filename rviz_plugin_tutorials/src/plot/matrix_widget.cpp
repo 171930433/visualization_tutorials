@@ -7,6 +7,8 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
 {
   //
   type_ = Type::Matrix;
+  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
+  connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
 
   // setupVector3Demo();
 }
@@ -325,6 +327,13 @@ void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &
   qDebug() << QString("UpdateFieldName end %1, size = %2").arg(field_name).arg(n);
 }
 
+void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
+{
+  int const old_row = rects_.rows();
+  int const old_col = rects_.cols();
+  
+}
+
 void MatrixWidget::setupMatrixDemo(int row, int col)
 {
   using namespace Eigen;
@@ -334,8 +343,6 @@ void MatrixWidget::setupMatrixDemo(int row, int col)
   QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
   // 设置日期时间格式
   dateTicker->setDateTimeFormat("HH:mm:ss");
-
-  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
 
   rects_ = Eigen::Matrix<QCPAxisRect *, Eigen::Dynamic, Eigen::Dynamic>(row, col);
   graphs_ = Eigen::Matrix<QCPGraph *, Eigen::Dynamic, Eigen::Dynamic>(row, col);
@@ -383,6 +390,4 @@ void MatrixWidget::setupMatrixDemo(int row, int col)
       }
     }
   }
-
-  connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
 }

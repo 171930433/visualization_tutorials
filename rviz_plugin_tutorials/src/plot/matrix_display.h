@@ -49,11 +49,15 @@ public:
 
 private Q_SLOTS:
   void UpdateFieldName(int const row, int const col);
+  void UpdateRow();
+  void UpdateCol();
 
 private:
   MatrixWidget *view_ = nullptr;
 
   MatrixXQStringProp fields_prop_;
+  rviz::IntProperty* row_prop_ = nullptr;
+  rviz::IntProperty* col_prop_ = nullptr;
 
   rviz::StringProperty *field_prop_[3] = {nullptr, nullptr, nullptr};
 };

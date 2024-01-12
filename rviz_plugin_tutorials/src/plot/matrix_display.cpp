@@ -16,17 +16,87 @@ MatrixDisplay::MatrixDisplay()
   view_ = new MatrixWidget();
   view_->setDisplaySync(this);
 
-  // for (int i = 0; i < 3; ++i)
-  // {
-  //   field_prop_[i] = new rviz::StringProperty(QString("field-%1").arg(i), "", "vec3 plot field", this);
-  //   connect(field_prop_[i], &Property::changed, [this, i]()
-  //           { this->UpdateFieldName(i); });
-  // }
+  row_prop_ = new rviz::IntProperty("row count", 0, "row of mat graphs", this, SLOT(UpdateRow()));
+  row_prop_->setMin(1);
+  row_prop_->setMax(10);
+  col_prop_ = new rviz::IntProperty("col count", 0, "col of mat graphs", this, SLOT(UpdateCol()));
+  col_prop_->setMin(1);
+  col_prop_->setMax(10);
+}
+
+void MatrixDisplay::UpdateRow()
+{
+  int const old_row = fields_prop_.rows();
+  int const new_row = row_prop_->getInt();
+  int const col = fields_prop_.cols();
+  // 增加
+  if (old_row < new_row)
+  {
+    fields_prop_.conservativeResize(new_row, col);
+    for (int i = old_row; i < new_row; ++i)
+    {
+      for (int j = 0; j < fields_prop_.cols(); ++j)
+      {
+        fields_prop_(i, j) = new rviz::StringProperty(QString("field-%1-%2").arg(i).arg(j), "", "matrix plot field", this);
+        connect(fields_prop_(i, j), &Property::changed, [this, i, j]()
+                { this->UpdateFieldName(i, j); });
+      }
+    }
+  }
+  else // 删除
+  {
+    for (int i = new_row; i < old_row; ++i)
+    {
+      for (int j = 0; j < col; ++j)
+      {
+        this->takeChild(fields_prop_(i, j));
+        delete fields_prop_(i, j);
+      }
+    }
+    fields_prop_.conservativeResize(new_row, col); // 删除操作
+  }
+}
+void MatrixDisplay::UpdateCol()
+{
+
+  int const old_col = fields_prop_.cols();
+  int const new_col = col_prop_->getInt();
+  int const row = fields_prop_.rows();
+  // 增加
+  if (old_col < new_col)
+  {
+    fields_prop_.conservativeResize(row, new_col);
+    for (int i = 0; i < row; ++i)
+    {
+      for (int j = old_col; j < new_col; ++j)
+      {
+        fields_prop_(i, j) = new rviz::StringProperty(QString("field-%1-%2").arg(i).arg(j), "", "matrix plot field", this);
+        connect(fields_prop_(i, j), &Property::changed, [this, i, j]()
+                { this->UpdateFieldName(i, j); });
+      }
+    }
+  }
+  else // 删除
+  {
+    for (int i = 0; i < row; ++i)
+    {
+      for (int j = new_col; j < old_col; ++j)
+      {
+        this->takeChild(fields_prop_(i, j));
+        delete fields_prop_(i, j);
+      }
+    }
+    fields_prop_.conservativeResize(row, new_col); // 删除操作
+  }
 }
 
 void MatrixDisplay::UpdateFieldName(int const row, int const col)
 {
   QString const &field_name = fields_prop_(row, col)->getString();
+  if (field_name == "")
+  {
+    return;
+  }
   view_->UpdateFieldName(row, col, field_name);
 }
 
