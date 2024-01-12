@@ -16,12 +16,12 @@
 namespace rviz
 {
   class IntProperty;
+  class StringProperty;
   class EnumProperty;
   class BoolProperty;
   class GroupProperty;
   class ColorProperty;
 }
-
 
 class MatrixWidget;
 // class QCPCurve;
@@ -33,9 +33,9 @@ public:
   MatrixDisplay();
   ~MatrixDisplay() override;
 
-
 public:
-  void AddSeries(QString const &name, QStringList const &field_names);
+  // void AddSeries(QString const &name, QStringList const &field_names);
+  void setChanelAndFieldNames(QString const &name, QStringList const &field_names);
 
 
   // Overrides from Display
@@ -43,10 +43,12 @@ public:
   virtual void save(rviz::Config config) const;
   void onInitialize() override;
   void update(float dt, float ros_dt) override;
-private Q_SLOTS:
 
- 
+
+private Q_SLOTS:
+  void UpdateFieldName(int const row);
+
 private:
   MatrixWidget *view_ = nullptr;
-
+  rviz::StringProperty *field_prop_[3] = {nullptr, nullptr, nullptr};
 };

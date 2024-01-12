@@ -200,6 +200,7 @@ void DataTableWidget::CreateMatrixPlot(QString const &name, QStringList const &f
   auto *matrix_display = new MatrixDisplay();
   sync_display_->getContext()->getRootDisplayGroup()->addDisplay(matrix_display);
   matrix_display->initialize(sync_display_->getContext());
+  matrix_display->setName("MatrixDisplay");
 
-  matrix_display->AddSeries(name, field_names);
+  matrix_display->setChanelAndFieldNames(name, field_names);
 }

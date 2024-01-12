@@ -15,6 +15,10 @@ public:
   DisplaySyncBase *getDisplaySync() override;
 
   void AddSeries(QString const &name, QStringList const &field_names);
+  void UpdateFieldName(int const row, QString const& field_name);
+
+protected:
+  void keyPressEvent(QKeyEvent *event) override;
 
 protected:
   void setupVector3Demo();

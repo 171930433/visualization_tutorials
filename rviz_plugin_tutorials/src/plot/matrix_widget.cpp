@@ -97,6 +97,10 @@ void MatrixWidget::setupVector3Demo()
   // demoName = "Vector3 Demo";
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
 
+  QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
+  // 设置日期时间格式
+  dateTicker->setDateTimeFormat("HH:mm:ss");
+
   this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
   // add the first axis rect in second row (row index 1):
   QCPAxisRect *topAxisRect = new QCPAxisRect(this);
@@ -112,9 +116,10 @@ void MatrixWidget::setupVector3Demo()
   topAxisRect->setRangeZoom(Qt::Vertical);
   middleAxisRect->setRangeZoom(Qt::Vertical);
   bottomAxisRect->setRangeZoom(Qt::Vertical);
-  // topAxisRect->axis(QCPAxis::atLeft)->setLabel("y0 Axis");
-  // middleAxisRect->axis(QCPAxis::atLeft)->setLabel("y1 Axis");
-  // bottomAxisRect->axis(QCPAxis::atLeft)->setLabel("y2 Axis");
+  // x轴样式
+  topAxisRect->axis(QCPAxis::atBottom)->setTicker(dateTicker);
+  middleAxisRect->axis(QCPAxis::atBottom)->setTicker(dateTicker);
+  bottomAxisRect->axis(QCPAxis::atBottom)->setTicker(dateTicker);
 
   // x轴的padding为0
   // topAxisRect->axis(QCPAxis::atBottom)->setPadding(0);
@@ -159,10 +164,10 @@ void MatrixWidget::setupVector3Demo()
   }
 
   // addRandomGraph();
-  this->rescaleAxes();
+  // this->rescaleAxes();
 
-  this->setContextMenuPolicy(Qt::CustomContextMenu);
-  connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
+  // this->setContextMenuPolicy(Qt::CustomContextMenu);
+  // connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
 }
@@ -236,7 +241,7 @@ void MatrixWidget::FocusPoint(double const t0)
     QCPDataRange index_range{dataIndex, dataIndex + 1};
     single_graph->setSelection(QCPDataSelection{index_range});
     // 该点剧中
-    // FoucuPositionByIndex(single_graph, dataIndex);
+    FoucuPositionByIndex(single_graph, dataIndex);
   }
 
   // 当前选中点以改变消息发出
@@ -272,7 +277,7 @@ void MatrixWidget::AddSeries(QString const &name, QStringList const &field_names
 
   for (int i = 0; i < 3; ++i)
   {
-    auto * rect = all_rects_[i];
+    auto *rect = all_rects_[i];
     auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
 
     rect->axis(QCPAxis::atLeft)->setLabel(field_names[i]);
@@ -296,6 +301,38 @@ void MatrixWidget::AddSeries(QString const &name, QStringList const &field_names
     selectedScatterStyle.setSize(10);                                                           // 选中点的大小
     decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
   }
+  this->rescaleAxes();
 
   qDebug() << QString("end %1").arg(field_names.join('.'));
+}
+
+void MatrixWidget::keyPressEvent(QKeyEvent *event)
+{
+  ShowSubplot(event->key() - Qt::Key_1);
+}
+
+void MatrixWidget::UpdateFieldName(int const row, QString const &field_name)
+{
+  qDebug() << QString("UpdateFieldName start %1").arg(field_name);
+  //
+  auto const &datas = g_messages;
+
+  int const n = datas.size();
+  QVector<double> y(n), time_index(n);
+  // QStringList const header = GetFildNames(*datas.begin()->second);
+  for (auto const &kv : datas)
+  {
+    auto const &message = *kv.second;
+    time_index[row] = kv.first / 1e3;
+    for (int i = 0; i < 3; ++i)
+    {
+      y[i] = GetValueByHeaderName(message, field_name).toDouble();
+    }
+  }
+
+  this->graph(row)->setData(time_index, y);
+  this->rescaleAxes();
+  this->replot();
+
+  qDebug() << QString("UpdateFieldName end %1").arg(field_name);
 }
