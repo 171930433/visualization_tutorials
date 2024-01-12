@@ -13,6 +13,8 @@
 #include "display_sync_base.h"
 #include "trajectory_widget.h"
 #include <deque>
+#include <eigen3/Eigen/Dense>
+
 namespace rviz
 {
   class IntProperty;
@@ -22,6 +24,8 @@ namespace rviz
   class GroupProperty;
   class ColorProperty;
 }
+
+using MatrixXQStringProp = Eigen::Matrix<rviz::StringProperty *, Eigen::Dynamic, Eigen::Dynamic>;
 
 class MatrixWidget;
 // class QCPCurve;
@@ -35,8 +39,7 @@ public:
 
 public:
   // void AddSeries(QString const &name, QStringList const &field_names);
-  void setChanelAndFieldNames(QString const &name, QStringList const &field_names);
-
+  void CreateMatrixPlot(QString const &name, MatrixXQString const &field_names);
 
   // Overrides from Display
   virtual void load(const rviz::Config &config);
@@ -44,11 +47,13 @@ public:
   void onInitialize() override;
   void update(float dt, float ros_dt) override;
 
-
 private Q_SLOTS:
-  void UpdateFieldName(int const row);
+  void UpdateFieldName(int const row, int const col);
 
 private:
   MatrixWidget *view_ = nullptr;
+
+  MatrixXQStringProp fields_prop_;
+
   rviz::StringProperty *field_prop_[3] = {nullptr, nullptr, nullptr};
 };

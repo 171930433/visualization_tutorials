@@ -8,7 +8,7 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
   //
   type_ = Type::Matrix;
 
-  setupVector3Demo();
+  // setupVector3Demo();
 }
 
 DisplaySyncBase *MatrixWidget::getDisplaySync()
@@ -250,60 +250,48 @@ void MatrixWidget::FocusPoint(double const t0)
   this->replot();
 }
 
-void MatrixWidget::AddSeries(QString const &name, QStringList const &field_names)
+void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_names)
 {
-  qDebug() << QString("start %1").arg(field_names.join('.'));
   //
-  auto const &datas = g_messages;
+  int const row = field_names.rows(), col = field_names.cols();
+  qDebug() << QString("start row=%1 col=%2").arg(row).arg(col);
+  setupMatrixDemo(row, col);
 
-  // int const n = datas.size();
-  // QVector<double> y[3], time_index(n);
-  // for (int i = 0; i < 3; ++i)
-  // {
-  //   y[i].resize(n);
-  // }
-  // // QStringList const header = GetFildNames(*datas.begin()->second);
-  // int row = 0;
-  // for (auto const &kv : datas)
-  // {
-  //   auto const &message = *kv.second;
-  //   time_index[row] = kv.first / 1e3;
-  //   for (int i = 0; i < 3; ++i)
-  //   {
-  //     y[i][row] = GetValueByHeaderName(message, field_names[i]).toDouble();
-  //   }
-  //   ++row;
-  // }
-
-  for (int i = 0; i < 3; ++i)
+  for (int i = 0; i < row; i++)
   {
-    auto *rect = all_rects_[i];
-    auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
+    for (int j = 0; j < col; j++)
+    {
+      auto *rect = rects_(i, j);
+      auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
 
-    rect->axis(QCPAxis::atLeft)->setLabel(field_names[i]);
-    curve->setName(field_names[i]);
-    curve->setSelectable(QCP::stDataRange);
-    // curve->setData(time_index, y[i]);
+      graphs_(i, j) = curve;
 
-    // 设置散点样式和颜色
-    curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCross, Qt::blue));
+      rect->axis(QCPAxis::atLeft)->setLabel(field_names(i, j));
+      curve->setName(field_names(i, j));
+      curve->setSelectable(QCP::stDataRange);
+      // curve->setData(time_index, y[i]);
 
-    // 设置直线样式
-    curve->setLineStyle(QCPGraph::LineStyle::lsLine);
-    QPen lp;
-    lp.setWidthF(2);
-    lp.setColor(Qt::gray);
-    curve->setPen(lp);
+      // 设置散点样式和颜色
+      curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCross, Qt::blue));
 
-    // 定制选中样式
-    QCPSelectionDecorator *decorator = curve->selectionDecorator();
-    QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
-    selectedScatterStyle.setSize(10);                                                           // 选中点的大小
-    decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+      // 设置直线样式
+      curve->setLineStyle(QCPGraph::LineStyle::lsLine);
+      QPen lp;
+      lp.setWidthF(2);
+      lp.setColor(Qt::gray);
+      curve->setPen(lp);
+
+      // 定制选中样式
+      QCPSelectionDecorator *decorator = curve->selectionDecorator();
+      QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
+      selectedScatterStyle.setSize(10);                                                           // 选中点的大小
+      decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+    }
   }
+
   // this->rescaleAxes();
 
-  qDebug() << QString("end %1").arg(field_names.join('.'));
+  qDebug() << QString("end filed size =%1").arg(field_names.size());
 }
 
 void MatrixWidget::keyPressEvent(QKeyEvent *event)
@@ -311,7 +299,7 @@ void MatrixWidget::keyPressEvent(QKeyEvent *event)
   ShowSubplot(event->key() - Qt::Key_1);
 }
 
-void MatrixWidget::UpdateFieldName(int const row, QString const &field_name)
+void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &field_name)
 {
   qDebug() << QString("UpdateFieldName start %1, row = %2").arg(field_name).arg(row);
   //
@@ -330,9 +318,71 @@ void MatrixWidget::UpdateFieldName(int const row, QString const &field_name)
     ++i;
   }
 
-  this->graph(row)->setData(time_index, y);
+  graphs_(row, col)->setData(time_index, y);
   this->rescaleAxes();
   this->replot();
 
   qDebug() << QString("UpdateFieldName end %1, size = %2").arg(field_name).arg(n);
+}
+
+void MatrixWidget::setupMatrixDemo(int row, int col)
+{
+  using namespace Eigen;
+  // demoName = "Vector3 Demo";
+  this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
+
+  QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
+  // 设置日期时间格式
+  dateTicker->setDateTimeFormat("HH:mm:ss");
+
+  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
+
+  rects_ = Eigen::Matrix<QCPAxisRect *, Eigen::Dynamic, Eigen::Dynamic>(row, col);
+  graphs_ = Eigen::Matrix<QCPGraph *, Eigen::Dynamic, Eigen::Dynamic>(row, col);
+  for (int i = 0; i < row * col; ++i)
+  {
+    rects_.data()[i] = new QCPAxisRect(this);
+  }
+
+  // rects_.unaryExpr([this](QCPAxisRect *&rect)
+  //                  { rect = new QCPAxisRect(this); });
+
+  for (int i = 0; i < row; i++)
+  {
+    for (int j = 0; j < col; j++)
+    {
+      QCPAxisRect *rect = new QCPAxisRect(this);
+      rects_(i, j) = rect;
+      this->plotLayout()->addElement(i, j, rect);
+      // 默认缩放y轴
+      rect->setRangeZoom(Qt::Vertical);
+      // x轴样式
+      rect->axis(QCPAxis::atBottom)->setTicker(dateTicker);
+      // 共x轴
+      if (rect != rects_(0, 0))
+      {
+        connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rects_(0, 0)->axis(QCPAxis::atBottom),
+                SLOT(setRange(QCPRange)));
+      }
+      connect(rects_(0, 0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rect->axis(QCPAxis::atBottom),
+              SLOT(setRange(QCPRange)));
+      // y轴label在axis内侧
+      rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
+      rect->axis(QCPAxis::atLeft)->setSubTicks(false);
+      // top和middle的x轴不显示
+      if (i != row - 1)
+      {
+        rect->axis(QCPAxis::atBottom)->setTicks(false);
+        rect->axis(QCPAxis::atBottom)->setSubTicks(false);
+        rect->axis(QCPAxis::atBottom)->setTickLabels(false);
+      }
+      foreach (QCPAxis *axis, rect->axes())
+      {
+        axis->setLayer("axes");
+        axis->grid()->setLayer("grid");
+      }
+    }
+  }
+
+  connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
 }

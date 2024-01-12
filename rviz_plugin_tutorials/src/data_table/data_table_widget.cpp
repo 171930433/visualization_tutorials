@@ -176,25 +176,34 @@ void DataTableWidget::showHeaderMenu(const QPoint &pos)
     QString header = main_proxy_->headerData(col.column(), Qt::Horizontal).toString();
     filed_names.append(header);
   }
-  qDebug() <<" showHeaderMenu " << filed_names.join('.');
+  qDebug() << " showHeaderMenu " << filed_names.join('.');
 
   QMenu *menu = new QMenu(this);
-  menu->addAction("create matrix plot", this, [this, filed_names]()
-                  { this->CreateMatrixPlot("", filed_names); });
-  menu->addAction("operator 2");
+  menu->addAction("create row plot", this, [this, filed_names]()
+                  { this->CreateRowVectorPlot("", filed_names); });
+  menu->addAction("create col plot", this, [this, filed_names]()
+                  { this->CreateVectorPlot("", filed_names); });
   // 添加更多操作...
+  QMenu *sub_menu = new QMenu("create matrix plot",menu);
+  menu->addMenu(sub_menu);
+  sub_menu->addAction("row = 2");
+  sub_menu->addAction("row = 3");
+  sub_menu->addAction("row = 4");
+  sub_menu->addAction("col = 2");
+  sub_menu->addAction("col = 3");
+  sub_menu->addAction("col = 4");
 
   menu->popup(mainTableView_->horizontalHeader()->mapToGlobal(pos));
 
   // mainTableView_->setSelectionBehavior(old);
 }
 
-void DataTableWidget::CreateMatrixPlot(QString const &name, QStringList const &field_names)
+MatrixDisplay *DataTableWidget::CreateMatrixDisplay()
 {
-  qDebug() <<" CreateMatrixPlot " << field_names.join('.');
+  qDebug() << " CreateMatrixPlot ";
   if (!sync_display_)
   {
-    return;
+    return nullptr;
   }
   // qobject_cast<rviz::VisualizationManager*>(sync_display_->context_)->createDisplay()
   auto *matrix_display = new MatrixDisplay();
@@ -202,5 +211,31 @@ void DataTableWidget::CreateMatrixPlot(QString const &name, QStringList const &f
   matrix_display->initialize(sync_display_->getContext());
   matrix_display->setName("MatrixDisplay");
 
-  matrix_display->setChanelAndFieldNames(name, field_names);
+  return matrix_display;
+}
+
+void DataTableWidget::CreateMatrixPlot(QString const &name, QStringList const &field_names)
+{
+  MatrixDisplay *matrix_display = CreateMatrixDisplay();
+}
+
+void DataTableWidget::CreateRowVectorPlot(QString const &name, QStringList const &field_names)
+{
+  MatrixDisplay *matrix_display = CreateMatrixDisplay();
+  MatrixXQString fields = MatrixXQString(1, field_names.size());
+  for (int i = 0; i < field_names.size(); ++i)
+  {
+    fields(0, i) = field_names[i];
+  }
+  matrix_display->CreateMatrixPlot(name, fields);
+}
+void DataTableWidget::CreateVectorPlot(QString const &name, QStringList const &field_names)
+{
+  MatrixDisplay *matrix_display = CreateMatrixDisplay();
+  MatrixXQString fields = MatrixXQString(field_names.size(), 1);
+  for (int i = 0; i < field_names.size(); ++i)
+  {
+    fields(i, 0) = field_names[i];
+  }
+  matrix_display->CreateMatrixPlot(name, fields);
 }

@@ -13,6 +13,7 @@
 
 class DataTableDisplay;
 class DisplaySyncBase;
+class MatrixDisplay;
 class DataTableWidget : public QWidget, public ITimeSync
 {
     Q_OBJECT
@@ -23,6 +24,8 @@ public:
     void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
     DisplaySyncBase *getDisplaySync() override;
     void CreateMatrixPlot(QString const& name,QStringList const& field_names);
+    void CreateRowVectorPlot(QString const& name,QStringList const& field_names);
+    void CreateVectorPlot(QString const& name,QStringList const& field_names);
 
     void setData(const std::map<size_t, spMessage> &newData)
     {
@@ -51,6 +54,7 @@ protected:
     void FouseRange(QCPRange const &time_range) override;
 
 private:
+    MatrixDisplay* CreateMatrixDisplay();
     void Scrol2SubMiddle();
     void showHeaderMenu(const QPoint &pos);
 
