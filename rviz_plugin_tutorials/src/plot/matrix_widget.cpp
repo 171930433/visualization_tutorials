@@ -12,7 +12,11 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
   // setupMatrixDemo(1, 1);
   // setupVector3Demo();
+  // 默认状态
   this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
+  auto *rect = CreateDefaultRect();
+  this->plotLayout()->addElement(0, 0, rect);
+  CreateDefaultGraph(rect);
 }
 
 DisplaySyncBase *MatrixWidget::getDisplaySync()
@@ -294,7 +298,7 @@ void MatrixWidget::keyPressEvent(QKeyEvent *event)
 void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &field_name)
 {
   qDebug() << QString("UpdateFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);
-  qDebug() << " rects_.size() = " << rects_.size() << " g_messages size = " << g_messages.size();
+  // qDebug() << " rects_.size() = " << rects_.size() << " g_messages size = " << g_messages.size();
   //
   auto const &datas = g_messages;
 
@@ -312,8 +316,8 @@ void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &
   }
 
   // qDebug() << " time_index = size = " << time_index.size() << " y size =" << y.size();
-  
-  auto* rect = rects_(row, col);
+
+  auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
   QCPGraph *curve = rect->graphs()[0];
   curve->setData(time_index, y);
   rect->axis(QCPAxis::atLeft)->setLabel(field_name);
@@ -326,20 +330,28 @@ void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &
 
 void MatrixWidget::RowChanged(int const new_row)
 {
-  int const old_row = rects_.rows();
-  int const col = rects_.cols();
+  int const old_row = this->plotLayout()->rowCount();
+  int const col = this->plotLayout()->columnCount();
   qDebug() << QString("begin RowChanged, col=%3, %1--->%2").arg(old_row).arg(new_row).arg(col);
 
   // 增加
   if (old_row < new_row)
   {
-    rects_.conservativeResize(new_row, col);
+    // rects_.conservativeResize(new_row, col);
     for (int i = old_row; i < new_row; i++)
     {
       for (int j = 0; j < col; j++)
       {
-        QCPAxisRect *current_rect = rects_(i, j) = CreateDefaultRect();
-        this->plotLayout()->addElement(i, j, current_rect);
+        QCPAxisRect *current_rect = CreateDefaultRect();
+        bool re = this->plotLayout()->addElement(i, j, current_rect);
+        if (re)
+        {
+          qDebug() << QString("i=%1,j=%2 created sucess").arg(i).arg(j);
+        }
+        else
+        {
+          qDebug() << QString("i=%1,j=%2 created failed").arg(i).arg(j);
+        }
         CreateDefaultGraph(current_rect);
       }
     }
@@ -351,32 +363,40 @@ void MatrixWidget::RowChanged(int const new_row)
     {
       for (int j = 0; j < col; j++)
       {
-        QCPAxisRect *current_rect = rects_(i, j);
+        QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(i, j));
         this->plotLayout()->take(current_rect);
         delete current_rect;
       }
     }
-    rects_.conservativeResize(new_row, col);
+    // rects_.conservativeResize(new_row, col);
   }
   qDebug() << QString("end RowChanged %1--->%2").arg(old_row).arg(new_row);
 }
 void MatrixWidget::ColChanged(int const new_col)
 {
-  int const row = rects_.rows();
-  int const old_col = rects_.cols();
+  int const row = this->plotLayout()->rowCount();
+  int const old_col = this->plotLayout()->columnCount();
   qDebug() << QString("begin ColChanged, row=%3, %1--->%2").arg(old_col).arg(new_col).arg(row);
 
   // 增加
   if (old_col < new_col)
   {
-    rects_.conservativeResize(row, new_col);
-    // qDebug() << QString("rects_ %1*%2").arg(rects_.rows()).arg(rects_.cols());
+    // rects_.conservativeResize(row, new_col);
+    // qDebug() << QString("rects_ %1*%2").arg(this->plotLayout()->rowCount()).arg(this->plotLayout()->columnCount());
     for (int i = 0; i < row; i++)
     {
       for (int j = old_col; j < new_col; j++)
       {
-        QCPAxisRect *current_rect = rects_(i, j) = CreateDefaultRect();
-        this->plotLayout()->addElement(i, j, current_rect);
+        QCPAxisRect *current_rect = CreateDefaultRect();
+        bool re = this->plotLayout()->addElement(i, j, current_rect);
+        if (re)
+        {
+          qDebug() << QString("i=%1,j=%2 created sucess").arg(i).arg(j);
+        }
+        else
+        {
+          qDebug() << QString("i=%1,j=%2 created failed").arg(i).arg(j);
+        }
         CreateDefaultGraph(current_rect);
       }
     }
@@ -388,20 +408,26 @@ void MatrixWidget::ColChanged(int const new_col)
     {
       for (int j = new_col; j < old_col; j++)
       {
-        QCPAxisRect *current_rect = rects_(i, j);
+        QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(i, j));
         this->plotLayout()->take(current_rect);
         delete current_rect;
       }
     }
-    rects_.conservativeResize(row, new_col);
+    // rects_.conservativeResize(row, new_col);
   }
   qDebug() << QString("end ColChanged %1--->%2").arg(old_col).arg(new_col);
 }
 
 void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
 {
-  int const old_row = rects_.rows();
-  int const old_col = rects_.cols();
+  if (new_row <= 1 && new_col <= 1)
+  {
+    return;
+  }
+  // int const old_row = this->plotLayout()->rowCount();
+  // int const old_col = rects_.cols();
+  int const old_row = this->plotLayout()->rowCount();
+  int const old_col = this->plotLayout()->columnCount();
   if (new_row != old_row)
   {
     RowChanged(new_row);
@@ -411,12 +437,13 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
     ColChanged(new_col);
   }
 
-  qDebug() << QString("from %1*%2 ------------> %3*%4 rects_ size=%5*%6").arg(old_row).arg(old_col).arg(new_row).arg(new_col).arg(rects_.rows()).arg(rects_.cols());
+  qDebug() << QString("from %1*%2 ------------> %3*%4 rects_ size=%5*%6").arg(old_row).arg(old_col).arg(new_row).arg(new_col).arg(this->plotLayout()->rowCount()).arg(this->plotLayout()->columnCount());
   for (int i = 0; i < new_row; i++)
   {
     for (int j = 0; j < new_col; j++)
     {
-      QCPAxisRect *current_rect = rects_(i, j);
+      // QCPAxisRect *current_rect = rects_(i, j);
+      QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(i, j));
       // x轴不显示
       if (i != new_row - 1)
       {
@@ -435,13 +462,13 @@ void MatrixWidget::setupMatrixDemo(int row, int col)
   using namespace Eigen;
   // demoName = "Vector3 Demo";
 
-  rects_.resize(row, col);
+  // rects_.resize(row, col);
 
   for (int i = 0; i < row; i++)
   {
     for (int j = 0; j < col; j++)
     {
-      QCPAxisRect *current_rect = rects_(i, j) = CreateDefaultRect();
+      QCPAxisRect *current_rect = CreateDefaultRect();
       this->plotLayout()->addElement(i, j, current_rect);
       CreateDefaultGraph(current_rect);
       // x轴不显示
@@ -493,11 +520,11 @@ QCPAxisRect *MatrixWidget::CreateDefaultRect()
   rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
   rect->axis(QCPAxis::atLeft)->setSubTicks(false);
   // 共x轴 (0,0)->所有 所有->(0,0)
-  if (rects_.size() != 1)
+  if (this->graphCount() != 0)
   {
-    connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rects_(0, 0)->axis(QCPAxis::atBottom),
+    connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this->axisRect(0)->axis(QCPAxis::atBottom),
             SLOT(setRange(QCPRange)));
-    connect(rects_(0, 0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rect->axis(QCPAxis::atBottom),
+    connect(this->axisRect(0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rect->axis(QCPAxis::atBottom),
             SLOT(setRange(QCPRange)));
   }
   foreach (QCPAxis *axis, rect->axes())

@@ -25,10 +25,9 @@ protected:
 protected:
   void setupVector3Demo();
   void setupMatrixDemo(int row, int col);
-  std::map<std::string, QCustomPlot *> all_plots_;
   std::map<int, QCPAxisRect *> all_rects_;
-  Eigen::Matrix<QCPAxisRect *, Eigen::Dynamic, Eigen::Dynamic> rects_;
-  Eigen::Matrix<QCPGraph *, Eigen::Dynamic, Eigen::Dynamic> graphs_;
+  // Eigen::Matrix<QCPAxisRect *, Eigen::Dynamic, Eigen::Dynamic> rects_;
+  // Eigen::Matrix<QCPGraph *, Eigen::Dynamic, Eigen::Dynamic> graphs_;
 private slots:
   void contextMenuRequest(QPoint pos);
   void ShowSubplot(int const index);
