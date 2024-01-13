@@ -149,6 +149,16 @@ void MatrixDisplay::update(float dt, float ros_dt)
 
 void MatrixDisplay::load(const rviz::Config &config)
 {
+  int row = 0;
+  if (config.mapGetInt("row count", &row))
+  {
+    row_prop_->setInt(row);
+  }
+  int col = 0;
+  if (config.mapGetInt("col count", &col))
+  {
+    col_prop_->setInt(col);
+  }
   rviz::Display::load(config);
 }
 void MatrixDisplay::save(rviz::Config config) const

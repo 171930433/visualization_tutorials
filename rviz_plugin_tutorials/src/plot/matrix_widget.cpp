@@ -16,7 +16,6 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
   this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
   auto *rect = CreateDefaultRect();
   this->plotLayout()->addElement(0, 0, rect);
-  CreateDefaultGraph(rect);
 }
 
 DisplaySyncBase *MatrixWidget::getDisplaySync()
@@ -240,29 +239,34 @@ void MatrixWidget::FocusPoint(double const t0)
 {
   // auto *first_curve = all_curve_.front();
 
-  // for (int i = 0; i < this->graphCount(); ++i)
-  // {
-  //   auto *single_graph = this->graph(i);
+  for (int i = 0; i < this->graphCount(); ++i)
+  {
+    auto *single_graph = this->graph(i);
 
-  //   // 1. 先检查所有的数据区间是否包含待查找点
-  //   auto const dataIndex = single_graph->findBegin(t0, true);
+    // 1. 先检查所有的数据区间是否包含待查找点
+    if (!single_graph->dataCount())
+    {
+      continue;
+    }
 
-  //   // 选中点
-  //   QCPDataRange index_range{dataIndex, dataIndex + 1};
-  //   single_graph->setSelection(QCPDataSelection{index_range});
-  //   // 该点剧中
-  //   FoucuPositionByIndex(single_graph, dataIndex);
-  // }
-  auto *single_graph = this->graph(0);
+    auto const dataIndex = single_graph->findBegin(t0, true);
 
-  // 1. 先检查所有的数据区间是否包含待查找点
-  auto const dataIndex = single_graph->findBegin(t0, true);
+    // 选中点
+    QCPDataRange index_range{dataIndex, dataIndex + 1};
+    single_graph->setSelection(QCPDataSelection{index_range});
+    // 该点剧中
+    FoucuPositionByIndex(single_graph, dataIndex);
+  }
+  // auto *single_graph = this->graph(0);
 
-  // 选中点
-  QCPDataRange index_range{dataIndex, dataIndex + 1};
-  single_graph->setSelection(QCPDataSelection{index_range});
-  // 该点剧中
-  FoucuPositionByIndex(single_graph, dataIndex);
+  // // 1. 先检查所有的数据区间是否包含待查找点
+  // auto const dataIndex = single_graph->findBegin(t0, true);
+
+  // // 选中点
+  // QCPDataRange index_range{dataIndex, dataIndex + 1};
+  // single_graph->setSelection(QCPDataSelection{index_range});
+  // // 该点剧中
+  // FoucuPositionByIndex(single_graph, dataIndex);
 
   // 当前选中点以改变消息发出
   // this->onFocusPoint(t0, false, true);
@@ -315,10 +319,26 @@ void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &
     ++i;
   }
 
-  // qDebug() << " time_index = size = " << time_index.size() << " y size =" << y.size();
+  qDebug() << " time_index = size = " << time_index.size() << " y size =" << y.size();
 
   auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
+  if (!rect)
+  {
+    qDebug() << QString("UpdateFieldName rect failed %1, size = %2").arg(field_name).arg(n);
+  }
+  qDebug() << QString("UpdateFieldName rect done %1, size = %2").arg(field_name).arg(n);
+
+  if (rect->graphs().isEmpty())
+  {
+    qDebug() << QString("UpdateFieldName rect->graphs().isEmpty() failed %1, size = %2").arg(field_name).arg(n);
+  }
+  qDebug() << QString("UpdateFieldName rect done %1, size = %2").arg(field_name).arg(n);
+
   QCPGraph *curve = rect->graphs()[0];
+  if (!curve)
+  {
+    qDebug() << QString("UpdateFieldName curve failed %1, size = %2").arg(field_name).arg(n);
+  }
   curve->setData(time_index, y);
   rect->axis(QCPAxis::atLeft)->setLabel(field_name);
   curve->setName(field_name);
@@ -344,15 +364,6 @@ void MatrixWidget::RowChanged(int const new_row)
       {
         QCPAxisRect *current_rect = CreateDefaultRect();
         bool re = this->plotLayout()->addElement(i, j, current_rect);
-        if (re)
-        {
-          qDebug() << QString("i=%1,j=%2 created sucess").arg(i).arg(j);
-        }
-        else
-        {
-          qDebug() << QString("i=%1,j=%2 created failed").arg(i).arg(j);
-        }
-        CreateDefaultGraph(current_rect);
       }
     }
   }
@@ -364,8 +375,11 @@ void MatrixWidget::RowChanged(int const new_row)
       for (int j = 0; j < col; j++)
       {
         QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(i, j));
-        this->plotLayout()->take(current_rect);
-        delete current_rect;
+        for (auto *one_graph : current_rect->graphs())
+        {
+          this->removeGraph(one_graph);
+        }
+        this->plotLayout()->remove(current_rect);
       }
     }
     // rects_.conservativeResize(new_row, col);
@@ -389,15 +403,6 @@ void MatrixWidget::ColChanged(int const new_col)
       {
         QCPAxisRect *current_rect = CreateDefaultRect();
         bool re = this->plotLayout()->addElement(i, j, current_rect);
-        if (re)
-        {
-          qDebug() << QString("i=%1,j=%2 created sucess").arg(i).arg(j);
-        }
-        else
-        {
-          qDebug() << QString("i=%1,j=%2 created failed").arg(i).arg(j);
-        }
-        CreateDefaultGraph(current_rect);
       }
     }
   }
@@ -409,8 +414,11 @@ void MatrixWidget::ColChanged(int const new_col)
       for (int j = new_col; j < old_col; j++)
       {
         QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(i, j));
-        this->plotLayout()->take(current_rect);
-        delete current_rect;
+        for (auto *one_graph : current_rect->graphs())
+        {
+          this->removeGraph(one_graph);
+        }
+        this->plotLayout()->remove(current_rect);
       }
     }
     // rects_.conservativeResize(row, new_col);
@@ -420,14 +428,14 @@ void MatrixWidget::ColChanged(int const new_col)
 
 void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
 {
-  if (new_row <= 1 && new_col <= 1)
+  int const old_row = this->plotLayout()->rowCount();
+  int const old_col = this->plotLayout()->columnCount();
+  if (new_row <= 1 && new_col <= 1 && old_row == 1 && old_col == 1)
   {
     return;
   }
   // int const old_row = this->plotLayout()->rowCount();
   // int const old_col = rects_.cols();
-  int const old_row = this->plotLayout()->rowCount();
-  int const old_col = this->plotLayout()->columnCount();
   if (new_row != old_row)
   {
     RowChanged(new_row);
@@ -470,7 +478,6 @@ void MatrixWidget::setupMatrixDemo(int row, int col)
     {
       QCPAxisRect *current_rect = CreateDefaultRect();
       this->plotLayout()->addElement(i, j, current_rect);
-      CreateDefaultGraph(current_rect);
       // x轴不显示
       if (i != row - 1)
       {
@@ -488,7 +495,6 @@ QCPGraph *MatrixWidget::CreateDefaultGraph(QCPAxisRect *rect)
 
   auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
 
-  rect->axis(QCPAxis::atLeft)->setLabel("default");
   curve->setSelectable(QCP::stDataRange);
 
   // 设置散点样式和颜色
@@ -511,7 +517,9 @@ QCPGraph *MatrixWidget::CreateDefaultGraph(QCPAxisRect *rect)
 }
 QCPAxisRect *MatrixWidget::CreateDefaultRect()
 {
+  static int rect_count = 0;
   QCPAxisRect *rect = new QCPAxisRect(this);
+  rect->axis(QCPAxis::atLeft)->setLabel(QString("rect-%1").arg(rect_count++));
   // 默认缩放y轴
   rect->setRangeZoom(Qt::Vertical);
   // x轴样式
@@ -532,5 +540,7 @@ QCPAxisRect *MatrixWidget::CreateDefaultRect()
     axis->setLayer("axes");
     axis->grid()->setLayer("grid");
   }
+  // 创建默认序列
+  auto *curve = CreateDefaultGraph(rect);
   return rect;
 }
