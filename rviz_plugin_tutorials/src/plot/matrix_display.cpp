@@ -16,10 +16,11 @@ MatrixDisplay::MatrixDisplay()
   view_ = new MatrixWidget();
   view_->setDisplaySync(this);
 
+  // ! 需要互相访问,限制范围的set需要在row col都构造完再设置
   row_prop_ = new rviz::IntProperty("row count", 0, "row of mat graphs", this, SLOT(UpdateRow()));
+  col_prop_ = new rviz::IntProperty("col count", 0, "col of mat graphs", this, SLOT(UpdateCol()));
   row_prop_->setMin(1);
   row_prop_->setMax(10);
-  col_prop_ = new rviz::IntProperty("col count", 0, "col of mat graphs", this, SLOT(UpdateCol()));
   col_prop_->setMin(1);
   col_prop_->setMax(10);
 }
@@ -28,14 +29,19 @@ void MatrixDisplay::UpdateRow()
 {
   int const old_row = fields_prop_.rows();
   int const new_row = row_prop_->getInt();
-  int const col = fields_prop_.cols();
+  int const col = col_prop_->getInt();
+  if (col == 0)
+  {
+    return;
+  }
+
   // 增加
   if (old_row < new_row)
   {
     fields_prop_.conservativeResize(new_row, col);
     for (int i = old_row; i < new_row; ++i)
     {
-      for (int j = 0; j < fields_prop_.cols(); ++j)
+      for (int j = 0; j < col; ++j)
       {
         fields_prop_(i, j) = new rviz::StringProperty(QString("field-%1-%2").arg(i).arg(j), "", "matrix plot field", this);
         connect(fields_prop_(i, j), &Property::changed, [this, i, j]()
@@ -55,6 +61,7 @@ void MatrixDisplay::UpdateRow()
     }
     fields_prop_.conservativeResize(new_row, col); // 删除操作
   }
+  qDebug() << QString("col_prop_->getInt()=%1*%2").arg(new_row).arg(col_prop_->getInt());
   view_->UpdatePlotLayout(new_row, col);
 }
 void MatrixDisplay::UpdateCol()
@@ -62,7 +69,11 @@ void MatrixDisplay::UpdateCol()
 
   int const old_col = fields_prop_.cols();
   int const new_col = col_prop_->getInt();
-  int const row = fields_prop_.rows();
+  int const row = row_prop_->getInt();
+  if (row == 0)
+  {
+    return;
+  }
   // 增加
   if (old_col < new_col)
   {
