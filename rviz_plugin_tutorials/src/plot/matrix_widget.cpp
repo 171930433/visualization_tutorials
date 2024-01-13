@@ -196,7 +196,7 @@ void MatrixWidget::addRandomGraph()
     y[i] = (qSin(x[i] * r1 * 5) * qSin(qCos(x[i] * r2) * r4 * 3) + r3 * qCos(qSin(x[i]) * r4 * 2)) * yScale + yOffset;
   }
 
-  for (auto rect : this->axisRects())
+  for (auto *rect : this->axisRects())
   {
     QCPAxis *left = rect->axis(QCPAxis::atLeft);
     QCPAxis *bottom = rect->axis(QCPAxis::atBottom);
@@ -498,7 +498,7 @@ QCPAxisRect *MatrixWidget::CreateDefaultRect()
   rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
   rect->axis(QCPAxis::atLeft)->setSubTicks(false);
   // 共x轴 (0,0)->所有 所有->(0,0)
-  if (rect != rects_(0, 0))
+  if (rects_.size() != 1)
   {
     connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rects_(0, 0)->axis(QCPAxis::atBottom),
             SLOT(setRange(QCPRange)));
