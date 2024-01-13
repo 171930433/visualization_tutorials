@@ -9,6 +9,12 @@
 #include "plot/matrix_widget.h"
 #include "protobuf_helper.h"
 
+int MatrixDisplay::object_count_ = 0;
+QString MatrixDisplay::generateName()
+{
+  return QString("MatrixDisplay-p%1").arg(object_count_);
+}
+
 MatrixDisplay::MatrixDisplay()
 {
   InitPersons();
@@ -23,6 +29,17 @@ MatrixDisplay::MatrixDisplay()
   row_prop_->setMax(10);
   col_prop_->setMin(1);
   col_prop_->setMax(10);
+
+  ++object_count_;
+}
+
+MatrixDisplay::~MatrixDisplay()
+{
+  if (initialized())
+  {
+    delete view_;
+  }
+  --object_count_;
 }
 
 void MatrixDisplay::UpdateRow()
@@ -126,14 +143,6 @@ void MatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &
     {
       fields_prop_(i, j)->setString(field_names(i, j));
     }
-  }
-}
-
-MatrixDisplay::~MatrixDisplay()
-{
-  if (initialized())
-  {
-    delete view_;
   }
 }
 

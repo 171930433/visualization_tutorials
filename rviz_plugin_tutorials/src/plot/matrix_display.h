@@ -36,6 +36,7 @@ class MatrixDisplay : public DisplaySyncBase
 public:
   MatrixDisplay();
   ~MatrixDisplay() override;
+  static QString generateName();  // 防止用户重建时名称重复
 
 public:
   // void AddSeries(QString const &name, QStringList const &field_names);
@@ -56,8 +57,8 @@ private:
   MatrixWidget *view_ = nullptr;
 
   MatrixXQStringProp fields_prop_;
-  rviz::IntProperty* row_prop_ = nullptr;
-  rviz::IntProperty* col_prop_ = nullptr;
-
-  rviz::StringProperty *field_prop_[3] = {nullptr, nullptr, nullptr};
+  rviz::IntProperty *row_prop_ = nullptr;
+  rviz::IntProperty *col_prop_ = nullptr;
+private:
+  static int object_count_;
 };

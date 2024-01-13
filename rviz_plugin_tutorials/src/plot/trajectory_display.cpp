@@ -244,12 +244,14 @@ void TrajectoryDisplay::UpdateGraphCount()
 
 void TrajectoryDisplay::load(const rviz::Config &config)
 {
-//   qDebug() << config.getValue();
-// qDebug() << "before graph size = " << graphs_.size();
+  int graph_counts = 0;
+  if (config.mapGetInt("graph counts", &graph_counts))
+  {
+    counts_prop_->setInt(graph_counts);
+  }
 
   rviz::Display::load(config);
-// qDebug() << "end graph size = " << graphs_.size();
-
+  // qDebug() << "end graph size = " << graphs_.size();
 }
 void TrajectoryDisplay::save(rviz::Config config) const
 {

@@ -209,7 +209,7 @@ MatrixDisplay *DataTableWidget::CreateMatrixDisplay()
   auto *matrix_display = new MatrixDisplay();
   sync_display_->getContext()->getRootDisplayGroup()->addDisplay(matrix_display);
   matrix_display->initialize(sync_display_->getContext());
-  matrix_display->setName("MatrixDisplay");
+  matrix_display->setName(MatrixDisplay::generateName());
 
   return matrix_display;
 }

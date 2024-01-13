@@ -1473,11 +1473,16 @@ namespace rviz
 
     PanelDockWidget *dock;
     dock = new PanelDockWidget(name);
+
+    connect(dock, &QObject::objectNameChanged, [dockWidget](QString const &name)
+            { dockWidget->setObjectName(name); 
+            dockWidget->setWindowTitle(name); });
+
     // addDockWidget(area, dock);
 
     // dock->setContentWidget(panel);
     // dock->setFloating(floating);
-    // dock->setObjectName(name); // QMainWindow::saveState() needs objectName to be set.
+    dock->setObjectName(name); // QMainWindow::saveState() needs objectName to be set.
 
     // // we want to know when that panel becomes visible
     connect(dock, SIGNAL(visibilityChanged(bool)), this, SLOT(onDockPanelVisibilityChange(bool)));
