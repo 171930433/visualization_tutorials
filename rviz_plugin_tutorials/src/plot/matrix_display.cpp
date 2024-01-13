@@ -104,15 +104,13 @@ void MatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &
 {
   view_->CreatePlot(name, field_names);
   // 创建property
-  fields_prop_ = MatrixXQStringProp(field_names.rows(), field_names.cols());
+  row_prop_->setInt(field_names.rows());
+  col_prop_->setInt(field_names.cols());
+
   for (int i = 0; i < field_names.rows(); ++i)
   {
     for (int j = 0; j < field_names.cols(); ++j)
     {
-      fields_prop_(i, j) = new rviz::StringProperty(QString("field-%1-%2").arg(i).arg(j), "", "matrix plot field", this);
-      connect(fields_prop_(i, j), &Property::changed, [this, i, j]()
-              { this->UpdateFieldName(i, j); });
-      // 赋值
       fields_prop_(i, j)->setString(field_names(i, j));
     }
   }
