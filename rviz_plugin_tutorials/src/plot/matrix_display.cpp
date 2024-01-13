@@ -55,6 +55,7 @@ void MatrixDisplay::UpdateRow()
     }
     fields_prop_.conservativeResize(new_row, col); // 删除操作
   }
+  view_->UpdatePlotLayout(new_row, col);
 }
 void MatrixDisplay::UpdateCol()
 {
@@ -88,6 +89,7 @@ void MatrixDisplay::UpdateCol()
     }
     fields_prop_.conservativeResize(row, new_col); // 删除操作
   }
+  view_->UpdatePlotLayout(row, new_col);
 }
 
 void MatrixDisplay::UpdateFieldName(int const row, int const col)

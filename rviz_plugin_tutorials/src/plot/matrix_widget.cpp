@@ -5,11 +5,11 @@
 
 MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
 {
-  //
   type_ = Type::Matrix;
-  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
+  dateTicker_ = QSharedPointer<QCPAxisTickerDateTime>(new QCPAxisTickerDateTime);
+  dateTicker_->setDateTimeFormat("HH:mm:ss");
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
-
+  // setupMatrixDemo(1, 1);
   // setupVector3Demo();
 }
 
@@ -259,39 +259,14 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
   qDebug() << QString("start row=%1 col=%2").arg(row).arg(col);
   setupMatrixDemo(row, col);
 
+  // this->rescaleAxes();
   for (int i = 0; i < row; i++)
   {
     for (int j = 0; j < col; j++)
     {
-      auto *rect = rects_(i, j);
-      auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
-
-      graphs_(i, j) = curve;
-
-      rect->axis(QCPAxis::atLeft)->setLabel(field_names(i, j));
-      curve->setName(field_names(i, j));
-      curve->setSelectable(QCP::stDataRange);
-      // curve->setData(time_index, y[i]);
-
-      // 设置散点样式和颜色
-      curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCross, Qt::blue));
-
-      // 设置直线样式
-      curve->setLineStyle(QCPGraph::LineStyle::lsLine);
-      QPen lp;
-      lp.setWidthF(2);
-      lp.setColor(Qt::gray);
-      curve->setPen(lp);
-
-      // 定制选中样式
-      QCPSelectionDecorator *decorator = curve->selectionDecorator();
-      QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
-      selectedScatterStyle.setSize(10);                                                           // 选中点的大小
-      decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+      UpdateFieldName(i, j, field_names(i, j));
     }
   }
-
-  // this->rescaleAxes();
 
   qDebug() << QString("end filed size =%1").arg(field_names.size());
 }
@@ -299,11 +274,13 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
 void MatrixWidget::keyPressEvent(QKeyEvent *event)
 {
   ShowSubplot(event->key() - Qt::Key_1);
+  QWidget::keyPressEvent(event);
 }
 
 void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &field_name)
 {
-  qDebug() << QString("UpdateFieldName start %1, row = %2").arg(field_name).arg(row);
+  qDebug() << QString("UpdateFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);
+  qDebug() << " graphs_.size() = " << graphs_.size() << " g_messages size = " << g_messages.size();
   //
   auto const &datas = g_messages;
 
@@ -320,7 +297,11 @@ void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &
     ++i;
   }
 
-  graphs_(row, col)->setData(time_index, y);
+  qDebug() << " time_index = size = " << time_index.size() << " y size =" << y.size();
+  QCPGraph *curve = graphs_(row, col);
+  curve->setData(time_index, y);
+  rects_(row, col)->axis(QCPAxis::atLeft)->setLabel(field_name);
+  curve->setName(field_name);
   this->rescaleAxes();
   this->replot();
 
@@ -331,63 +312,82 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
 {
   int const old_row = rects_.rows();
   int const old_col = rects_.cols();
-  
+  setupMatrixDemo(new_row, new_col);
 }
 
 void MatrixWidget::setupMatrixDemo(int row, int col)
 {
   using namespace Eigen;
   // demoName = "Vector3 Demo";
+  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
 
-  QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
-  // 设置日期时间格式
-  dateTicker->setDateTimeFormat("HH:mm:ss");
-
-  rects_ = Eigen::Matrix<QCPAxisRect *, Eigen::Dynamic, Eigen::Dynamic>(row, col);
-  graphs_ = Eigen::Matrix<QCPGraph *, Eigen::Dynamic, Eigen::Dynamic>(row, col);
-  for (int i = 0; i < row * col; ++i)
-  {
-    rects_.data()[i] = new QCPAxisRect(this);
-  }
-
-  // rects_.unaryExpr([this](QCPAxisRect *&rect)
-  //                  { rect = new QCPAxisRect(this); });
+  rects_.resize(row, col);
+  graphs_.resize(row, col);
 
   for (int i = 0; i < row; i++)
   {
     for (int j = 0; j < col; j++)
     {
-      QCPAxisRect *rect = new QCPAxisRect(this);
-      rects_(i, j) = rect;
-      this->plotLayout()->addElement(i, j, rect);
-      // 默认缩放y轴
-      rect->setRangeZoom(Qt::Vertical);
-      // x轴样式
-      rect->axis(QCPAxis::atBottom)->setTicker(dateTicker);
-      // 共x轴
-      if (rect != rects_(0, 0))
-      {
-        connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rects_(0, 0)->axis(QCPAxis::atBottom),
-                SLOT(setRange(QCPRange)));
-      }
-      connect(rects_(0, 0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rect->axis(QCPAxis::atBottom),
-              SLOT(setRange(QCPRange)));
-      // y轴label在axis内侧
-      rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
-      rect->axis(QCPAxis::atLeft)->setSubTicks(false);
-      // top和middle的x轴不显示
+      QCPAxisRect *current_rect = rects_(i, j) = CreateDefaultRect();
+      this->plotLayout()->addElement(i, j, current_rect);
+      QCPGraph *current_graph = graphs_(i, j) = CreateDefaultGraph(current_rect);
+      // x轴不显示
       if (i != row - 1)
       {
-        rect->axis(QCPAxis::atBottom)->setTicks(false);
-        rect->axis(QCPAxis::atBottom)->setSubTicks(false);
-        rect->axis(QCPAxis::atBottom)->setTickLabels(false);
+        current_rect->axis(QCPAxis::atBottom)->setTicks(false);
+        current_rect->axis(QCPAxis::atBottom)->setSubTicks(false);
+        current_rect->axis(QCPAxis::atBottom)->setTickLabels(false);
       }
-      foreach (QCPAxis *axis, rect->axes())
-      {
-        axis->setLayer("axes");
-        axis->grid()->setLayer("grid");
-      }
+      // 共x轴 (0,0)->所有 所有->(0,0)
+      connect(current_rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rects_(0, 0)->axis(QCPAxis::atBottom),
+              SLOT(setRange(QCPRange)));
+      connect(rects_(0, 0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), current_rect->axis(QCPAxis::atBottom),
+              SLOT(setRange(QCPRange)));
     }
   }
+}
+
+QCPGraph *MatrixWidget::CreateDefaultGraph(QCPAxisRect *rect)
+{
+
+  auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
+
+  rect->axis(QCPAxis::atLeft)->setLabel("default");
+  curve->setSelectable(QCP::stDataRange);
+
+  // 设置散点样式和颜色
+  curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCross, Qt::blue));
+
+  // 设置直线样式
+  curve->setLineStyle(QCPGraph::LineStyle::lsLine);
+  QPen lp;
+  lp.setWidthF(2);
+  lp.setColor(Qt::gray);
+  curve->setPen(lp);
+
+  // 定制选中样式
+  QCPSelectionDecorator *decorator = curve->selectionDecorator();
+  QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
+  selectedScatterStyle.setSize(10);                                                           // 选中点的大小
+  decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+
+  return curve;
+}
+QCPAxisRect *MatrixWidget::CreateDefaultRect()
+{
+  QCPAxisRect *rect = new QCPAxisRect(this);
+  // 默认缩放y轴
+  rect->setRangeZoom(Qt::Vertical);
+  // x轴样式
+  rect->axis(QCPAxis::atBottom)->setTicker(dateTicker_);
+  // y轴label在axis内侧
+  rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
+  rect->axis(QCPAxis::atLeft)->setSubTicks(false);
+  foreach (QCPAxis *axis, rect->axes())
+  {
+    axis->setLayer("axes");
+    axis->grid()->setLayer("grid");
+  }
+  return rect;
 }

@@ -36,7 +36,10 @@ private slots:
 
 protected:
   void addRandomGraph();
+  QCPGraph *CreateDefaultGraph(QCPAxisRect *rect);
+  QCPAxisRect *CreateDefaultRect();
   DisplaySyncBase *sync_display_ = nullptr;
+  QSharedPointer<QCPAxisTickerDateTime> dateTicker_;
 
 protected:
   void FocusPoint(double const t0) override;
