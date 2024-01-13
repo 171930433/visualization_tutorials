@@ -23,7 +23,6 @@ protected:
   void keyPressEvent(QKeyEvent *event) override;
 
 protected:
-  void setupVector3Demo();
   void setupMatrixDemo(int row, int col);
   std::map<int, QCPAxisRect *> all_rects_;
   // Eigen::Matrix<QCPAxisRect *, Eigen::Dynamic, Eigen::Dynamic> rects_;

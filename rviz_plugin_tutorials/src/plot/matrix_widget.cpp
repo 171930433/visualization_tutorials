@@ -101,86 +101,6 @@ void MatrixWidget::mouseWheel()
   // qDebug() <<" x_selected = " << x_selected;
 }
 
-void MatrixWidget::setupVector3Demo()
-{
-  // demoName = "Vector3 Demo";
-  this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
-
-  QSharedPointer<QCPAxisTickerDateTime> dateTicker(new QCPAxisTickerDateTime);
-  // 设置日期时间格式
-  dateTicker->setDateTimeFormat("HH:mm:ss");
-
-  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
-  // add the first axis rect in second row (row index 1):
-  QCPAxisRect *topAxisRect = new QCPAxisRect(this);
-  QCPAxisRect *middleAxisRect = new QCPAxisRect(this);
-  QCPAxisRect *bottomAxisRect = new QCPAxisRect(this);
-  all_rects_[0] = topAxisRect;
-  all_rects_[1] = middleAxisRect;
-  all_rects_[2] = bottomAxisRect;
-  this->plotLayout()->addElement(0, 0, topAxisRect);
-  this->plotLayout()->addElement(1, 0, middleAxisRect);
-  this->plotLayout()->addElement(2, 0, bottomAxisRect);
-  // 默认缩放y轴
-  topAxisRect->setRangeZoom(Qt::Vertical);
-  middleAxisRect->setRangeZoom(Qt::Vertical);
-  bottomAxisRect->setRangeZoom(Qt::Vertical);
-  // x轴样式
-  topAxisRect->axis(QCPAxis::atBottom)->setTicker(dateTicker);
-  middleAxisRect->axis(QCPAxis::atBottom)->setTicker(dateTicker);
-  bottomAxisRect->axis(QCPAxis::atBottom)->setTicker(dateTicker);
-
-  // x轴的padding为0
-  // topAxisRect->axis(QCPAxis::atBottom)->setPadding(0);
-  // topAxisRect->setMargins(QMargins{0,0,0,0});
-  // middleAxisRect->setMargins(QMargins{0,0,0,0});
-  topAxisRect->setAutoMargins(QCP::msLeft | QCP::msRight);
-  topAxisRect->setMargins(QMargins(0, 0, 0, 0));
-  middleAxisRect->setAutoMargins(QCP::msLeft | QCP::msRight);
-  middleAxisRect->setMargins(QMargins(0, 0, 0, 0));
-  bottomAxisRect->setAutoMargins(QCP::msLeft | QCP::msRight | QCP::msBottom);
-  bottomAxisRect->setMargins(QMargins(0, 0, 0, 0));
-  // this->plotLayout()->setRowSpacing(0);
-  // this->plotLayout()->setRowStretchFactor(0, 1);
-  // 共x轴
-  connect(bottomAxisRect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), middleAxisRect->axis(QCPAxis::atBottom),
-          SLOT(setRange(QCPRange)));
-  connect(middleAxisRect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), topAxisRect->axis(QCPAxis::atBottom),
-          SLOT(setRange(QCPRange)));
-  connect(topAxisRect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), bottomAxisRect->axis(QCPAxis::atBottom),
-          SLOT(setRange(QCPRange)));
-  // y轴label在axis内侧
-  topAxisRect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
-  middleAxisRect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
-  bottomAxisRect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
-  topAxisRect->axis(QCPAxis::atLeft)->setSubTicks(false);
-  middleAxisRect->axis(QCPAxis::atLeft)->setSubTicks(false);
-  bottomAxisRect->axis(QCPAxis::atLeft)->setSubTicks(false);
-  // top和middle的x轴不显示
-  topAxisRect->axis(QCPAxis::atBottom)->setTicks(false);
-  topAxisRect->axis(QCPAxis::atBottom)->setSubTicks(false);
-  topAxisRect->axis(QCPAxis::atBottom)->setTickLabels(false);
-  middleAxisRect->axis(QCPAxis::atBottom)->setTicks(false);
-  middleAxisRect->axis(QCPAxis::atBottom)->setSubTicks(false);
-  middleAxisRect->axis(QCPAxis::atBottom)->setTickLabels(false);
-
-  QList<QCPAxis *> allAxes;
-  allAxes << topAxisRect->axes() << middleAxisRect->axes() << bottomAxisRect->axes();
-  foreach (QCPAxis *axis, allAxes)
-  {
-    axis->setLayer("axes");
-    axis->grid()->setLayer("grid");
-  }
-
-  // addRandomGraph();
-  // this->rescaleAxes();
-
-  // this->setContextMenuPolicy(Qt::CustomContextMenu);
-  // connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
-
-  connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
-}
-
 void MatrixWidget::addRandomGraph()
 {
   int n = 500000; // number of points in graph
@@ -257,19 +177,6 @@ void MatrixWidget::FocusPoint(double const t0)
     // 该点剧中
     FoucuPositionByIndex(single_graph, dataIndex);
   }
-  // auto *single_graph = this->graph(0);
-
-  // // 1. 先检查所有的数据区间是否包含待查找点
-  // auto const dataIndex = single_graph->findBegin(t0, true);
-
-  // // 选中点
-  // QCPDataRange index_range{dataIndex, dataIndex + 1};
-  // single_graph->setSelection(QCPDataSelection{index_range});
-  // // 该点剧中
-  // FoucuPositionByIndex(single_graph, dataIndex);
-
-  // 当前选中点以改变消息发出
-  // this->onFocusPoint(t0, false, true);
 
   this->replot();
 }
@@ -322,23 +229,9 @@ void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &
   qDebug() << " time_index = size = " << time_index.size() << " y size =" << y.size();
 
   auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
-  if (!rect)
-  {
-    qDebug() << QString("UpdateFieldName rect failed %1, size = %2").arg(field_name).arg(n);
-  }
-  qDebug() << QString("UpdateFieldName rect done %1, size = %2").arg(field_name).arg(n);
-
-  if (rect->graphs().isEmpty())
-  {
-    qDebug() << QString("UpdateFieldName rect->graphs().isEmpty() failed %1, size = %2").arg(field_name).arg(n);
-  }
-  qDebug() << QString("UpdateFieldName rect done %1, size = %2").arg(field_name).arg(n);
 
   QCPGraph *curve = rect->graphs()[0];
-  if (!curve)
-  {
-    qDebug() << QString("UpdateFieldName curve failed %1, size = %2").arg(field_name).arg(n);
-  }
+
   curve->setData(time_index, y);
   rect->axis(QCPAxis::atLeft)->setLabel(field_name);
   curve->setName(field_name);
