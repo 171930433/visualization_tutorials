@@ -73,7 +73,8 @@ void MatrixWidget::contextMenuRequest(QPoint pos)
 void MatrixWidget::mouseWheel()
 {
   bool x_selected = false;
-  for (auto [key, rect] : all_rects_)
+
+  for (auto rect : this->axisRects())
   {
     if (rect->axis(QCPAxis::atBottom)->selectedParts().testFlag(QCPAxis::spAxis))
     {
@@ -82,7 +83,7 @@ void MatrixWidget::mouseWheel()
     }
   }
 
-  for (auto [key, rect] : all_rects_)
+  for (auto rect : this->axisRects())
   {
     if (x_selected)
     {
@@ -93,6 +94,7 @@ void MatrixWidget::mouseWheel()
       rect->setRangeZoom(Qt::Vertical);
     }
   }
+
   // qDebug() <<" x_selected = " << x_selected;
 }
 
@@ -194,7 +196,7 @@ void MatrixWidget::addRandomGraph()
     y[i] = (qSin(x[i] * r1 * 5) * qSin(qCos(x[i] * r2) * r4 * 3) + r3 * qCos(qSin(x[i]) * r4 * 2)) * yScale + yOffset;
   }
 
-  for (auto [key, rect] : all_rects_)
+  for (auto rect : this->axisRects())
   {
     QCPAxis *left = rect->axis(QCPAxis::atLeft);
     QCPAxis *bottom = rect->axis(QCPAxis::atBottom);
@@ -234,19 +236,29 @@ void MatrixWidget::FocusPoint(double const t0)
 {
   // auto *first_curve = all_curve_.front();
 
-  for (int i = 0; i < this->graphCount(); ++i)
-  {
-    auto *single_graph = this->graph(i);
+  // for (int i = 0; i < this->graphCount(); ++i)
+  // {
+  //   auto *single_graph = this->graph(i);
 
-    // 1. 先检查所有的数据区间是否包含待查找点
-    auto const dataIndex = single_graph->findBegin(t0, true);
+  //   // 1. 先检查所有的数据区间是否包含待查找点
+  //   auto const dataIndex = single_graph->findBegin(t0, true);
 
-    // 选中点
-    QCPDataRange index_range{dataIndex, dataIndex + 1};
-    single_graph->setSelection(QCPDataSelection{index_range});
-    // 该点剧中
-    FoucuPositionByIndex(single_graph, dataIndex);
-  }
+  //   // 选中点
+  //   QCPDataRange index_range{dataIndex, dataIndex + 1};
+  //   single_graph->setSelection(QCPDataSelection{index_range});
+  //   // 该点剧中
+  //   FoucuPositionByIndex(single_graph, dataIndex);
+  // }
+  auto *single_graph = this->graph(0);
+
+  // 1. 先检查所有的数据区间是否包含待查找点
+  auto const dataIndex = single_graph->findBegin(t0, true);
+
+  // 选中点
+  QCPDataRange index_range{dataIndex, dataIndex + 1};
+  single_graph->setSelection(QCPDataSelection{index_range});
+  // 该点剧中
+  FoucuPositionByIndex(single_graph, dataIndex);
 
   // 当前选中点以改变消息发出
   // this->onFocusPoint(t0, false, true);
@@ -404,7 +416,20 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
   }
 
   qDebug() << QString("from %1*%2 ------------> %3*%4 rects_ size=%5*%6").arg(old_row).arg(old_col).arg(new_row).arg(new_col).arg(rects_.rows()).arg(rects_.cols());
-  
+  for (int i = 0; i < new_row; i++)
+  {
+    for (int j = 0; j < new_col; j++)
+    {
+      QCPAxisRect *current_rect = rects_(i, j);
+      // x轴不显示
+      if (i != new_row - 1)
+      {
+        current_rect->axis(QCPAxis::atBottom)->setTicks(false);
+        current_rect->axis(QCPAxis::atBottom)->setSubTicks(false);
+        current_rect->axis(QCPAxis::atBottom)->setTickLabels(false);
+      }
+    }
+  }
   this->plotLayout()->simplify();
   this->replot();
 }
@@ -431,11 +456,6 @@ void MatrixWidget::setupMatrixDemo(int row, int col)
         current_rect->axis(QCPAxis::atBottom)->setSubTicks(false);
         current_rect->axis(QCPAxis::atBottom)->setTickLabels(false);
       }
-      // 共x轴 (0,0)->所有 所有->(0,0)
-      connect(current_rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rects_(0, 0)->axis(QCPAxis::atBottom),
-              SLOT(setRange(QCPRange)));
-      connect(rects_(0, 0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), current_rect->axis(QCPAxis::atBottom),
-              SLOT(setRange(QCPRange)));
     }
   }
   this->replot();
@@ -477,6 +497,14 @@ QCPAxisRect *MatrixWidget::CreateDefaultRect()
   // y轴label在axis内侧
   rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
   rect->axis(QCPAxis::atLeft)->setSubTicks(false);
+  // 共x轴 (0,0)->所有 所有->(0,0)
+  if (rect != rects_(0, 0))
+  {
+    connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rects_(0, 0)->axis(QCPAxis::atBottom),
+            SLOT(setRange(QCPRange)));
+    connect(rects_(0, 0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rect->axis(QCPAxis::atBottom),
+            SLOT(setRange(QCPRange)));
+  }
   foreach (QCPAxis *axis, rect->axes())
   {
     axis->setLayer("axes");
