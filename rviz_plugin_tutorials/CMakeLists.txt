@@ -59,6 +59,7 @@ set(SRC_FILES
   src/grid_view2.cpp
   src/grid_display2.cpp
   # data_table
+  src/data_table/filterwidget.cpp
   src/data_table/data_table_model.h
   src/data_table/data_table_widget.cpp
   src/data_table/data_table_display.cpp

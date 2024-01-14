@@ -1,10 +1,30 @@
 #include "data_table/data_table_widget.h"
+#include "data_table/filterwidget.h"
 #include "data_table_display.h"
 #include <rviz/visualization_manager.h>
 #include <rviz/display_group.h>
 
 #include "display_sync_base.h"
 #include "plot/matrix_display.h"
+
+#include <QStyledItemDelegate>
+#include <QString>
+
+class DoublePrecisionDelegate : public QStyledItemDelegate
+{
+public:
+  DoublePrecisionDelegate(QObject *parent = nullptr) : QStyledItemDelegate(parent) {}
+
+  QString displayText(const QVariant &value, const QLocale &locale) const override
+  {
+    if (value.type() == QVariant::Double)
+    {
+      double const number = value.toDouble();
+      return locale.toString(number, 'f', 6); // 小数点后保留3位
+    }
+    return QStyledItemDelegate::displayText(value, locale);
+  }
+};
 
 DisplaySyncBase *DataTableWidget::getDisplaySync()
 {
@@ -14,17 +34,33 @@ DisplaySyncBase *DataTableWidget::getDisplaySync()
 DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
 {
   // qRegisterMetaType<Eigen::Vector3d>("Vector3d");
+  DoublePrecisionDelegate *delegate = new DoublePrecisionDelegate();
 
   mainTableView_ = new QTableView(this);
   subTableView_ = new QTableView(this);
+
+  mainTableView_->setItemDelegate(delegate); // 应用于第二列
+  subTableView_->setItemDelegate(delegate);  // 应用于第二列
 
   mainTableView_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(mainTableView_->horizontalHeader(), &QHeaderView::customContextMenuRequested,
           this, &DataTableWidget::showHeaderMenu);
 
+  // filter
+  filterWidget_ = new FilterWidget;
+  // filterWidget_->setText("Grace|Sports");
+  connect(filterWidget_, &FilterWidget::filterChanged, this, &DataTableWidget::textFilterChanged);
+
+  filterPatternLabel_ = new QLabel(tr("&Filter pattern:"));
+  filterPatternLabel_->setBuddy(filterWidget_);
+  QHBoxLayout *h_layout = new QHBoxLayout();
+  h_layout->addWidget(filterPatternLabel_);
+  h_layout->addWidget(filterWidget_, 1);
+
   QVBoxLayout *layout = new QVBoxLayout(this);
-  layout->addWidget(mainTableView_);
-  layout->addWidget(subTableView_);
+  layout->addWidget(mainTableView_, 1);
+  layout->addLayout(h_layout);
+  layout->addWidget(subTableView_, 1);
 
   model_ = new MyTableModel(this);
 
@@ -184,7 +220,7 @@ void DataTableWidget::showHeaderMenu(const QPoint &pos)
   menu->addAction("create col plot", this, [this, filed_names]()
                   { this->CreateVectorPlot("", filed_names); });
   // 添加更多操作...
-  QMenu *sub_menu = new QMenu("create matrix plot",menu);
+  QMenu *sub_menu = new QMenu("create matrix plot", menu);
   menu->addMenu(sub_menu);
   sub_menu->addAction("row = 2");
   sub_menu->addAction("row = 3");
@@ -238,4 +274,12 @@ void DataTableWidget::CreateVectorPlot(QString const &name, QStringList const &f
     fields(i, 0) = field_names[i];
   }
   matrix_display->CreateMatrixPlot(name, fields);
+}
+
+void DataTableWidget::textFilterChanged()
+{
+  QRegExp regExp(filterWidget_->text(),
+                 filterWidget_->caseSensitivity(),
+                 filterWidget_->patternSyntax());
+  sub_proxy_->setFilterRegExp(regExp);
 }

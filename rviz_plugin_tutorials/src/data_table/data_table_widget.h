@@ -14,6 +14,7 @@
 class DataTableDisplay;
 class DisplaySyncBase;
 class MatrixDisplay;
+class FilterWidget;
 class DataTableWidget : public QWidget, public ITimeSync
 {
     Q_OBJECT
@@ -23,9 +24,9 @@ public:
 
     void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
     DisplaySyncBase *getDisplaySync() override;
-    void CreateMatrixPlot(QString const& name,QStringList const& field_names);
-    void CreateRowVectorPlot(QString const& name,QStringList const& field_names);
-    void CreateVectorPlot(QString const& name,QStringList const& field_names);
+    void CreateMatrixPlot(QString const &name, QStringList const &field_names);
+    void CreateRowVectorPlot(QString const &name, QStringList const &field_names);
+    void CreateVectorPlot(QString const &name, QStringList const &field_names);
 
     void setData(const std::map<size_t, spMessage> &newData)
     {
@@ -49,18 +50,23 @@ public slots:
     void OnMainSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
     void OnSubSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
+private slots:
+    void textFilterChanged();
+
 protected:
     void FocusPoint(double const t0) override;
     void FouseRange(QCPRange const &time_range) override;
 
 private:
-    MatrixDisplay* CreateMatrixDisplay();
+    MatrixDisplay *CreateMatrixDisplay();
     void Scrol2SubMiddle();
     void showHeaderMenu(const QPoint &pos);
 
 private:
     QTableView *mainTableView_;
     QTableView *subTableView_;
+    FilterWidget *filterWidget_;
+    QLabel *filterPatternLabel_;
     // MyTableModel *mainModel_;
     // MyTableModel *subModel_;
     MyTableModel *model_;
