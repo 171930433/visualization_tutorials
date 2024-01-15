@@ -31,7 +31,10 @@ void DataTableWidget::setData(const std::map<size_t, spMessage> &newData)
   QStringList headers = GetFildNames(*newData.begin()->second);
   qDebug() << " headers = " << headers;
 
-  column_->addItems(headers);
+  // column_->addItems(headers);
+  QStringList options = headers;
+  options.prepend("all columns");
+  column_model_->setStringList(options);
 
   // 设置表头
   model_->setHeaders(headers);
@@ -59,11 +62,17 @@ DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
   mainTableView_->horizontalHeader()->setContextMenuPolicy(Qt::CustomContextMenu);
   connect(mainTableView_->horizontalHeader(), &QHeaderView::customContextMenuRequested,
           this, &DataTableWidget::showHeaderMenu);
-
+  // combobox
+  column_ = new QComboBox();
+  column_->setEditable(true);
+  column_model_ = new QStringListModel();
+  QCompleter *completer = new QCompleter(column_model_, column_);
+  completer->setCaseSensitivity(Qt::CaseInsensitive);
+  column_->setCompleter(completer);
+  column_->setModel(column_model_);
   // filter
   filterWidget_ = new FilterWidget;
-  column_ = new QComboBox();
-  column_->addItem("all columns");
+  // column_->addItem("all columns");
   // filterWidget_->setText("Grace|Sports");
   connect(filterWidget_, &FilterWidget::filterChanged, this, &DataTableWidget::textFilterChanged);
   connect(column_, &QComboBox::currentTextChanged, this, &DataTableWidget::textFilterChanged);

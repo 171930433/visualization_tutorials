@@ -51,11 +51,12 @@ private:
 private:
   QTableView *mainTableView_;
   QTableView *subTableView_;
+  //
   FilterWidget *filterWidget_;
   QLabel *filterPatternLabel_;
   QComboBox *column_;
-  // MyTableModel *mainModel_;
-  // MyTableModel *subModel_;
+  QStringListModel *column_model_;
+  //
   MyTableModel *model_;
   MainProxyModel *main_proxy_;
   SubProxyModel *sub_proxy_;
