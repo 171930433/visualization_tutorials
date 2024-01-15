@@ -76,8 +76,6 @@ public:
     QRegExp::PatternSyntax patternSyntax() const;
     void setPatternSyntax(QRegExp::PatternSyntax);
 
-    void AddColumns(QStringList const& columns);
-
 signals:
     void filterChanged();
 
@@ -85,13 +83,6 @@ private:
     QAction *m_caseSensitivityAction;
     QActionGroup *m_patternGroup;
     QMenu *main_menu_ = nullptr;
-    //
-    QMenu *column_menu_ = nullptr;
-    QActionGroup *column_group_ = nullptr;
-    QAction *specific_column_action_ = nullptr;
-    QAction *all_column_action_ = nullptr;
-    //
-    QComboBox *column_;
 };
 
 #endif // FILTERWIDGET_H

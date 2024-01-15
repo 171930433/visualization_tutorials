@@ -63,24 +63,12 @@
 #include <QDebug>
 
 FilterWidget::FilterWidget(QWidget *parent)
-    : QLineEdit(parent), m_patternGroup(new QActionGroup(this)), column_group_(new QActionGroup(this))
+    : QLineEdit(parent), m_patternGroup(new QActionGroup(this))
 {
   setClearButtonEnabled(true);
   connect(this, &QLineEdit::textChanged, this, &FilterWidget::filterChanged);
 
   main_menu_ = new QMenu(this);
-  // 待选择列
-  column_menu_ = new QMenu(this);
-  column_group_->setExclusive(true);
-  all_column_action_ = column_menu_->addAction("all columns");
-  all_column_action_->setCheckable(true);
-  all_column_action_->setChecked(true);
-  specific_column_action_ = column_menu_->addAction("specific columns");
-  specific_column_action_->setCheckable(true);
-  specific_column_action_->setChecked(false);
-  column_group_->addAction(all_column_action_);
-  column_group_->addAction(specific_column_action_);
-
   //
   m_caseSensitivityAction = main_menu_->addAction(tr("Case Sensitive"));
   m_caseSensitivityAction->setCheckable(true);
@@ -115,26 +103,9 @@ FilterWidget::FilterWidget(QWidget *parent)
   optionsButton->setMenu(main_menu_);
   optionsButton->setPopupMode(QToolButton::InstantPopup);
 
-  QWidget *container = new QWidget;
-  container->setMinimumWidth(128);
-  QHBoxLayout *h_layout = new QHBoxLayout(container);
-  //
-
-  column_ = new QComboBox();
-  column_->addItem("all columns");
-
-  h_layout->addWidget(column_);
-  h_layout->addWidget(optionsButton);
-  h_layout->setContentsMargins(0, 0, 0, 0); // 移除容器的边距
-
   QWidgetAction *optionsAction = new QWidgetAction(this);
-  optionsAction->setDefaultWidget(container);
+  optionsAction->setDefaultWidget(optionsButton);
   addAction(optionsAction, QLineEdit::LeadingPosition);
-}
-
-void FilterWidget::AddColumns(QStringList const &columns)
-{
-  column_->addItems(columns);
 }
 
 Qt::CaseSensitivity FilterWidget::caseSensitivity() const

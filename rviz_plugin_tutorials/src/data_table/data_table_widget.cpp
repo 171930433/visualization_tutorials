@@ -26,6 +26,20 @@ public:
   }
 };
 
+void DataTableWidget::setData(const std::map<size_t, spMessage> &newData)
+{
+  QStringList headers = GetFildNames(*newData.begin()->second);
+  qDebug() << " headers = " << headers;
+
+  column_->addItems(headers);
+
+  // 设置表头
+  model_->setHeaders(headers);
+
+  // 转换数据到适合模型的格式
+  model_->setData(newData);
+}
+
 DisplaySyncBase *DataTableWidget::getDisplaySync()
 {
   return sync_display_;
@@ -48,13 +62,17 @@ DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
 
   // filter
   filterWidget_ = new FilterWidget;
+  column_ = new QComboBox();
+  column_->addItem("all columns");
   // filterWidget_->setText("Grace|Sports");
   connect(filterWidget_, &FilterWidget::filterChanged, this, &DataTableWidget::textFilterChanged);
+  connect(column_, &QComboBox::currentTextChanged, this, &DataTableWidget::textFilterChanged);
 
-  filterPatternLabel_ = new QLabel(tr("&Filter pattern:"));
+  filterPatternLabel_ = new QLabel(tr("Filter &columns:"));
   filterPatternLabel_->setBuddy(filterWidget_);
   QHBoxLayout *h_layout = new QHBoxLayout();
   h_layout->addWidget(filterPatternLabel_);
+  h_layout->addWidget(column_);
   h_layout->addWidget(filterWidget_, 1);
 
   QVBoxLayout *layout = new QVBoxLayout(this);
@@ -63,8 +81,6 @@ DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
   layout->addWidget(subTableView_, 1);
 
   model_ = new MyTableModel(this);
-
-  filterWidget_->AddColumns(model_->headers());
 
   main_proxy_ = new MainProxyModel(this);
   main_proxy_->setSourceModel(model_);
@@ -280,8 +296,9 @@ void DataTableWidget::CreateVectorPlot(QString const &name, QStringList const &f
 
 void DataTableWidget::textFilterChanged()
 {
-  QRegExp regExp(filterWidget_->text(),
-                 filterWidget_->caseSensitivity(),
-                 filterWidget_->patternSyntax());
+  QRegExp regExp(filterWidget_->text(), filterWidget_->caseSensitivity(), filterWidget_->patternSyntax());
+  int index = column_->currentIndex() - 1;
+  sub_proxy_->setColumnIndex(index);
+  qDebug() << QString("index=%1").arg(index);
   sub_proxy_->setFilterRegExp(regExp);
 }

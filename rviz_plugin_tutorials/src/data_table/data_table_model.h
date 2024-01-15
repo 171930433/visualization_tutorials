@@ -217,6 +217,14 @@ public:
   }
   int getRange() const { return range_; }
 
+  void setColumnIndex(int const &col)
+  {
+    if (col != column_index_)
+    {
+      column_index_ = col;
+    }
+  }
+
 protected:
   bool filterAcceptsRow(int sourceRow, const QModelIndex &sourceParent) const override
   {
@@ -230,8 +238,9 @@ protected:
     }
     // 开始查询条件
     bool b2 = false;
-    int col_number = sourceModel()->columnCount();
-    for (int i = 0; i < col_number; ++i)
+    int start_col = (column_index_ == -1 ? 0 : column_index_);
+    int end_col = (column_index_ == -1 ? sourceModel()->columnCount() : start_col + 1);
+    for (int i = start_col; i < end_col; ++i)
     {
       QModelIndex const index = sourceModel()->index(sourceRow, i, sourceParent);
       QVariant const &value = sourceModel()->data(index);
@@ -239,7 +248,7 @@ protected:
       b2 |= str.contains(filterRegExp());
       if (b2)
       {
-        qDebug() << QString("row=%1,col=%2, content=%4, contains %3").arg(sourceRow).arg(i).arg(filterRegExp().pattern()).arg(str);
+        // qDebug() << QString("row=%1,col=%2, content=%4, contains %3").arg(sourceRow).arg(i).arg(filterRegExp().pattern()).arg(str);
         break;
       }
     }
@@ -250,4 +259,5 @@ protected:
 private:
   int middle_row_ = 0;
   int range_ = 100;
+  int column_index_ = -1; // -1 表示所有, >=0 表示指定列
 };

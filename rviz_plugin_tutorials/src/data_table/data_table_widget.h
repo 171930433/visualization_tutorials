@@ -17,61 +17,48 @@ class MatrixDisplay;
 class FilterWidget;
 class DataTableWidget : public QWidget, public ITimeSync
 {
-    Q_OBJECT
+  Q_OBJECT
 
 public:
-    explicit DataTableWidget(QWidget *parent = nullptr);
+  explicit DataTableWidget(QWidget *parent = nullptr);
 
-    void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
-    DisplaySyncBase *getDisplaySync() override;
-    void CreateMatrixPlot(QString const &name, QStringList const &field_names);
-    void CreateRowVectorPlot(QString const &name, QStringList const &field_names);
-    void CreateVectorPlot(QString const &name, QStringList const &field_names);
+  void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
+  DisplaySyncBase *getDisplaySync() override;
+  void CreateMatrixPlot(QString const &name, QStringList const &field_names);
+  void CreateRowVectorPlot(QString const &name, QStringList const &field_names);
+  void CreateVectorPlot(QString const &name, QStringList const &field_names);
 
-    void setData(const std::map<size_t, spMessage> &newData)
-    {
-
-        QStringList headers = GetFildNames(*newData.begin()->second);
-        qDebug() << " headers = " << headers;
-        // 设置表头
-        model_->setHeaders(headers);
-        // mainModel_->setHeaders(headers);
-        // subModel_->setHeaders(headers);
-
-        // 转换数据到适合模型的格式
-        model_->setData(newData);
-        // mainModel_->setData(newData);
-        // subModel_->setData(newData);
-    }
+  void setData(const std::map<size_t, spMessage> &newData);
 
 public slots:
-    void setMainInterval(int interval);
-    void setSubRange(int range);
-    void OnMainSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
-    void OnSubSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+  void setMainInterval(int interval);
+  void setSubRange(int range);
+  void OnMainSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
+  void OnSubSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
 private slots:
-    void textFilterChanged();
+  void textFilterChanged();
 
 protected:
-    void FocusPoint(double const t0) override;
-    void FouseRange(QCPRange const &time_range) override;
+  void FocusPoint(double const t0) override;
+  void FouseRange(QCPRange const &time_range) override;
 
 private:
-    MatrixDisplay *CreateMatrixDisplay();
-    void Scrol2SubMiddle();
-    void showHeaderMenu(const QPoint &pos);
+  MatrixDisplay *CreateMatrixDisplay();
+  void Scrol2SubMiddle();
+  void showHeaderMenu(const QPoint &pos);
 
 private:
-    QTableView *mainTableView_;
-    QTableView *subTableView_;
-    FilterWidget *filterWidget_;
-    QLabel *filterPatternLabel_;
-    // MyTableModel *mainModel_;
-    // MyTableModel *subModel_;
-    MyTableModel *model_;
-    MainProxyModel *main_proxy_;
-    SubProxyModel *sub_proxy_;
+  QTableView *mainTableView_;
+  QTableView *subTableView_;
+  FilterWidget *filterWidget_;
+  QLabel *filterPatternLabel_;
+  QComboBox *column_;
+  // MyTableModel *mainModel_;
+  // MyTableModel *subModel_;
+  MyTableModel *model_;
+  MainProxyModel *main_proxy_;
+  SubProxyModel *sub_proxy_;
 
-    DisplaySyncBase *sync_display_ = nullptr;
+  DisplaySyncBase *sync_display_ = nullptr;
 };
