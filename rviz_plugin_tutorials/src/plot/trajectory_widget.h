@@ -17,6 +17,7 @@ public:
   }
 
   double Step() const { return tick_step_; }
+  double pixel_per_meter() const { return pixel_per_meter_; }
 
 protected:
   // reimplemented virtual methods: range in meter
@@ -45,8 +46,8 @@ protected:
   double CalcStep(double const rangle_meter, int const range_pixel)
   {
     double step = 10;
-    double pixel_per_meter = rangle_meter / range_pixel;
-    double t[] = {1.0, 2.0, 5.0, 10.0}, tick = 30.0 * pixel_per_meter;
+    pixel_per_meter_ = rangle_meter / range_pixel;
+    double t[] = {1.0, 2.0, 5.0, 10.0}, tick = 30.0 * pixel_per_meter_;
     double order = pow(10.0, floor(log10(tick)));
     for (int i = 0; i < 4; i++)
     {
@@ -63,6 +64,7 @@ private:
   QCPAxis *x_axis_;
   QCPAxis *y_axis_;
   double tick_step_ = 0;
+  double pixel_per_meter_ = 0;
 };
 
 class DockWidgetEventFilter : public QObject
@@ -126,6 +128,7 @@ protected:
   void resizeEvent(QResizeEvent *event) override;
   void FocusPoint(double const t0) override;
   void FouseRange(QCPRange const &time_range) override;
+  void simplifyData(QCPCurve *curve, double pixelTolerance);
 
 protected:
   void setupTrajectoryDemo();
@@ -140,6 +143,7 @@ private:
   QTimer dataTimer_;
   // std::map<std::string, QCPCurve *> all_curve_;
   std::deque<QCPCurve *> all_curve_;
+  QSharedPointer<QCPDataContainer<QCPCurveData>> raw_data_;
   double current_t0_s_ = 0;
   DisplaySyncBase *sync_display_ = nullptr;
   bool focus_when_select_ = true;
