@@ -4201,7 +4201,8 @@ public:
   
 protected:
   // property members:
-  QSharedPointer<QCPDataContainer<DataType> > mDataContainer;
+  QSharedPointer<QCPDataContainer<DataType> > mDataContainer;         // 所有数据
+  QSharedPointer<QCPDataContainer<DataType> > mSimplifyDataContainer; // 刷选后数据
   
   // helpers for subclasses:
   void getDataSegments(QList<QCPDataRange> &selectedSegments, QList<QCPDataRange> &unselectedSegments) const;

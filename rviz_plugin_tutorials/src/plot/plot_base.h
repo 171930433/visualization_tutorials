@@ -22,9 +22,12 @@ public:
 
 protected:
   PlotBase(QWidget *parent = nullptr);
+  // void simplifyData(QCPAbstractPlottable1D *curve, double pixelTolerance);
 
 public:
   virtual void SyncDataAndView() = 0;
+protected slots:
+  void onBeforeReplot();
 
 protected:
   Type type_ = Type::None;

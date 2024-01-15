@@ -128,7 +128,6 @@ protected:
   void resizeEvent(QResizeEvent *event) override;
   void FocusPoint(double const t0) override;
   void FouseRange(QCPRange const &time_range) override;
-  void simplifyData(QCPCurve *curve, double pixelTolerance);
 
 protected:
   void setupTrajectoryDemo();
@@ -152,6 +151,7 @@ private slots:
   void mouseWheel(QWheelEvent *);
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
   void onSelectionChangedByUser(); // 相应用户的选择改变
+
 public slots:
   void SyncData();
   void ChangeScatterShape(QCPScatterStyle::ScatterShape const type);
