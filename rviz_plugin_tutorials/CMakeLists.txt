@@ -45,6 +45,7 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 ## etc because they can conflict with boost signals, so define QT_NO_KEYWORDS here.
 # add_definitions(-DQT_NO_KEYWORDS)
 
+qt5_add_resources(RESOURCE_FILES resources.qrc)
 
 
 
@@ -77,6 +78,8 @@ set(SRC_FILES
   # proto
   src/protobuf_helper.cpp
   ${PROTO_SRCS} ${PROTO_HDRS}
+  # 
+  ${RESOURCE_FILES}
 )
 
 ## An rviz plugin is just a shared library, so here we declare the

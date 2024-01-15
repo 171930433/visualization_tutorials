@@ -89,7 +89,7 @@ FilterWidget::FilterWidget(QWidget *parent)
     m_patternGroup->addAction(patternAction);
     connect(m_patternGroup, &QActionGroup::triggered, this, &FilterWidget::filterChanged);
 
-    const QIcon icon = QIcon(QPixmap("package://rviz_plugin_tutorials/icons/classes/find.png"));
+    const QIcon icon = QIcon(QPixmap(":/icons/classes/find.png"));
     QToolButton *optionsButton = new QToolButton;
 #ifndef QT_NO_CURSOR
     optionsButton->setCursor(Qt::ArrowCursor);
