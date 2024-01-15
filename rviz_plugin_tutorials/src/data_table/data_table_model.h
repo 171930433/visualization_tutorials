@@ -160,6 +160,8 @@ public:
     return this->index(index2, 0);
   }
 
+  QStringList const &headers() const { return headers_; }
+
 private:
   IndexedMap<size_t, spMessage> index_map_;
   QStringList headers_; // 存储表头

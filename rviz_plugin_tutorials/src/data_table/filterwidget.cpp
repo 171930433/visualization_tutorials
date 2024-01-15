@@ -58,79 +58,113 @@
 #include <QActionGroup>
 #include <QToolButton>
 #include <QWidgetAction>
+#include <QHBoxLayout>
+#include <QComboBox>
 #include <QDebug>
 
 FilterWidget::FilterWidget(QWidget *parent)
-    : QLineEdit(parent)
-    , m_patternGroup(new QActionGroup(this))
+    : QLineEdit(parent), m_patternGroup(new QActionGroup(this)), column_group_(new QActionGroup(this))
 {
-    setClearButtonEnabled(true);
-    connect(this, &QLineEdit::textChanged, this, &FilterWidget::filterChanged);
+  setClearButtonEnabled(true);
+  connect(this, &QLineEdit::textChanged, this, &FilterWidget::filterChanged);
 
-    QMenu *menu = new QMenu(this);
-    m_caseSensitivityAction = menu->addAction(tr("Case Sensitive"));
-    m_caseSensitivityAction->setCheckable(true);
-    connect(m_caseSensitivityAction, &QAction::toggled, this, &FilterWidget::filterChanged);
+  main_menu_ = new QMenu(this);
+  // 待选择列
+  column_menu_ = new QMenu(this);
+  column_group_->setExclusive(true);
+  all_column_action_ = column_menu_->addAction("all columns");
+  all_column_action_->setCheckable(true);
+  all_column_action_->setChecked(true);
+  specific_column_action_ = column_menu_->addAction("specific columns");
+  specific_column_action_->setCheckable(true);
+  specific_column_action_->setChecked(false);
+  column_group_->addAction(all_column_action_);
+  column_group_->addAction(specific_column_action_);
 
-    menu->addSeparator();
-    m_patternGroup->setExclusive(true);
-    QAction *patternAction = menu->addAction("Fixed String");
-    patternAction->setData(QVariant(int(QRegExp::FixedString)));
-    patternAction->setCheckable(true);
-    patternAction->setChecked(true);
-    m_patternGroup->addAction(patternAction);
-    patternAction = menu->addAction("Regular Expression");
-    patternAction->setCheckable(true);
-    patternAction->setData(QVariant(int(QRegExp::RegExp2)));
-    m_patternGroup->addAction(patternAction);
-    patternAction = menu->addAction("Wildcard");
-    patternAction->setCheckable(true);
-    patternAction->setData(QVariant(int(QRegExp::Wildcard)));
-    m_patternGroup->addAction(patternAction);
-    connect(m_patternGroup, &QActionGroup::triggered, this, &FilterWidget::filterChanged);
+  //
+  m_caseSensitivityAction = main_menu_->addAction(tr("Case Sensitive"));
+  m_caseSensitivityAction->setCheckable(true);
+  connect(m_caseSensitivityAction, &QAction::toggled, this, &FilterWidget::filterChanged);
 
-    const QIcon icon = QIcon(QPixmap(":/icons/classes/find.png"));
-    QToolButton *optionsButton = new QToolButton;
+  main_menu_->addSeparator();
+  m_patternGroup->setExclusive(true);
+  QAction *patternAction = main_menu_->addAction("Fixed String");
+  patternAction->setData(QVariant(int(QRegExp::FixedString)));
+  patternAction->setCheckable(true);
+  patternAction->setChecked(true);
+  m_patternGroup->addAction(patternAction);
+  patternAction = main_menu_->addAction("Regular Expression");
+  patternAction->setCheckable(true);
+  patternAction->setData(QVariant(int(QRegExp::RegExp2)));
+  m_patternGroup->addAction(patternAction);
+  patternAction = main_menu_->addAction("Wildcard");
+  patternAction->setCheckable(true);
+  patternAction->setData(QVariant(int(QRegExp::Wildcard)));
+  m_patternGroup->addAction(patternAction);
+  connect(m_patternGroup, &QActionGroup::triggered, this, &FilterWidget::filterChanged);
+
+  const QIcon icon = QIcon(QPixmap(":/icons/classes/find.png"));
+
+  QToolButton *optionsButton = new QToolButton;
 #ifndef QT_NO_CURSOR
-    optionsButton->setCursor(Qt::ArrowCursor);
+  optionsButton->setCursor(Qt::ArrowCursor);
 #endif
-    optionsButton->setFocusPolicy(Qt::NoFocus);
-    optionsButton->setStyleSheet("* { border: none; }");
-    optionsButton->setIcon(icon);
-    optionsButton->setMenu(menu);
-    optionsButton->setPopupMode(QToolButton::InstantPopup);
+  optionsButton->setFocusPolicy(Qt::NoFocus);
+  optionsButton->setStyleSheet("* { border: none; }");
+  optionsButton->setIcon(icon);
+  optionsButton->setMenu(main_menu_);
+  optionsButton->setPopupMode(QToolButton::InstantPopup);
 
-    QWidgetAction *optionsAction = new QWidgetAction(this);
-    optionsAction->setDefaultWidget(optionsButton);
-    addAction(optionsAction, QLineEdit::LeadingPosition);
+  QWidget *container = new QWidget;
+  container->setMinimumWidth(128);
+  QHBoxLayout *h_layout = new QHBoxLayout(container);
+  //
+
+  column_ = new QComboBox();
+  column_->addItem("all columns");
+
+  h_layout->addWidget(column_);
+  h_layout->addWidget(optionsButton);
+  h_layout->setContentsMargins(0, 0, 0, 0); // 移除容器的边距
+
+  QWidgetAction *optionsAction = new QWidgetAction(this);
+  optionsAction->setDefaultWidget(container);
+  addAction(optionsAction, QLineEdit::LeadingPosition);
+}
+
+void FilterWidget::AddColumns(QStringList const &columns)
+{
+  column_->addItems(columns);
 }
 
 Qt::CaseSensitivity FilterWidget::caseSensitivity() const
 {
-    return m_caseSensitivityAction->isChecked() ? Qt::CaseSensitive : Qt::CaseInsensitive;
+  return m_caseSensitivityAction->isChecked() ? Qt::CaseSensitive : Qt::CaseInsensitive;
 }
 
 void FilterWidget::setCaseSensitivity(Qt::CaseSensitivity cs)
 {
-    m_caseSensitivityAction->setChecked(cs == Qt::CaseSensitive);
+  m_caseSensitivityAction->setChecked(cs == Qt::CaseSensitive);
 }
 
 static inline QRegExp::PatternSyntax patternSyntaxFromAction(const QAction *a)
 {
-    return static_cast<QRegExp::PatternSyntax>(a->data().toInt());
+  return static_cast<QRegExp::PatternSyntax>(a->data().toInt());
 }
 
 QRegExp::PatternSyntax FilterWidget::patternSyntax() const
 {
-    return patternSyntaxFromAction(m_patternGroup->checkedAction());
+  return patternSyntaxFromAction(m_patternGroup->checkedAction());
 }
 
 void FilterWidget::setPatternSyntax(QRegExp::PatternSyntax s)
 {
-    foreach (QAction *a, m_patternGroup->actions()) {
-        if (patternSyntaxFromAction(a) == s) {
-            a->setChecked(true);
-            break;
-        }
+  foreach (QAction *a, m_patternGroup->actions())
+  {
+    if (patternSyntaxFromAction(a) == s)
+    {
+      a->setChecked(true);
+      break;
     }
+  }
 }

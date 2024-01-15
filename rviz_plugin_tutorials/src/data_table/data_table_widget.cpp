@@ -64,6 +64,8 @@ DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
 
   model_ = new MyTableModel(this);
 
+  filterWidget_->AddColumns(model_->headers());
+
   main_proxy_ = new MainProxyModel(this);
   main_proxy_->setSourceModel(model_);
   mainTableView_->setModel(main_proxy_);
