@@ -22902,6 +22902,75 @@ QCPRange QCPCurve::getValueRange(bool &foundRange, QCP::SignDomain inSignDomain,
   return mDataContainer->valueRange(foundRange, inSignDomain, inKeyRange);
 }
 
+
+QList<QCPDataRange> QCPCurve::simplifyData(QList<QCPDataRange>const& ranges, double pixelTolerance)
+{
+  // return ranges;
+  static QList<QCPDataRange> last_result; // result中, 抽稀后基本上一个QCPDataRange只有一个点
+  static double last_meter_limit = 0;
+
+  QList<QCPDataRange> result; // result中, 抽稀后基本上一个QCPDataRange只有一个点
+
+  // 基础信息
+  QCPRange const keyRange = keyAxis()->range();
+  QCPRange const valueRange = valueAxis()->range();
+  double const width_pixel = (keyAxis()->axisRect()->width() <= 1 ? 1 : keyAxis()->axisRect()->width());
+  double const pix_per_meter = keyRange.size() / width_pixel;
+  double const meter_limit = pix_per_meter * pixelTolerance;
+  
+  // //todo 仅平移,但需要考虑这段时间数据增加了
+  // if(meter_limit == last_meter_limit)
+  // {
+  //   // 仅平移,不需要再次计算抽稀点
+  //   if(!last_result.isEmpty())
+  //   {
+  //     return last_result;
+  //   }
+  // }
+
+
+  for(int i = 0;i < ranges.size();++i)
+  {
+    QCPDataRange const& single_range = ranges.at(i);
+    // 限制遍历范围
+    QCPCurveDataContainer::const_iterator begin = mDataContainer->constBegin();
+    QCPCurveDataContainer::const_iterator end = mDataContainer->constEnd();
+    mDataContainer->limitIteratorsToDataRange(begin, end, single_range);
+    if (begin == end)
+      continue;;
+    QCPCurveDataContainer::const_iterator it = begin;
+    int itIndex = int( begin-mDataContainer->constBegin() );
+    
+    double last_x = it->key;
+    double last_y = it->value;
+    // 遍历
+    while (it != end)
+    {
+      // 1. 视野范围内
+      if (!qIsNaN(it->value) && keyRange.contains(it->key) && valueRange.contains(it->value))      {
+        // 2. 重复点
+        if (std::abs(it->key - last_x) > meter_limit || std::abs(it->value - last_y) > meter_limit)
+        {
+          result << QCPDataRange(itIndex, itIndex+1); // 保存当前点
+          last_x = it->key;
+          last_y = it->value;
+        }
+      }
+ 
+      
+      
+      ++it,++itIndex; // 下一个点
+    }
+    last_result = result;
+    last_meter_limit = meter_limit;
+    qDebug() << QString("simplified ranges-%3, %1-->%2").arg(single_range.size()).arg(result.size()).arg(i);
+
+  }
+
+  return result;
+}
+
+
 /* inherits documentation from base class */
 void QCPCurve::draw(QCPPainter *painter)
 {
@@ -22913,10 +22982,15 @@ void QCPCurve::draw(QCPPainter *painter)
   // loop over and draw segments of unselected/selected data:
   QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
   getDataSegments(selectedSegments, unselectedSegments);
-  allSegments << unselectedSegments << selectedSegments;
+  // 开始过滤未选中的点部分
+  QList<QCPDataRange> filtered_unselectedSegments = simplifyData(unselectedSegments,1);
+
+
+  // 
+  allSegments << filtered_unselectedSegments << selectedSegments;
   for (int i=0; i<allSegments.size(); ++i)
   {
-    bool isSelectedSegment = i >= unselectedSegments.size();
+    bool isSelectedSegment = i >= filtered_unselectedSegments.size();
     
     // fill with curve data:
     QPen finalCurvePen = mPen; // determine the final pen already here, because the line optimization depends on its stroke width

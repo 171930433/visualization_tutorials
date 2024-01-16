@@ -141,9 +141,6 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                  
 )
 {
   // raw data
-  QVector<QCPCurveData> vec_data(datas.size());
-  raw_data_ = QSharedPointer<QCPDataContainer<QCPCurveData>>(new QCPDataContainer<QCPCurveData>());
-
   //
   int const n = datas.size();
   QVector<double> x(n), y(n), time_index(n);
@@ -155,19 +152,16 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                  
     time_index[i] = kv.first / 1e3;
     x[i] = GetValueByHeaderName(message, QString("pos-x")).toDouble();
     y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble();
-    //
-    vec_data[i] = QCPCurveData(time_index[i], x[i], y[i]);
-
     ++i;
   }
 
-  raw_data_->set(vec_data, true);
-  qDebug() << QString("raw_data_ size = %1").arg(raw_data_->size());
+  // raw_data_->set(vec_data, true);
+  qDebug() << QString("raw_data_ size = %1").arg(datas.size());
 
   QCPCurve *curve = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
   curve->setName(name);
   curve->setSelectable(QCP::stDataRange);
-  // curve->setData(time_index, x, y);
+  curve->setData(time_index, x, y);
 
   // 设置散点样式和颜色
   curve->setScatterStyle(ss);

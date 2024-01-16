@@ -5685,6 +5685,9 @@ protected:
   int mScatterSkip;
   LineStyle mLineStyle;
   
+  //
+  QList<QCPDataRange> simplifyData(QList<QCPDataRange>const& ranges, double pixelTolerance = 1);
+
   // reimplemented virtual methods:
   virtual void draw(QCPPainter *painter) Q_DECL_OVERRIDE;
   virtual void drawLegendIcon(QCPPainter *painter, const QRectF &rect) const Q_DECL_OVERRIDE;

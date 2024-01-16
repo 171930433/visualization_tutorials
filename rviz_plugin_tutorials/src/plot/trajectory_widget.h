@@ -142,7 +142,6 @@ private:
   QTimer dataTimer_;
   // std::map<std::string, QCPCurve *> all_curve_;
   std::deque<QCPCurve *> all_curve_;
-  QSharedPointer<QCPDataContainer<QCPCurveData>> raw_data_;
   double current_t0_s_ = 0;
   DisplaySyncBase *sync_display_ = nullptr;
   bool focus_when_select_ = true;
