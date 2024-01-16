@@ -22983,14 +22983,14 @@ void QCPCurve::draw(QCPPainter *painter)
   QList<QCPDataRange> selectedSegments, unselectedSegments, allSegments;
   getDataSegments(selectedSegments, unselectedSegments);
   // 开始过滤未选中的点部分
-  QList<QCPDataRange> filtered_unselectedSegments = simplifyData(unselectedSegments,1);
+  // QList<QCPDataRange> filtered_unselectedSegments = simplifyData(unselectedSegments,1);
 
 
   // 
-  allSegments << filtered_unselectedSegments << selectedSegments;
+  allSegments << unselectedSegments << selectedSegments;
   for (int i=0; i<allSegments.size(); ++i)
   {
-    bool isSelectedSegment = i >= filtered_unselectedSegments.size();
+    bool isSelectedSegment = i >= unselectedSegments.size();
     
     // fill with curve data:
     QPen finalCurvePen = mPen; // determine the final pen already here, because the line optimization depends on its stroke width
@@ -23266,9 +23266,16 @@ void QCPCurve::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataR
   keyRange.upper = keyAxis->pixelToCoord(keyAxis->coordToPixel(keyRange.upper)+scatterWidth*keyAxis->pixelOrientation());
   valueRange.lower = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueRange.lower)-scatterWidth*valueAxis->pixelOrientation());
   valueRange.upper = valueAxis->pixelToCoord(valueAxis->coordToPixel(valueRange.upper)+scatterWidth*valueAxis->pixelOrientation());
-  
+  // 基础信息
+  double const width_pixel = (keyAxis->axisRect()->width() <= 1 ? 1 : keyAxis->axisRect()->width());
+  double const pix_per_meter = keyRange.size() / width_pixel;
+  double const meter_limit = pix_per_meter * 1;
   QCPCurveDataContainer::const_iterator it = begin;
   int itIndex = int( begin-mDataContainer->constBegin() );
+
+  double last_x = it->key;
+  double last_y = it->value;
+
   while (doScatterSkip && it != end && itIndex % scatterModulo != 0) // advance begin iterator to first non-skipped scatter
   {
     ++itIndex;
@@ -23278,8 +23285,17 @@ void QCPCurve::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataR
   {
     while (it != end)
     {
+      // 1. 视野范围内
       if (!qIsNaN(it->value) && keyRange.contains(it->key) && valueRange.contains(it->value))
-        scatters->append(QPointF(valueAxis->coordToPixel(it->value), keyAxis->coordToPixel(it->key)));
+      {
+        // 2. 非重复点  
+        if ( it == begin || std::abs(it->key - last_x) > meter_limit || std::abs(it->value - last_y) > meter_limit)
+        {
+          last_x = it->key;
+          last_y = it->value;
+          scatters->append(QPointF(valueAxis->coordToPixel(it->value), keyAxis->coordToPixel(it->key)));
+        }
+      }
       
       // advance iterator to next (non-skipped) data point:
       if (!doScatterSkip)
@@ -23300,8 +23316,17 @@ void QCPCurve::getScatters(QVector<QPointF> *scatters, const QCPDataRange &dataR
   {
     while (it != end)
     {
+      // 1. 视野范围内
       if (!qIsNaN(it->value) && keyRange.contains(it->key) && valueRange.contains(it->value))
-        scatters->append(QPointF(keyAxis->coordToPixel(it->key), valueAxis->coordToPixel(it->value)));
+      {
+        // 2. 非重复点  
+        if (it == begin || std::abs(it->key - last_x) > meter_limit || std::abs(it->value - last_y) > meter_limit)
+        {
+          last_x = it->key;
+          last_y = it->value;
+          scatters->append(QPointF(keyAxis->coordToPixel(it->key), valueAxis->coordToPixel(it->value)));
+        }
+      }
       
       // advance iterator to next (non-skipped) data point:
       if (!doScatterSkip)
