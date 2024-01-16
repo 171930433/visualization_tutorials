@@ -10,7 +10,7 @@ void InitPersons()
     return;
   }
 
-  int n = 1000 * 1000; // number of points in graph
+  int n = 360 * 1000; // number of points in graph
   double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
