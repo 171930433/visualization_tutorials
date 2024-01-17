@@ -19,12 +19,13 @@ void InitPersons()
   double r2 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
   double r3 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
   double r4 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
+  double current_time = std::chrono::system_clock::now().time_since_epoch().count() / 1e9;
   for (int i = 0; i < n; i++)
   {
-    size_t time_index = (i + 1e8) * 1e3;
+    size_t time_index = (current_time + i * 0.01) * 1e3;
     spPerson person = std::make_shared<demo::Person>();
     auto header = person->mutable_header();
-    header->set_t0(i + 1e8);
+    header->set_t0(current_time + i * 0.01);
     header->set_index(i);
     auto pos = person->mutable_pos();
     pos->set_x((i / (double)n - 0.5) * 10.0 * xScale + xOffset);
@@ -166,7 +167,7 @@ QVariant GetValueByHeaderName(const google::protobuf::Message &msg, QString cons
   QVariant result;
   QStringList parts = name.split("-");
 
-  google::protobuf::Message const* message = &msg;
+  google::protobuf::Message const *message = &msg;
 
   for (int i = 0; i < parts.size(); ++i)
   {

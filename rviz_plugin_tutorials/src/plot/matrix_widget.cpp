@@ -8,7 +8,11 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
   type_ = Type::Matrix;
   dateTicker_ = QSharedPointer<QCPAxisTickerDateTime>(new QCPAxisTickerDateTime);
   dateTicker_->setDateTimeFormat("HH:mm:ss");
-  this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
+
+  // this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
+  this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectAxes | QCP::iSelectPlottables);
+  this->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
+
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
   // setupMatrixDemo(1, 1);
   // setupVector3Demo();
@@ -202,7 +206,21 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
 
 void MatrixWidget::keyPressEvent(QKeyEvent *event)
 {
-  ShowSubplot(event->key() - Qt::Key_1);
+  // ShowSubplot(event->key() - Qt::Key_1);
+  if (event->key() == Qt::Key_S)
+  {
+    if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect)
+    {
+      this->setSelectionRectMode(QCP::SelectionRectMode::srmNone);
+      QWidget::setCursor(Qt::ArrowCursor);
+    }
+    else
+    {
+      this->setSelectionRectMode(QCP::SelectionRectMode::srmSelect);
+      QWidget::setCursor(Qt::CrossCursor);
+    }
+  }
+
   QWidget::keyPressEvent(event);
 }
 
@@ -233,6 +251,8 @@ void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &
   QCPGraph *curve = rect->graphs()[0];
 
   curve->setData(time_index, y);
+  curve->setSelectable(QCP::stDataRange);
+
   rect->axis(QCPAxis::atLeft)->setLabel(field_name);
   curve->setName(field_name);
   this->rescaleAxes();

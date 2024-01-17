@@ -415,6 +415,8 @@ void TrajectoryWidget::keyPressEvent(QKeyEvent *event)
       QWidget::setCursor(Qt::CrossCursor);
     }
   }
+  QWidget::keyPressEvent(event);
+
 }
 
 void TrajectoryWidget::resizeEvent(QResizeEvent *event)
