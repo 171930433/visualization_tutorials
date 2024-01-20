@@ -78,6 +78,8 @@ set(SRC_FILES
   # proto
   src/protobuf_helper.cpp
   ${PROTO_SRCS} ${PROTO_HDRS}
+  # properties
+  src/properties/longitude_latitude_property.cpp
   # 
   ${RESOURCE_FILES}
 )

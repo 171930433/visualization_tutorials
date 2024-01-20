@@ -50,6 +50,7 @@ namespace rviz
   class FloatProperty;
   class IntProperty;
   class BoolProoerty;
+  class LatLonProperty;
 }
 
 // All the source in this plugin is in its own namespace.  This is not
@@ -103,6 +104,7 @@ namespace rviz_plugin_tutorials
     void updateColorAndAlpha();
     void updateHistoryLength();
     void updateShowGraverty();
+    void updateLLH();
 
     // Function to handle an incoming ROS message.
   private:
@@ -117,6 +119,7 @@ namespace rviz_plugin_tutorials
     rviz::FloatProperty *alpha_property_;
     rviz::IntProperty *history_length_property_;
     rviz::BoolProperty *show_graverty_;
+    rviz::LatLonProperty* llh_;
 
   protected:
     boost::circular_buffer<sensor_msgs::Imu::ConstPtr> msgs_;

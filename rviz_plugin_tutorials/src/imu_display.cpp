@@ -46,6 +46,9 @@
 
 #include "imu_display.h"
 
+#include "properties/longitude_latitude_property.h"
+
+#include <QDebug>
 namespace rviz_plugin_tutorials
 {
 
@@ -69,6 +72,13 @@ namespace rviz_plugin_tutorials
     show_graverty_ = new rviz::BoolProperty("Show Graverty", true, "show graverty or not", this, SLOT(updateShowGraverty()));
     history_length_property_->setMin(1);
     history_length_property_->setMax(100000);
+
+    llh_ = new rviz::LatLonProperty("origin_llh", Eigen::Vector3d::Zero(), "latitude longitude height", this, SLOT(updateLLH()));
+  }
+
+  void ImuDisplay::updateLLH()
+  {
+    std::cout << "ImuDisplay::updateLLH called" << llh_->getVector().transpose() <<"\n";
   }
 
   // After the top-level rviz::Display::initialize() does its own setup,
