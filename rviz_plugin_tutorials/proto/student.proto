@@ -24,5 +24,7 @@ enum Status {
 }
 Status status = 4;
 PointXYZ pos = 25;
+PointXYZ vel = 26;
+PointXYZ att = 27;
 PointXYZ acc = 30;
 }

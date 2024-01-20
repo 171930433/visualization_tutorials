@@ -10,7 +10,7 @@ void InitPersons()
     return;
   }
 
-  int n = 360 * 1000; // number of points in graph
+  int n = 1 * 1000; // number of points in graph
   double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
   double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
@@ -30,6 +30,13 @@ void InitPersons()
     auto pos = person->mutable_pos();
     pos->set_x((i / (double)n - 0.5) * 10.0 * xScale + xOffset);
     pos->set_y((qSin(pos->x() * r1 * 5) * qSin(qCos(pos->x() * r2) * r4 * 3) + r3 * qCos(qSin(pos->x()) * r4 * 2)) * yScale + yOffset);
+    // vel
+    auto vel = person->mutable_vel();
+    vel->set_x(5 * sin(M_PI * 2 / n * i)), vel->set_y(5 * cos(M_PI * 2 / n * i)), vel->set_z(i * 1.0 / n);
+    // att
+    auto att = person->mutable_att();
+    att->set_x(3 * sin(M_PI * 2 / n * i)), att->set_y(3 * cos(M_PI * 2 / n * i)), att->set_z(i * 1.0 / n);
+
     g_messages[time_index] = person;
   }
 }

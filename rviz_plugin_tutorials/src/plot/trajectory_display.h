@@ -90,8 +90,10 @@ private:
 
   rviz::EnumProperty *scatter_type_ = nullptr;
   rviz::EnumProperty *line_type_ = nullptr;
-  rviz::IntProperty *counts_prop_ = nullptr;        // 轨迹数目
-  rviz::BoolProperty *focus_when_select_ = nullptr; // 选中时居中
+  rviz::IntProperty *counts_prop_ = nullptr;            // 轨迹数目
+  rviz::BoolProperty *focus_when_select_ = nullptr;     // 选中时居中
+  rviz::EnumProperty *plot_type_prop_ = nullptr;        // 绘图类型
+  rviz::BoolProperty *differ_with_main_prop_ = nullptr; // 与主轨迹做差
 
   std::deque<std::shared_ptr<GraphProperty>> graphs_;
 };

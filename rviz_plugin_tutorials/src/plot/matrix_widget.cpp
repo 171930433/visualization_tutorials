@@ -206,7 +206,15 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
 
 void MatrixWidget::keyPressEvent(QKeyEvent *event)
 {
-  // ShowSubplot(event->key() - Qt::Key_1);
+  // if (event->key() >= Qt::Key_0 && event->key() <= Qt::Key_9)
+  // {
+  //   int const row = this->plotLayout()->rowCount();
+  //   int const col = this->plotLayout()->columnCount();
+  //   if (row <= 9 && col == 1)
+  //   {
+  //     ShowSubplot(event->key() - Qt::Key_1);
+  //   }
+  // }
   if (event->key() == Qt::Key_S)
   {
     if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect)
