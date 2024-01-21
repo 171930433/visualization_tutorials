@@ -22,11 +22,6 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
   this->plotLayout()->addElement(0, 0, rect);
 }
 
-DisplaySyncBase *MatrixWidget::getDisplaySync()
-{
-  return sync_display_;
-}
-
 void MatrixWidget::ShowSubplot(int const index)
 {
   auto rect_show = this->plotLayout()->take(all_rects_[index]);

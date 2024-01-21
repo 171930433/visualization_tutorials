@@ -43,11 +43,6 @@ void DataTableWidget::setData(const std::map<size_t, spMessage> &newData)
   model_->setData(newData);
 }
 
-DisplaySyncBase *DataTableWidget::getDisplaySync()
-{
-  return sync_display_;
-}
-
 DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)
 {
   // qRegisterMetaType<Eigen::Vector3d>("Vector3d");

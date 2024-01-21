@@ -113,8 +113,6 @@ public:
   TrajectoryWidget(QWidget *parent = nullptr);
   void SyncDataAndView() override { SyncData(); }
   std::deque<QCPCurve *> Curves() const { return all_curve_; }
-  void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
-  DisplaySyncBase *getDisplaySync() override;
 
 public:
   void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
@@ -142,7 +140,6 @@ private:
   // std::map<std::string, QCPCurve *> all_curve_;
   std::deque<QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
-  DisplaySyncBase *sync_display_ = nullptr;
   bool focus_when_select_ = true;
   void FoucuPositionByIndex(QCPCurve *curve, int const dataIndex);
 private slots:

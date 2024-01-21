@@ -22,8 +22,6 @@ class DataTableWidget : public QWidget, public ITimeSync
 public:
   explicit DataTableWidget(QWidget *parent = nullptr);
 
-  void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
-  DisplaySyncBase *getDisplaySync() override;
   void CreateMatrixPlot(QString const &name, QStringList const &field_names);
   void CreateRowVectorPlot(QString const &name, QStringList const &field_names);
   void CreateVectorPlot(QString const &name, QStringList const &field_names);
@@ -60,6 +58,4 @@ private:
   MyTableModel *model_;
   MainProxyModel *main_proxy_;
   SubProxyModel *sub_proxy_;
-
-  DisplaySyncBase *sync_display_ = nullptr;
 };

@@ -16,8 +16,11 @@ public:
   virtual void FocusPoint(double const t0) = 0;
   virtual void FouseRange(QCPRange const &time_range) = 0;
 
+  // get set display
+  void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
+  DisplaySyncBase *getDisplaySync() { return sync_display_; }
 protected:
-  virtual DisplaySyncBase *getDisplaySync() = 0;
 
 protected:
+  DisplaySyncBase *sync_display_ = nullptr;
 };

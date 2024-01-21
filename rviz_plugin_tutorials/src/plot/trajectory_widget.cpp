@@ -9,11 +9,6 @@
 // #include "cacher/cacher.hpp"
 // #include "cyber_message_filter_display.h"
 
-DisplaySyncBase *TrajectoryWidget::getDisplaySync()
-{
-  return sync_display_;
-}
-
 TrajectoryWidget::TrajectoryWidget(QWidget *parent) : PlotBase(parent)
 {
   type_ = Type::Trajectory;

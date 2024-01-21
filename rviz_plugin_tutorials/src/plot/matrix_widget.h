@@ -12,8 +12,6 @@ class MatrixWidget : public PlotBase
 public:
   MatrixWidget(QWidget *parent = nullptr);
   void SyncDataAndView() override {}
-  void setDisplaySync(DisplaySyncBase *sync_display) { sync_display_ = sync_display; }
-  DisplaySyncBase *getDisplaySync() override;
 
   void CreatePlot(QString const &name, MatrixXQString const &field_names);
   void UpdatePlotLayout(int const row, int const col);
@@ -24,8 +22,7 @@ protected:
 protected:
   void setupMatrixDemo(int row, int col);
   std::map<int, QCPAxisRect *> all_rects_;
-  // Eigen::Matrix<QCPAxisRect *, Eigen::Dynamic, Eigen::Dynamic> rects_;
-  // Eigen::Matrix<QCPGraph *, Eigen::Dynamic, Eigen::Dynamic> graphs_;
+  
 private slots:
   void contextMenuRequest(QPoint pos);
   void ShowSubplot(int const index);
