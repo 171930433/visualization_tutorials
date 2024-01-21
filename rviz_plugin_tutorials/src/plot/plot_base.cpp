@@ -57,26 +57,14 @@ void PlotBase::FouseRange(QCPRange const &time_range)
 
 void PlotBase::FocusPoint(double const t0)
 {
-  // 第一个矩形
-  QCPAxisRect *first_rect = this->axisRect(0);
-  QList<QCPAbstractPlottable *> plottables = first_rect->plottables();
-
-  // 第一个graph
-  for (auto *single_graph : first_rect->graphs())
+  for (auto *single_rect : this->axisRects())
   {
-    SelectByT0(single_graph, t0);
-    break;
-  }
-  // 第一个curve
-  for (auto *single_plot : plottables)
-  {
-    QCPCurve *curve = dynamic_cast<QCPCurve *>(single_plot);
-    if (curve)
+    for (auto *single_plotable : single_rect->plottables())
     {
-      SelectByT0(curve, t0);
-      break;
+      SelectByT0(single_plotable, t0);
     }
   }
+
   this->replot();
 }
 
@@ -145,28 +133,11 @@ void PlotBase::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
   // 1. 当前rect,其余序列被选中
   // 2. 其余rect, 主序列居中,其余序列被选中
 
-  // 当前矩形
-  QCPAxisRect *current_rect = plottable->keyAxis()->axisRect();
   for (auto *single_rect : this->axisRects())
   {
-    // 当前rect
-    if (single_rect == current_rect)
+    for (auto *single_plotable : single_rect->plottables())
     {
-      for (auto *single_plotable : single_rect->plottables())
-      {
-        if (single_plotable != plottable)
-        {
-          SelectByT0(single_plotable, t0_s);
-        }
-      }
-    }
-    // 其余rect
-    else
-    {
-      for (auto *single_plotable : single_rect->plottables())
-      {
-        SelectByT0(single_plotable, t0_s);
-      }
+      SelectByT0(single_plotable, t0_s);
     }
   }
 

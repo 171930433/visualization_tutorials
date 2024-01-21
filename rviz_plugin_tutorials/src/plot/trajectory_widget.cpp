@@ -119,6 +119,8 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                  
                                           QPen const &lp                            // line pen
 )
 {
+  static double y_offset = 0;
+
   // raw data
   //
   int const n = datas.size();
@@ -130,7 +132,7 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                  
     auto const &message = *kv.second;
     time_index[i] = kv.first / 1e3;
     x[i] = GetValueByHeaderName(message, QString("pos-x")).toDouble();
-    y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble();
+    y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble() + y_offset;
     ++i;
   }
 
@@ -156,6 +158,8 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                  
   decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
 
   all_curve_.push_back(curve);
+
+  y_offset++;
 
   return curve;
 }
@@ -226,14 +230,11 @@ void TrajectoryWidget::SyncData()
 //   // FocusPoint(t0_s);
 // }
 
-
-
 void TrajectoryWidget::resizeEvent(QResizeEvent *event)
 {
   PlotBase::resizeEvent(event);
   this->replot();
 }
-
 
 void TrajectoryWidget::FouseRange(QCPRange const &time_range)
 {
