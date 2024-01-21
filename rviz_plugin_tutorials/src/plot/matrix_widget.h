@@ -29,7 +29,6 @@ private slots:
   void mouseWheel();
 
 protected:
-  void addRandomGraph();
   QCPGraph *CreateDefaultGraph(QCPAxisRect *rect);
   QCPAxisRect *CreateDefaultRect();
   void RowChanged(int const new_row);
@@ -38,7 +37,7 @@ protected:
   QSharedPointer<QCPAxisTickerDateTime> dateTicker_;
 
 protected:
-  void FocusPoint(double const t0) override;
+  // void FocusPoint(double const t0) override;
   void FouseRange(QCPRange const &time_range) {}
   void FoucuPositionByIndex(QCPGraph *single_graph, int const dataIndex);
 };

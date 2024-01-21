@@ -22,12 +22,16 @@ public:
 
 protected:
   PlotBase(QWidget *parent = nullptr);
+  void FouseRange(QCPRange const &time_range) override;
+  void FocusPoint(double const t0) override;
+
+protected:
   void keyPressEvent(QKeyEvent *event) override;
 
 public:
   virtual void SyncDataAndView() = 0;
 protected slots:
-  void onBeforeReplot();
+  void onSelectionChangedByUser(); // 相应用户的选择改变
 
 protected:
   Type type_ = Type::None;

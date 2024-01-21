@@ -67,44 +67,6 @@ private:
   double pixel_per_meter_ = 0;
 };
 
-class DockWidgetEventFilter : public QObject
-{
-protected:
-  bool eventFilter(QObject *obj, QEvent *event) override
-  {
-    if (event->type() == QEvent::Type::WindowActivate)
-    {
-      QDockWidget *dockWidget = qobject_cast<QDockWidget *>(obj);
-      if (dockWidget && dockWidget->isFloating())
-      {
-        if (setted_.count(dockWidget) == 0)
-        {
-          setted_[dockWidget] = false;
-        }
-
-        if (!setted_[dockWidget])
-        {
-          dockWidget->setWindowFlags(Qt::Window);
-          dockWidget->show();
-          setted_[dockWidget] = true;
-          qDebug() << ros::Time::now().toNSec() << " " << obj->objectName() << " floated " << dockWidget->windowFlags();
-        }
-        // else
-        // {
-        //   event->accept();
-        //   return true;
-        // }
-      }
-      else
-      {
-        setted_[dockWidget] = false;
-      }
-    }
-    return QObject::eventFilter(obj, event);
-  }
-  std::map<QDockWidget *, bool> setted_;
-};
-
 class TrajectoryWidget : public PlotBase
 {
   Q_OBJECT
@@ -116,19 +78,17 @@ public:
 
 public:
   void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
-  QCPCurve *addRandomTrajectory(QString const &name);
   void RemoveCurve(QCPCurve *);
   QCPCurve *ContainsCurve(QString const &name);
   QCPCurve *addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas, QCPScatterStyle const &ss, QPen const &lp);
 
 protected:
   void resizeEvent(QResizeEvent *event) override;
-  void FocusPoint(double const t0) override;
+  // void FocusPoint(double const t0) override;
   void FouseRange(QCPRange const &time_range) override;
 
 protected:
   void setupTrajectoryDemo();
-  void addRandomGraph();
 
 private:
   QSharedPointer<QCPMapAxisTickerFixed> map_ticker_;
@@ -136,7 +96,6 @@ private:
   QCPItemText *step_text = nullptr;
 
 private:
-  QTimer dataTimer_;
   // std::map<std::string, QCPCurve *> all_curve_;
   std::deque<QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
@@ -145,7 +104,7 @@ private:
 private slots:
   void mouseWheel(QWheelEvent *);
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
-  void onSelectionChangedByUser(); // 相应用户的选择改变
+  // void onSelectionChangedByUser(); // 相应用户的选择改变
 
 public slots:
   void SyncData();

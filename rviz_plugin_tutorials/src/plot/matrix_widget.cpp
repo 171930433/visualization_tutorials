@@ -100,51 +100,6 @@ void MatrixWidget::mouseWheel()
   // qDebug() <<" x_selected = " << x_selected;
 }
 
-void MatrixWidget::addRandomGraph()
-{
-  int n = 500000; // number of points in graph
-  double xScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
-  double yScale = (std::rand() / (double)RAND_MAX + 0.5) * 2;
-  double xOffset = (std::rand() / (double)RAND_MAX - 0.5) * 4;
-  double yOffset = (std::rand() / (double)RAND_MAX - 0.5) * 10;
-  double r1 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
-  double r2 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
-  double r3 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
-  double r4 = (std::rand() / (double)RAND_MAX - 0.5) * 2;
-  QVector<double> x(n), y(n);
-  for (int i = 0; i < n; i++)
-  {
-    x[i] = (i / (double)n - 0.5) * 10.0 * xScale + xOffset;
-    y[i] = (qSin(x[i] * r1 * 5) * qSin(qCos(x[i] * r2) * r4 * 3) + r3 * qCos(qSin(x[i]) * r4 * 2)) * yScale + yOffset;
-  }
-
-  for (auto *rect : this->axisRects())
-  {
-    QCPAxis *left = rect->axis(QCPAxis::atLeft);
-    QCPAxis *bottom = rect->axis(QCPAxis::atBottom);
-
-    this->addGraph(bottom, left);
-    this->graph()->setSelectable(QCP::stDataRange);
-    this->graph()->setName(QString("New graph %1").arg(this->graphCount() - 1));
-    this->graph()->setData(x, y);
-    this->graph()->setLineStyle((QCPGraph::LineStyle)(std::rand() % 5 + 1));
-    if (std::rand() % 100 > 50)
-      this->graph()->setScatterStyle(QCPScatterStyle((QCPScatterStyle::ScatterShape)(std::rand() % 14 + 1)));
-    QPen graphPen;
-    graphPen.setColor(QColor(std::rand() % 245 + 10, std::rand() % 245 + 10, std::rand() % 245 + 10));
-    graphPen.setWidthF(std::rand() / (double)RAND_MAX * 2 + 1);
-    this->graph()->setPen(graphPen);
-
-    // 定制选中样式
-    QCPSelectionDecorator *decorator = this->graph()->selectionDecorator();
-    QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
-    selectedScatterStyle.setSize(10);                                                           // 选中点的大小
-    decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
-  }
-
-  this->replot();
-}
-
 void MatrixWidget::FoucuPositionByIndex(QCPGraph *single_graph, int const dataIndex)
 {
   double const x = single_graph->dataMainKey(dataIndex);
@@ -154,31 +109,31 @@ void MatrixWidget::FoucuPositionByIndex(QCPGraph *single_graph, int const dataIn
   this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
 }
 
-void MatrixWidget::FocusPoint(double const t0)
-{
-  // auto *first_curve = all_curve_.front();
+// void MatrixWidget::FocusPoint(double const t0)
+// {
+//   // auto *first_curve = all_curve_.front();
 
-  for (int i = 0; i < this->graphCount(); ++i)
-  {
-    auto *single_graph = this->graph(i);
+//   for (int i = 0; i < this->graphCount(); ++i)
+//   {
+//     auto *single_graph = this->graph(i);
 
-    // 1. 先检查所有的数据区间是否包含待查找点
-    if (!single_graph->dataCount())
-    {
-      continue;
-    }
+//     // 1. 先检查所有的数据区间是否包含待查找点
+//     if (!single_graph->dataCount())
+//     {
+//       continue;
+//     }
 
-    auto const dataIndex = single_graph->findBegin(t0, true);
+//     auto const dataIndex = single_graph->findBegin(t0, true);
 
-    // 选中点
-    QCPDataRange index_range{dataIndex, dataIndex + 1};
-    single_graph->setSelection(QCPDataSelection{index_range});
-    // 该点剧中
-    FoucuPositionByIndex(single_graph, dataIndex);
-  }
+//     // 选中点
+//     QCPDataRange index_range{dataIndex, dataIndex + 1};
+//     single_graph->setSelection(QCPDataSelection{index_range});
+//     // 该点剧中
+//     FoucuPositionByIndex(single_graph, dataIndex);
+//   }
 
-  this->replot();
-}
+//   this->replot();
+// }
 
 void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_names)
 {
