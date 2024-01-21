@@ -61,6 +61,20 @@ GraphProperty::~GraphProperty()
 void GraphProperty::SyncInfo()
 {
   // 去buffer里面查询通道更新
+  if (!curve_ || !curve_->visible())
+  {
+    return;
+  }
+  // 当前时间
+  double t0 = (curve_->interface1D()->dataCount() == 0 ? 0 : curve_->interface1D()->dataSortKey(curve_->interface1D()->dataCount() - 1));
+  auto it = g_messages.upper_bound(t0 * 1e3);
+  if (it != g_messages.end())
+  {
+    std::map<size_t, spMessage> new_data(it, g_messages.end());
+    plot_->UpdateTrajectory(curve_->name(), g_messages);
+    plot_->replot();
+  }
+
   // 去buffer里面查询数据更新
 }
 
@@ -115,12 +129,12 @@ void GraphProperty::UpdateTopic()
   if (channel_name_prop_->getOptionInt() == 0)
   {
     plot_->removePlottable(curve_);
-    curve_ = nullptr;
+    curve_ = nullptr; 
   }
   else
   {
     plot_->removePlottable(curve_);
-    curve_ = plot_->addTrajectory(name, g_messages, getScatterStyle(), getLinePen());
+    curve_ = plot_->addTrajectory(name, getScatterStyle(), getLinePen());
   }
   plot_->replot();
 }
@@ -219,23 +233,25 @@ void GraphProperty::UpdateLineWidth()
 TrajectoryDisplay::TrajectoryDisplay()
 {
   InitPersons();
+
   view_ = new TrajectoryWidget();
   view_->setDisplaySync(this);
 
+  // 绘制类型
+  // plot_type_prop_ = new rviz::EnumProperty("plot type", "Trajectory", "something like rtkplot", this, SLOT(UpdatePlotType()));
+  // plot_type_prop_->addOption("Trajectory", 0);
+  // plot_type_prop_->addOption("Position", 1);
+  // plot_type_prop_->addOption("Velocity", 2);
+
   focus_when_select_ = new rviz::BoolProperty("foucs when select", true, "focus the selected points", this, SLOT(UpdateFocusWhenSelect()));
-  counts_prop_ = new rviz::IntProperty("graph counts", 0, "the number of graph counts", this, SLOT(UpdateGraphCount()));
+  counts_prop_ = new rviz::IntProperty("trajectory counts", 0, "the number of trajectory counts", this, SLOT(UpdateGraphCount()));
   counts_prop_->setMin(1); // 会触发UpdateGraphCount
   counts_prop_->setMax(10);
-  // 绘制类型
-  plot_type_prop_ = new rviz::EnumProperty("plot type", "Trajectory", "something like rtkplot", this, SLOT(UpdatePlotType()));
-  plot_type_prop_->addOption("Trajectory", 0);
-  plot_type_prop_->addOption("Position", 1);
-  plot_type_prop_->addOption("Velocity", 2);
 }
 
 void TrajectoryDisplay::UpdatePlotType()
 {
-  view_->UpdatePlotType(plot_type_prop_->getOptionInt());
+  // view_->UpdatePlotType(plot_type_prop_->getOptionInt());
 }
 
 TrajectoryDisplay::~TrajectoryDisplay()
@@ -288,7 +304,7 @@ void TrajectoryDisplay::UpdateGraphCount()
 void TrajectoryDisplay::load(const rviz::Config &config)
 {
   int graph_counts = 0;
-  if (config.mapGetInt("graph counts", &graph_counts))
+  if (config.mapGetInt("trajectory counts", &graph_counts))
   {
     counts_prop_->setInt(graph_counts);
   }

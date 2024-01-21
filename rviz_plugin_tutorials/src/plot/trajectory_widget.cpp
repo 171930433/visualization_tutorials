@@ -79,35 +79,16 @@ void TrajectoryWidget::setupTrajectoryDemo()
   this->replot();
 }
 
-QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                      // curve legend
-                                          std::map<size_t, spMessage> const &datas, // 数据消息
-                                          QCPScatterStyle const &ss,                // 散点样式
-                                          QPen const &lp                            // line pen
+QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,       // curve legend
+                                          QCPScatterStyle const &ss, // 散点样式
+                                          QPen const &lp             // line pen
 )
 {
-  static double y_offset = 0;
-
-  // raw data
-  //
-  int const n = datas.size();
-  QVector<double> x(n), y(n), time_index(n);
-  QStringList const header = GetFildNames(*datas.begin()->second);
-  int i = 0;
-  for (auto const &kv : datas)
-  {
-    auto const &message = *kv.second;
-    time_index[i] = kv.first / 1e3;
-    x[i] = GetValueByHeaderName(message, QString("pos-x")).toDouble();
-    y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble() + y_offset;
-    ++i;
-  }
-
-  qDebug() << QString("raw_data_ size = %1").arg(datas.size());
 
   QCPCurve *curve = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到plot
   curve->setName(name);
   curve->setSelectable(QCP::stDataRange);
-  curve->setData(time_index, x, y);
+  // curve->setData(time_index, x, y);
 
   // 设置散点样式和颜色
   curve->setScatterStyle(ss);
@@ -124,9 +105,40 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                  
 
   decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize | QCPScatterStyle::ScatterProperty::spPen); // 只有size使用设定值，其他的用plot的继承值
 
-  y_offset++;
 
   return curve;
+}
+
+void TrajectoryWidget::UpdateTrajectory(QString const &name, std::map<size_t, spMessage> const &new_data)
+{
+  static double y_offset = 0;
+
+  // raw data
+  auto it = std::find_if(mPlottables.begin(), mPlottables.end(), [name](QCPAbstractPlottable *plot)
+                         { return plot->name() == name; });
+  if (it == mPlottables.end())
+  {
+    qDebug() << " no trajectory with name " << name;
+    return;
+  }
+  QCPCurve *curve = dynamic_cast<QCPCurve *>(*it);
+  //
+  int const n = new_data.size();
+  QVector<double> x(n), y(n), time_index(n);
+  QStringList const header = GetFildNames(*new_data.begin()->second);
+  int i = 0;
+  for (auto const &kv : new_data)
+  {
+    auto const &message = *kv.second;
+    time_index[i] = kv.first / 1e3;
+    x[i] = GetValueByHeaderName(message, QString("pos-x")).toDouble();
+    y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble() + y_offset;
+    ++i;
+  }
+  curve->setData(time_index, x, y);
+
+  y_offset++;
+  qDebug() << QString("raw_data_ size = %1").arg(new_data.size());
 }
 
 QString TrajectoryWidget::StepString(double const step) // 分辨率文字
