@@ -103,8 +103,7 @@ private:
   void FoucuPositionByIndex(QCPCurve *curve, int const dataIndex);
 private slots:
   void mouseWheel(QWheelEvent *);
-  void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
-  // void onSelectionChangedByUser(); // 相应用户的选择改变
+  // void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
 
 public slots:
   void SyncData();

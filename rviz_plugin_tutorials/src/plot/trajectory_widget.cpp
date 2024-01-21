@@ -212,81 +212,21 @@ void TrajectoryWidget::SyncData()
   // this->replot();
 }
 
-void TrajectoryWidget::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
-{
-  // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
-  // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
-  double t0_s = plottable->interface1D()->dataSortKey(dataIndex);
-  double x = plottable->interface1D()->dataMainKey(dataIndex);
-  double y = plottable->interface1D()->dataMainValue(dataIndex);
-
-  QString message = QString("Clicked on graph '%1' at data point #%2, t0=%5 x= %3 y = %4.").arg(plottable->name()).arg(dataIndex).arg(x).arg(y).arg(t0_s, 0, 'f', 3);
-  qDebug() << " " << message;
-
-  // FocusPoint(t0_s);
-}
-
-// void TrajectoryWidget::onSelectionChangedByUser()
+// void TrajectoryWidget::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
 // {
-//   // synchronize selection of graphs with selection of corresponding legend items:
-//   // for (int i = 0; i < this->graphCount(); ++i)
-//   // {
-//   //   QCPGraph *graph = this->graph(i);
-//   //   QCPPlottableLegendItem *item = this->legend->itemWithPlottable(graph);
-//   //   if (item->selected() || graph->selected())
-//   //   {
-//   //     item->setSelected(true);
-//   //     //      graph->setSelection(QCPDataSelection(graph->data()->dataRange()));
-//   //   }
-//   // }
-//   qDebug() << " onSelectionChangedByUser begin";
+//   // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
+//   // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
+//   double t0_s = plottable->interface1D()->dataSortKey(dataIndex);
+//   double x = plottable->interface1D()->dataMainKey(dataIndex);
+//   double y = plottable->interface1D()->dataMainValue(dataIndex);
 
-//   // auto *first_curve = all_curve_.begin()->second;
-//   auto *first_curve = all_curve_.front();
-//   for (auto curve : all_curve_)
-//   {
-//     if (curve->selection().isEmpty())
-//     {
-//       continue;
-//     }
-//     auto const &range = curve->selection().dataRange();
-//     if (!range.isEmpty())
-//     {
-//       double const start = curve->dataSortKey(range.begin());
-//       // double const end = curve->dataSortKey(range.end());
+//   QString message = QString("Clicked on graph '%1' at data point #%2, t0=%5 x= %3 y = %4.").arg(plottable->name()).arg(dataIndex).arg(x).arg(y).arg(t0_s, 0, 'f', 3);
+//   qDebug() << " " << message;
 
-//       // QString str = QString("%1 selected %2 points, t0_s in range [%3,%4]").arg(curve->name()).arg(curve->selection().dataPointCount()).arg(start, 0, 'f', 3).arg(end, 0, 'f', 3);
-//       // qDebug() << str;
-
-//       // 选中点居中
-//       if (curve == first_curve)
-//       {
-//         // double const x = first_curve->dataMainKey(range.begin());
-//         // double const y = first_curve->dataMainValue(range.begin());
-
-//         // this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
-//         // this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
-//         // FouseRange(QCPRange{start, end});
-
-//         if (focus_when_select_)
-//         {
-//           FoucuPositionByIndex(curve, range.begin());
-//         }
-
-//         if (range.size() == 1)
-//         {
-//           this->onFocusPoint(start, false, true);
-//         }
-//         else
-//         {
-//         }
-//       }
-//     }
-//   }
-
-//   this->replot();
-//   qDebug() << " onSelectionChangedByUser end";
+//   // FocusPoint(t0_s);
 // }
+
+
 
 void TrajectoryWidget::resizeEvent(QResizeEvent *event)
 {
@@ -294,59 +234,6 @@ void TrajectoryWidget::resizeEvent(QResizeEvent *event)
   this->replot();
 }
 
-// void TrajectoryWidget::ChangeScatterShape(QCPScatterStyle::ScatterShape const type)
-// {
-//   this->graph()->setScatterStyle(type);
-//   this->replot();
-//   qDebug() << "scatter type = " << type << " changed !";
-// }
-
-// void TrajectoryWidget::ChangeLineStyle(QCPGraph::LineStyle const type)
-// {
-//   this->graph()->setLineStyle(type);
-//   this->replot();
-//   qDebug() << "line type = " << type << " changed !";
-// }
-
-// void TrajectoryWidget::FocusPoint(double const t0)
-// {
-//   auto *first_curve = all_curve_.front();
-
-//   for (auto curve : all_curve_)
-//   {
-//     if (!curve->dataCount())
-//     {
-//       continue;
-//     }
-
-//     // 1. 先检查所有的数据区间是否包含待查找点
-//     auto const dataIndex = curve->findBegin(t0, true);
-
-//     // double const t0_s = curve->dataSortKey(dataIndex);
-//     // double const x = curve->dataMainKey(dataIndex);
-//     // double const y = curve->dataMainValue(dataIndex);
-
-//     // QString const str = QString("t0 = %1, finded to_s = %2").arg(t0, 0, 'f', 3).arg(t0_s, 0, 'f', 3);
-//     // qDebug() << str;
-
-//     // 选中点
-//     QCPDataRange index_range{dataIndex, dataIndex + 1};
-//     curve->setSelection(QCPDataSelection{index_range});
-//     // 该点剧中
-//     if (curve == first_curve)
-//     {
-//       if (focus_when_select_)
-//       {
-//         FoucuPositionByIndex(curve, dataIndex);
-//       }
-//     }
-//   }
-
-//   // 当前选中点以改变消息发出
-//   // this->onFocusPoint(t0, false, true);
-
-//   this->replot();
-// }
 
 void TrajectoryWidget::FouseRange(QCPRange const &time_range)
 {
