@@ -76,8 +76,9 @@ public:
 
 public:
   void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
-
   QCPCurve *addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas, QCPScatterStyle const &ss, QPen const &lp);
+  void UpdatePlotType(int type);
+
 
 protected:
 
@@ -93,6 +94,8 @@ private:
   // std::map<std::string, QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
   bool focus_when_select_ = true;
+  int plot_type_ = 0;
+  QCPAxisRect *new_rect_;
 private slots:
   void mouseWheel(QWheelEvent *);
 

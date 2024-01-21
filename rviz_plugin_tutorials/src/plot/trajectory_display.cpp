@@ -222,15 +222,20 @@ TrajectoryDisplay::TrajectoryDisplay()
   view_ = new TrajectoryWidget();
   view_->setDisplaySync(this);
 
-  // swap2central_ = new rviz::BoolProperty("Set in central", false, "swap the trajectory and render view", this, SLOT(Swap2Central()));
   focus_when_select_ = new rviz::BoolProperty("foucs when select", true, "focus the selected points", this, SLOT(UpdateFocusWhenSelect()));
-  counts_prop_ = new rviz::IntProperty("graph counts", 1, "the number of graph counts", this, SLOT(UpdateGraphCount()));
-  counts_prop_->setMin(1);
+  counts_prop_ = new rviz::IntProperty("graph counts", 0, "the number of graph counts", this, SLOT(UpdateGraphCount()));
+  counts_prop_->setMin(1); // 会触发UpdateGraphCount
   counts_prop_->setMax(10);
-  for (int i = 0; i < counts_prop_->getValue().toInt(); ++i)
-  {
-    graphs_.push_back(std::make_shared<GraphProperty>(view_, this));
-  }
+  // 绘制类型
+  plot_type_prop_ = new rviz::EnumProperty("plot type", "Trajectory", "something like rtkplot", this, SLOT(UpdatePlotType()));
+  plot_type_prop_->addOption("Trajectory", 0);
+  plot_type_prop_->addOption("Position", 1);
+  plot_type_prop_->addOption("Velocity", 2);
+}
+
+void TrajectoryDisplay::UpdatePlotType()
+{
+  view_->UpdatePlotType(plot_type_prop_->getOptionInt());
 }
 
 TrajectoryDisplay::~TrajectoryDisplay()

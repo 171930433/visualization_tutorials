@@ -3,7 +3,6 @@
 
 #include "plot/trajectory_widget.h"
 
-
 TrajectoryWidget::TrajectoryWidget(QWidget *parent) : PlotBase(parent)
 {
   type_ = Type::Trajectory;
@@ -14,11 +13,17 @@ TrajectoryWidget::TrajectoryWidget(QWidget *parent) : PlotBase(parent)
 void TrajectoryWidget::setupTrajectoryDemo()
 {
   this->clearPlottables();
+  this->plotLayout()->clear();
+  this->clearItems(); // legend step_text_
+
+  new_rect_ = new QCPAxisRect(this);
+  new_rect_->setupFullAxesBox(true);
+  QCPLayoutGrid *subLayout = new QCPLayoutGrid;
+  this->plotLayout()->addElement(0, 0, new_rect_); // insert axis rect in first row
+
   // demoName = "Vector3 Demo";
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectLegend | QCP::iSelectPlottables);
-
   this->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
-  // this->setSelectionRectMode(QCP::SelectionRectMode::srmSelect);
 
   this->xAxis->setRange(-8, 8);
   this->yAxis->setRange(-5, 5);
@@ -36,6 +41,11 @@ void TrajectoryWidget::setupTrajectoryDemo()
     axis->setTickLength(0, 0);
     axis->setTickLabels(false);
   }
+
+  this->legend = new QCPLegend;
+  legend->setVisible(false);
+  new_rect_->insetLayout()->addElement(legend, Qt::AlignRight | Qt::AlignTop);
+  new_rect_->insetLayout()->setMargins(QMargins(12, 12, 12, 12));
 
   this->legend->setVisible(true);
   QFont legendFont = font();
@@ -64,6 +74,9 @@ void TrajectoryWidget::setupTrajectoryDemo()
   // connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
 
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel(QWheelEvent *)));
+
+  this->setVisible(true);
+  this->replot();
 }
 
 QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                      // curve legend
@@ -133,7 +146,30 @@ QString TrajectoryWidget::StepString(double const step) // 分辨率文字
 
 void TrajectoryWidget::mouseWheel(QWheelEvent *event)
 {
-  double const step = map_ticker_->Step();
+  if (plot_type_ == 0)
+  {
+    double const step = map_ticker_->Step();
+    step_text_->setText(StepString(step));
+  }
+  else
+  {
+  }
+}
 
-  step_text_->setText(StepString(step));
+void TrajectoryWidget::UpdatePlotType(int type)
+{
+  plot_type_ = type;
+  if (step_text_)
+  {
+    step_text_->setVisible(plot_type_ == 0);
+  }
+
+  if (type == 0)
+  {
+    setupTrajectoryDemo();
+  }
+  else if (type > 0)
+  {
+    setupMatrixDemo(3, 1);
+  }
 }
