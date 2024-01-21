@@ -77,10 +77,11 @@ GraphProperty::GraphProperty(TrajectoryWidget *plot, Property *parent)
 
   // 数据通道更新，数据更新
   connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncInfo()));
-  dataTimer_.start(500); // Interval 0 means to refresh as fast as possible
 }
 void GraphProperty::UpdateTopic()
 {
+  dataTimer_.stop();
+
   QString name = channel_name_prop_->getValue().toString();
   // 删除当前轨迹
   if (channel_name_prop_->getOptionInt() == 0)
@@ -93,6 +94,8 @@ void GraphProperty::UpdateTopic()
     plot_->removePlottable(curve_);
     curve_ = plot_->addTrajectory(name, getScatterStyle(), getLinePen());
   }
+
+  dataTimer_.start(500); // Interval 0 means to refresh as fast as possible
   plot_->replot();
 }
 

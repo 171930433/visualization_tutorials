@@ -1,6 +1,8 @@
 #include <QWidget>
 
 #include "plot/plot_base.h"
+#include "display_sync_base.h"
+#include <rviz/display_context.h>
 
 void FocusByIndex(QCPAbstractPlottable *single_graph, int const dataIndex)
 {
@@ -50,6 +52,8 @@ void PlotBase::resizeEvent(QResizeEvent *event)
 
 void PlotBase::keyPressEvent(QKeyEvent *event)
 {
+  QCustomPlot::keyPressEvent(event);
+
   if (event->key() == Qt::Key_S)
   {
     if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect)
@@ -63,7 +67,24 @@ void PlotBase::keyPressEvent(QKeyEvent *event)
       QWidget::setCursor(Qt::CrossCursor);
     }
   }
-  QWidget::keyPressEvent(event);
+}
+
+void PlotBase::mouseMoveEvent(QMouseEvent *event)
+{
+  QCustomPlot::mouseMoveEvent(event);
+
+  QString str;
+
+  for (auto *single_rect : this->axisRects())
+  {
+    if (single_rect->rect().contains(event->pos()))
+    {
+      double const x = single_rect->axis(QCPAxis::atBottom)->pixelToCoord(event->pos().x());
+      double const y = single_rect->axis(QCPAxis::atLeft)->pixelToCoord(event->pos().y());
+      str = QString("mouse pos = [%1,%2]").arg(x, 0, 'f', 8).arg(y, 0, 'f', 8);
+      getDisplaySync()->getContext()->setStatus(str);
+    }
+  }
 }
 
 void PlotBase::FouseRange(QCPRange const &time_range)
@@ -196,13 +217,12 @@ QCPAxisRect *PlotBase::CreateDefaultRect()
     axis->setLayer("axes");
     axis->grid()->setLayer("grid");
   }
-  // 
+  //
   qDebug() << QString("CreateDefaultRect done");
   // 创建默认序列
   auto *curve = CreateDefaultGraph(rect);
   return rect;
 }
-
 
 void PlotBase::setupMatrixDemo(int row, int col)
 {
