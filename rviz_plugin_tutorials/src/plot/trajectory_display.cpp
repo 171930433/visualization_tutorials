@@ -197,12 +197,6 @@ TrajectoryDisplay::TrajectoryDisplay()
   view_ = new TrajectoryWidget();
   view_->setDisplaySync(this);
 
-  // 绘制类型
-  // plot_type_prop_ = new rviz::EnumProperty("plot type", "Trajectory", "something like rtkplot", this, SLOT(UpdatePlotType()));
-  // plot_type_prop_->addOption("Trajectory", 0);
-  // plot_type_prop_->addOption("Position", 1);
-  // plot_type_prop_->addOption("Velocity", 2);
-
   focus_when_select_ = new rviz::BoolProperty("foucs when select", true, "focus the selected points", this, SLOT(UpdateFocusWhenSelect()));
   counts_prop_ = new rviz::IntProperty("trajectory counts", 0, "the number of trajectory counts", this, SLOT(UpdateGraphCount()));
   counts_prop_->setMin(1); // 会触发UpdateGraphCount

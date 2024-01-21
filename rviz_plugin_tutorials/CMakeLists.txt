@@ -71,6 +71,8 @@ set(SRC_FILES
   src/plot/trajectory_widget.cpp
   src/plot/matrix_widget.cpp
   src/plot/matrix_display.cpp
+  src/plot/precision_widget.cpp
+  src/plot/precision_display.cpp
   # sync
   src/time_sync.cpp
   src/display_sync_base.cpp

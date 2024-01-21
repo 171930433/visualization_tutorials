@@ -81,7 +81,7 @@ void PlotBase::mouseMoveEvent(QMouseEvent *event)
     {
       double const x = single_rect->axis(QCPAxis::atBottom)->pixelToCoord(event->pos().x());
       double const y = single_rect->axis(QCPAxis::atLeft)->pixelToCoord(event->pos().y());
-      str = QString("mouse pos = [%1,%2]").arg(x, 0, 'f', 8).arg(y, 0, 'f', 8);
+      str = QString("mouse pos = [%1,%2]").arg(x, 0, 'f', 3).arg(y, 0, 'f', 8);
       getDisplaySync()->getContext()->setStatus(str);
     }
   }
@@ -226,7 +226,9 @@ QCPAxisRect *PlotBase::CreateDefaultRect()
 
 void PlotBase::setupMatrixDemo(int row, int col)
 {
-  using namespace Eigen;
+  this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectAxes | QCP::iSelectPlottables);
+  this->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
+
   this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
   this->clearPlottables();
 
@@ -236,6 +238,7 @@ void PlotBase::setupMatrixDemo(int row, int col)
     {
       QCPAxisRect *current_rect = CreateDefaultRect();
       this->plotLayout()->addElement(i, j, current_rect);
+      //
       // x轴不显示
       if (i != row - 1)
       {
@@ -243,6 +246,8 @@ void PlotBase::setupMatrixDemo(int row, int col)
         current_rect->axis(QCPAxis::atBottom)->setSubTicks(false);
         current_rect->axis(QCPAxis::atBottom)->setTickLabels(false);
       }
+      current_rect->setAutoMargins(QCP::MarginSide::msAll);
+      current_rect->setMinimumMargins(QMargins{0, 0, 0, 0});
     }
   }
   this->replot();

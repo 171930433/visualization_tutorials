@@ -35,7 +35,14 @@
     </description>
   </class>
   <!--  -->
-   <!--  -->
+  <class name="rviz_plugin_tutorials/PrecisionDisplay"
+         type="PrecisionDisplay"
+         base_class_type="rviz::Display">
+    <description>
+      PrecisionDisplay .
+    </description>
+  </class>
+  <!--  -->
   <class name="rviz_plugin_tutorials/MatrixDisplay"
          type="MatrixDisplay"
          base_class_type="rviz::Display">

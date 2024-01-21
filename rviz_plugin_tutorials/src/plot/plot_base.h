@@ -15,8 +15,9 @@ public:
   enum Type
   {
     None = 0,
-    Matrix = 1,
-    Trajectory = 2
+    Matrix,
+    Trajectory,
+    Precision
   };
   Q_ENUM(Type);
 

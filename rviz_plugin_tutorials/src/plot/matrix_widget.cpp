@@ -7,13 +7,8 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
 {
   type_ = Type::Matrix;
 
-  // this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
-  this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectAxes | QCP::iSelectPlottables);
-  this->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
-
+  setupMatrixDemo(0, 0);
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
-  // 默认状态
-  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
 }
 
 void MatrixWidget::ShowSubplot(int const index)
@@ -256,6 +251,7 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
     {
       // QCPAxisRect *current_rect = rects_(i, j);
       QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(i, j));
+      //
       // x轴不显示
       if (i != new_row - 1)
       {
@@ -263,10 +259,11 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
         current_rect->axis(QCPAxis::atBottom)->setSubTicks(false);
         current_rect->axis(QCPAxis::atBottom)->setTickLabels(false);
       }
+      current_rect->setAutoMargins(QCP::MarginSide::msAll);
+      current_rect->setMinimumMargins(QMargins{0, 0, 0, 0});
     }
   }
+
   this->plotLayout()->simplify();
   this->replot();
 }
-
-
