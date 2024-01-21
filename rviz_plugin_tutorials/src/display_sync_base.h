@@ -16,14 +16,13 @@ public:
   rviz::DisplayContext *getContext() { return context_; }
 
 Q_SIGNALS:
-  void FocusPointChanged(double const t0);
-  void FouseRangeChanged(QCPRange const &time_range);
+  void FocusPointChanged(double const t0, DisplaySyncBase *sender);
+  void FouseRangeChanged(QCPRange const &time_range, DisplaySyncBase *sender);
 public Q_SLOTS:
   void onFocusPoint(double const t0, bool update_view = true, bool emit_signal = true);
   void onFouseRange(QCPRange const &time_range, bool update_view = true, bool emit_signal = true);
 
 protected:
-
 public:
 protected:
   QCPRange selected_range_ = {0, 0}; // 当前感兴趣的范围

@@ -34,7 +34,7 @@ void DisplaySyncBase::onFocusPoint(double const t0, bool update_view, bool emit_
     }
     if (emit_signal)
     {
-      Q_EMIT FocusPointChanged(t0);
+      Q_EMIT FocusPointChanged(t0, this);
     }
   }
 }
@@ -49,7 +49,7 @@ void DisplaySyncBase::onFouseRange(QCPRange const &time_range, bool update_view,
     }
     if (emit_signal)
     {
-      Q_EMIT FouseRangeChanged(selected_range_);
+      Q_EMIT FouseRangeChanged(selected_range_, this);
     }
   }
 }

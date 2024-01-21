@@ -62,7 +62,7 @@ DisplaySyncManager::~DisplaySyncManager()
   // sync_properties_.clear();
 }
 
-void DisplaySyncManager::Initialize(rviz::VisualizationManager * context)
+void DisplaySyncManager::Initialize(rviz::VisualizationManager *context)
 {
   // 载入当前已经加载的时间同步型display
   // auto vm = qobject_cast<rviz::VisualizationManager *>(context);
@@ -88,30 +88,30 @@ void DisplaySyncManager::onDisplayAdded(rviz::Display *display)
   syncers_.push_back(sync_one);
   sync_properties_[sync_one] = new rviz::BoolProperty(sync_one->getName(), true, "sync options", tool_root_);
   // 消息绑定
-  connect(sync_one, SIGNAL(FocusPointChanged(double const)), this, SLOT(onFocusPointChanged(double const)));
-  connect(sync_one, SIGNAL(FouseRangeChanged(QCPRange const &)), this, SLOT(onFouseRangeChanged(QCPRange const &)));
+  connect(sync_one, &DisplaySyncBase::FocusPointChanged, this, &DisplaySyncManager::onFocusPointChanged);
+  connect(sync_one, &DisplaySyncBase::FouseRangeChanged, this, &DisplaySyncManager::onFouseRangeChanged);
 
   qDebug() << " AddSyncer " << sync_one->getName();
 }
 
-void DisplaySyncManager::onFocusPointChanged(double const t0)
+void DisplaySyncManager::onFocusPointChanged(double const t0, DisplaySyncBase *sender)
 {
   // qDebug() << "begin----------------DisplaySyncManager::onFocusPointChanged" << QString("%1").arg(t0, 0, 'f', 3);
 
   for (auto sync : syncers_)
   {
-    if (sync_properties_[sync]->getBool())
+    if (sync_properties_[sync]->getBool() && sync != sender)
     {
       sync->onFocusPoint(t0, true, false);
     }
   }
   // qDebug() << "end-------------------DisplaySyncManager::onFocusPointChanged" << QString("%1").arg(t0, 0, 'f', 3);
 }
-void DisplaySyncManager::onFouseRangeChanged(QCPRange const &time_range)
+void DisplaySyncManager::onFouseRangeChanged(QCPRange const &time_range, DisplaySyncBase *sender)
 {
   for (auto sync : syncers_)
   {
-    if (sync_properties_[sync]->getBool())
+    if (sync_properties_[sync]->getBool() && sync != sender)
     {
       sync->onFouseRange(time_range, true, false);
     }

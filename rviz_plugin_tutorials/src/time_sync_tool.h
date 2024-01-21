@@ -65,15 +65,15 @@ public:
   DisplaySyncManager();
   DisplaySyncManager(Property *tool_root);
   ~DisplaySyncManager();
-  void Initialize(rviz::VisualizationManager * context);
+  void Initialize(rviz::VisualizationManager *context);
 
 protected:
 public:
 private Q_SLOTS:
   void onDisplayAdded(rviz::Display *display);
   void onDisplayRemoved(rviz::Display *display);
-  void onFocusPointChanged(double const t0);
-  void onFouseRangeChanged(QCPRange const &time_range);
+  void onFocusPointChanged(double const t0, DisplaySyncBase *sender);
+  void onFouseRangeChanged(QCPRange const &time_range, DisplaySyncBase *sender);
 
 private:
   rviz::EnumProperty *sync_mode_ = nullptr;
