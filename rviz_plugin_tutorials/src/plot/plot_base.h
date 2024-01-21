@@ -22,7 +22,7 @@ public:
 
 protected:
   PlotBase(QWidget *parent = nullptr);
-  // void simplifyData(QCPAbstractPlottable1D *curve, double pixelTolerance);
+  void keyPressEvent(QKeyEvent *event) override;
 
 public:
   virtual void SyncDataAndView() = 0;

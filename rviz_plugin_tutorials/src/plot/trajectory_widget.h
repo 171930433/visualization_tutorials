@@ -124,7 +124,6 @@ public:
   QCPCurve *addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas, QCPScatterStyle const &ss, QPen const &lp);
 
 protected:
-  void keyPressEvent(QKeyEvent *event) override;
   void resizeEvent(QResizeEvent *event) override;
   void FocusPoint(double const t0) override;
   void FouseRange(QCPRange const &time_range) override;

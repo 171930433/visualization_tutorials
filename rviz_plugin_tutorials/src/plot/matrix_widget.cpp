@@ -204,34 +204,6 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
   qDebug() << QString("end filed size =%1").arg(field_names.size());
 }
 
-void MatrixWidget::keyPressEvent(QKeyEvent *event)
-{
-  // if (event->key() >= Qt::Key_0 && event->key() <= Qt::Key_9)
-  // {
-  //   int const row = this->plotLayout()->rowCount();
-  //   int const col = this->plotLayout()->columnCount();
-  //   if (row <= 9 && col == 1)
-  //   {
-  //     ShowSubplot(event->key() - Qt::Key_1);
-  //   }
-  // }
-  if (event->key() == Qt::Key_S)
-  {
-    if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect)
-    {
-      this->setSelectionRectMode(QCP::SelectionRectMode::srmNone);
-      QWidget::setCursor(Qt::ArrowCursor);
-    }
-    else
-    {
-      this->setSelectionRectMode(QCP::SelectionRectMode::srmSelect);
-      QWidget::setCursor(Qt::CrossCursor);
-    }
-  }
-
-  QWidget::keyPressEvent(event);
-}
-
 void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &field_name)
 {
   qDebug() << QString("UpdateFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);

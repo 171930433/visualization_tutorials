@@ -20,7 +20,6 @@ public:
   void UpdateFieldName(int const row, int const col, QString const &field_name);
 
 protected:
-  void keyPressEvent(QKeyEvent *event) override;
 
 protected:
   void setupMatrixDemo(int row, int col);

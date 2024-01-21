@@ -400,25 +400,6 @@ void TrajectoryWidget::onSelectionChangedByUser()
   qDebug() << " onSelectionChangedByUser end";
 }
 
-void TrajectoryWidget::keyPressEvent(QKeyEvent *event)
-{
-  if (event->key() == Qt::Key_S)
-  {
-    if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect)
-    {
-      this->setSelectionRectMode(QCP::SelectionRectMode::srmNone);
-      QWidget::setCursor(Qt::ArrowCursor);
-    }
-    else
-    {
-      this->setSelectionRectMode(QCP::SelectionRectMode::srmSelect);
-      QWidget::setCursor(Qt::CrossCursor);
-    }
-  }
-  QWidget::keyPressEvent(event);
-
-}
-
 void TrajectoryWidget::resizeEvent(QResizeEvent *event)
 {
   PlotBase::resizeEvent(event);
