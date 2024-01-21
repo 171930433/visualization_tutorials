@@ -14,8 +14,6 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
   this->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
 
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
-  // setupMatrixDemo(1, 1);
-  // setupVector3Demo();
   // 默认状态
   this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
   auto *rect = CreateDefaultRect();

@@ -73,17 +73,13 @@ class TrajectoryWidget : public PlotBase
 
 public:
   TrajectoryWidget(QWidget *parent = nullptr);
-  std::deque<QCPCurve *> Curves() const { return all_curve_; }
 
 public:
   void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
-  void RemoveCurve(QCPCurve *);
-  QCPCurve *ContainsCurve(QString const &name);
+
   QCPCurve *addTrajectory(QString const &name, std::map<size_t, spMessage> const &datas, QCPScatterStyle const &ss, QPen const &lp);
 
 protected:
-  void resizeEvent(QResizeEvent *event) override;
-  // void FouseRange(QCPRange const &time_range) override;
 
 protected:
   void setupTrajectoryDemo();
@@ -91,11 +87,10 @@ protected:
 private:
   QSharedPointer<QCPMapAxisTickerFixed> map_ticker_;
   QString StepString(double const step); // 分辨率文字
-  QCPItemText *step_text = nullptr;
+  QCPItemText *step_text_ = nullptr;
 
 private:
   // std::map<std::string, QCPCurve *> all_curve_;
-  std::deque<QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
   bool focus_when_select_ = true;
 private slots:

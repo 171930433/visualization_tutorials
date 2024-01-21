@@ -79,12 +79,13 @@ void GraphProperty::UpdateTopic()
   // 删除当前轨迹
   if (channel_name_prop_->getOptionInt() == 0)
   {
-    plot_->RemoveCurve(curve_);
+    plot_->removePlottable(curve_);
+    curve_ = nullptr;
   }
   else
   {
-    auto *re = plot_->ContainsCurve(name);
-    curve_ = (re ? re : plot_->addTrajectory(name, g_messages, getScatterStyle(), getLinePen()));
+    plot_->removePlottable(curve_);
+    curve_ = plot_->addTrajectory(name, g_messages, getScatterStyle(), getLinePen());
   }
   plot_->replot();
 }

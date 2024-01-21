@@ -40,6 +40,12 @@ PlotBase::PlotBase(QWidget *parent) : QCustomPlot(parent)
   connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
 }
 
+void PlotBase::resizeEvent(QResizeEvent *event)
+{
+  this->replot();
+}
+
+
 void PlotBase::keyPressEvent(QKeyEvent *event)
 {
   if (event->key() == Qt::Key_S)
