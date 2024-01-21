@@ -78,7 +78,6 @@ public:
   void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
   QCPCurve *addTrajectory(QString const &name, QCPScatterStyle const &ss, QPen const &lp);
   void UpdateTrajectory(QString const &name, std::map<size_t, spMessage> const &new_data);
-  void UpdatePlotType(int type);
 
 
 protected:

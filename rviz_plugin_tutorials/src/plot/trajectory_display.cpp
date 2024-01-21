@@ -8,49 +8,6 @@
 #include "plot/trajectory_widget.h"
 #include "protobuf_helper.h"
 
-// ! 需要优化,太蠢了
-QCPScatterStyle scatterStyle(QCPAbstractPlottable *curve)
-{
-  auto *curve1 = dynamic_cast<QCPGraph *>(curve);
-  if (curve1)
-  {
-    return curve1->scatterStyle();
-  }
-  auto curve2 = dynamic_cast<QCPCurve *>(curve);
-  if (curve2)
-  {
-    return curve2->scatterStyle();
-  }
-}
-
-void setScatterStyle(QCPAbstractPlottable *curve, QCPScatterStyle const &ss)
-{
-  auto *curve1 = dynamic_cast<QCPGraph *>(curve);
-  if (curve1)
-  {
-    curve1->setScatterStyle(ss);
-  }
-  auto curve2 = dynamic_cast<QCPCurve *>(curve);
-  if (curve2)
-  {
-    curve2->setScatterStyle(ss);
-  }
-}
-
-void setLineStyle(QCPAbstractPlottable *curve, int line_style)
-{
-  auto *curve1 = dynamic_cast<QCPGraph *>(curve);
-  if (curve1)
-  {
-    curve1->setLineStyle(QCPGraph::LineStyle(line_style));
-  }
-  auto curve2 = dynamic_cast<QCPCurve *>(curve);
-  if (curve2)
-  {
-    curve2->setLineStyle(QCPCurve::LineStyle(line_style));
-  }
-}
-
 int GraphProperty::graph_counts_ = 0;
 
 GraphProperty::~GraphProperty()
@@ -129,7 +86,7 @@ void GraphProperty::UpdateTopic()
   if (channel_name_prop_->getOptionInt() == 0)
   {
     plot_->removePlottable(curve_);
-    curve_ = nullptr; 
+    curve_ = nullptr;
   }
   else
   {
@@ -167,9 +124,9 @@ void GraphProperty::UpdateScatterSize()
   if (!curve_)
     return;
   auto const size = scatter_size_->getInt();
-  auto new_scatter_style = scatterStyle(curve_);
+  auto new_scatter_style = curve_->scatterStyle();
   new_scatter_style.setSize(size);
-  setScatterStyle(curve_, new_scatter_style);
+  curve_->setScatterStyle(new_scatter_style);
   plot_->replot();
 }
 
@@ -178,9 +135,9 @@ void GraphProperty::UpdateScatterShape()
   if (!curve_)
     return;
   auto const type = static_cast<QCPScatterStyle::ScatterShape>(scatter_type_->getOptionInt());
-  auto new_scatter_style = scatterStyle(curve_);
+  auto new_scatter_style = curve_->scatterStyle();
   new_scatter_style.setShape(type);
-  setScatterStyle(curve_, new_scatter_style);
+  curve_->setScatterStyle(new_scatter_style);
 
   plot_->replot();
 }
@@ -189,11 +146,11 @@ void GraphProperty::UpdateScatterColor()
   if (!curve_)
     return;
   auto const new_color = scatter_color_->getColor();
-  auto new_scatter_style = scatterStyle(curve_);
+  auto new_scatter_style = curve_->scatterStyle();
   QPen new_pen = new_scatter_style.pen();
   new_pen.setColor(new_color);
   new_scatter_style.setPen(new_pen);
-  setScatterStyle(curve_, new_scatter_style);
+  curve_->setScatterStyle(new_scatter_style);
 
   plot_->replot();
 }
@@ -204,7 +161,7 @@ void GraphProperty::UpdateLineStyle()
   int const type = line_type_->getOptionInt();
   line_width_->setHidden(type == 0 ? true : false);
   line_color_->setHidden(type == 0 ? true : false);
-  setLineStyle(curve_, type);
+  curve_->setLineStyle(QCPCurve::LineStyle(type));
   plot_->replot();
 }
 
@@ -247,11 +204,6 @@ TrajectoryDisplay::TrajectoryDisplay()
   counts_prop_ = new rviz::IntProperty("trajectory counts", 0, "the number of trajectory counts", this, SLOT(UpdateGraphCount()));
   counts_prop_->setMin(1); // 会触发UpdateGraphCount
   counts_prop_->setMax(10);
-}
-
-void TrajectoryDisplay::UpdatePlotType()
-{
-  // view_->UpdatePlotType(plot_type_prop_->getOptionInt());
 }
 
 TrajectoryDisplay::~TrajectoryDisplay()

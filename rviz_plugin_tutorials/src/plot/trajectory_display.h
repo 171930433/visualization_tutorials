@@ -65,7 +65,7 @@ protected:
   rviz::IntProperty *line_width_ = nullptr;   // line width
   rviz::ColorProperty *line_color_ = nullptr; // line color
 
-  QCPAbstractPlottable *curve_;
+  QCPCurve *curve_;
   TrajectoryWidget *plot_ = nullptr;
 };
 
@@ -85,7 +85,6 @@ private Q_SLOTS:
 
   void UpdateFocusWhenSelect(); // 将当前视图放置在central widget位置
   void UpdateGraphCount();      //
-  void UpdatePlotType();        //
 
 private:
   TrajectoryWidget *view_ = nullptr;

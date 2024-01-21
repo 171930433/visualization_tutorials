@@ -13,13 +13,13 @@ TrajectoryWidget::TrajectoryWidget(QWidget *parent) : PlotBase(parent)
 void TrajectoryWidget::setupTrajectoryDemo()
 {
   this->clearPlottables();
-  this->plotLayout()->clear();
-  this->clearItems(); // legend step_text_
+  // this->plotLayout()->clear();
+  // this->clearItems(); // legend step_text_
 
-  new_rect_ = new QCPAxisRect(this);
-  new_rect_->setupFullAxesBox(true);
-  QCPLayoutGrid *subLayout = new QCPLayoutGrid;
-  this->plotLayout()->addElement(0, 0, new_rect_); // insert axis rect in first row
+  // new_rect_ = new QCPAxisRect(this);
+  // new_rect_->setupFullAxesBox(true);
+  // QCPLayoutGrid *subLayout = new QCPLayoutGrid;
+  // this->plotLayout()->addElement(0, 0, new_rect_); // insert axis rect in first row
 
   // demoName = "Vector3 Demo";
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectLegend | QCP::iSelectPlottables);
@@ -42,10 +42,10 @@ void TrajectoryWidget::setupTrajectoryDemo()
     axis->setTickLabels(false);
   }
 
-  this->legend = new QCPLegend;
-  legend->setVisible(false);
-  new_rect_->insetLayout()->addElement(legend, Qt::AlignRight | Qt::AlignTop);
-  new_rect_->insetLayout()->setMargins(QMargins(12, 12, 12, 12));
+  // this->legend = new QCPLegend;
+  // legend->setVisible(false);
+  // new_rect_->insetLayout()->addElement(legend, Qt::AlignRight | Qt::AlignTop);
+  // new_rect_->insetLayout()->setMargins(QMargins(12, 12, 12, 12));
 
   this->legend->setVisible(true);
   QFont legendFont = font();
@@ -105,7 +105,6 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,       // curve le
 
   decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize | QCPScatterStyle::ScatterProperty::spPen); // 只有size使用设定值，其他的用plot的继承值
 
-
   return curve;
 }
 
@@ -135,7 +134,7 @@ void TrajectoryWidget::UpdateTrajectory(QString const &name, std::map<size_t, sp
     y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble() + y_offset;
     ++i;
   }
-  curve->setData(time_index, x, y);
+  curve->addData(time_index, x, y);
 
   y_offset++;
   qDebug() << QString("raw_data_ size = %1").arg(new_data.size());
@@ -158,30 +157,6 @@ QString TrajectoryWidget::StepString(double const step) // 分辨率文字
 
 void TrajectoryWidget::mouseWheel(QWheelEvent *event)
 {
-  if (plot_type_ == 0)
-  {
-    double const step = map_ticker_->Step();
-    step_text_->setText(StepString(step));
-  }
-  else
-  {
-  }
-}
-
-void TrajectoryWidget::UpdatePlotType(int type)
-{
-  plot_type_ = type;
-  if (step_text_)
-  {
-    step_text_->setVisible(plot_type_ == 0);
-  }
-
-  if (type == 0)
-  {
-    setupTrajectoryDemo();
-  }
-  else if (type > 0)
-  {
-    setupMatrixDemo(3, 1);
-  }
+  double const step = map_ticker_->Step();
+  step_text_->setText(StepString(step));
 }
