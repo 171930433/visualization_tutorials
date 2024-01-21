@@ -73,7 +73,6 @@ class TrajectoryWidget : public PlotBase
 
 public:
   TrajectoryWidget(QWidget *parent = nullptr);
-  void SyncDataAndView() override { SyncData(); }
   std::deque<QCPCurve *> Curves() const { return all_curve_; }
 
 public:
@@ -84,8 +83,7 @@ public:
 
 protected:
   void resizeEvent(QResizeEvent *event) override;
-  // void FocusPoint(double const t0) override;
-  void FouseRange(QCPRange const &time_range) override;
+  // void FouseRange(QCPRange const &time_range) override;
 
 protected:
   void setupTrajectoryDemo();
@@ -100,13 +98,10 @@ private:
   std::deque<QCPCurve *> all_curve_;
   double current_t0_s_ = 0;
   bool focus_when_select_ = true;
-  void FoucuPositionByIndex(QCPCurve *curve, int const dataIndex);
 private slots:
   void mouseWheel(QWheelEvent *);
-  // void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
 
 public slots:
-  void SyncData();
   void ChangeScatterShape(QCPScatterStyle::ScatterShape const type);
   void ChangeLineStyle(QCPGraph::LineStyle const type);
 };

@@ -77,8 +77,6 @@ void TrajectoryWidget::setupTrajectoryDemo()
 
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel(QWheelEvent *)));
 
-  // connect slot that shows a message in the status bar when a graph is clicked:
-  // connect(this, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *, int)));
 }
 
 void TrajectoryWidget::RemoveCurve(QCPCurve *curve)
@@ -192,43 +190,6 @@ void TrajectoryWidget::mouseWheel(QWheelEvent *event)
   // qDebug() << " step = " << step;
 }
 
-void TrajectoryWidget::SyncData()
-{
-  // if (!this->isVisible()) {
-  //   return;
-  // }
-
-  // if (!rviz::g_map_origin_) {
-  //   return;
-  // }
-
-  // auto const origin = *rviz::g_map_origin_;
-  // auto gnss_data = rviz::g_cacher_->GetFrameWithChannleTimeUpperBound<zhito::zloc::ZGnss>("/zhito/h2pu/ublox", current_t0_s_);
-
-  // static size_t index = 0;
-  // for (auto const &[key, frame] : gnss_data) {
-  //   Eigen::Vector3d pos = zhito::zloc::Earth::DeltaPosEnuInSecondPoint(frame->pos_, origin);
-  //   all_curve_["gnss"]->addData(key, pos.x(), pos.y());
-  //   current_t0_s_ = key / 1000.0;
-  //   // qDebug() << index++ << " time = " << key << " ,state = " << frame->status_ << " x = " << pos.x() << " y = " << pos.y();
-  // }
-
-  // this->replot();
-}
-
-// void TrajectoryWidget::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
-// {
-//   // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
-//   // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
-//   double t0_s = plottable->interface1D()->dataSortKey(dataIndex);
-//   double x = plottable->interface1D()->dataMainKey(dataIndex);
-//   double y = plottable->interface1D()->dataMainValue(dataIndex);
-
-//   QString message = QString("Clicked on graph '%1' at data point #%2, t0=%5 x= %3 y = %4.").arg(plottable->name()).arg(dataIndex).arg(x).arg(y).arg(t0_s, 0, 'f', 3);
-//   qDebug() << " " << message;
-
-//   // FocusPoint(t0_s);
-// }
 
 void TrajectoryWidget::resizeEvent(QResizeEvent *event)
 {
@@ -236,61 +197,42 @@ void TrajectoryWidget::resizeEvent(QResizeEvent *event)
   this->replot();
 }
 
-void TrajectoryWidget::FouseRange(QCPRange const &time_range)
-{
-
-  // qDebug() << " TrajectoryWidget::FouseRange called";
-
-  auto *first_curve = all_curve_.front();
-
-  for (auto curve : all_curve_)
-  {
-    // 1. 先检查所有的数据区间是否包含待查找点
-    auto const si = curve->findBegin(time_range.lower, true) + 1; // start index
-    auto const ei = curve->findBegin(time_range.upper, true) + 1; // end index
-
-    // double const t0_s_s = curve->dataSortKey(si);
-    // double const t0_s_e = curve->dataSortKey(ei);
-    // double const x = curve->dataMainKey(si);
-    // double const y = curve->dataMainValue(si);
-
-    // QString const str = QString("t0 = %1, finded range = [%2,%3]").arg(t0_s_s, 0, 'f', 3).arg(t0_s_s, 0, 'f', 3).arg(t0_s_e, 0, 'f', 3);
-    // qDebug() << str;
-
-    // 选中点
-    QCPDataRange index_range{si, ei + 1};
-    curve->setSelection(QCPDataSelection{index_range});
-    // 起点剧中
-    if (curve == first_curve)
-    {
-      if (focus_when_select_)
-      {
-        FoucuPositionByIndex(curve, si);
-      }
-    }
-  }
-
-  // 当前选中点以改变消息发出
-  // this->onFocusPoint(t0, false, true);
-
-  this->replot();
-}
-
-void TrajectoryWidget::FoucuPositionByIndex(QCPCurve *curve, int const dataIndex)
-{
-  double const x = curve->dataMainKey(dataIndex);
-  double const y = curve->dataMainValue(dataIndex);
-
-  this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
-  this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
-}
-
-// void TrajectoryWidget::onBeforeReplot()
+// void TrajectoryWidget::FouseRange(QCPRange const &time_range)
 // {
-//   qDebug() << QString("onBeforeReplot simplified ");
 
-//   for (auto *curve : all_curve_)
+//   // qDebug() << " TrajectoryWidget::FouseRange called";
+
+//   auto *first_curve = all_curve_.front();
+
+//   for (auto curve : all_curve_)
 //   {
-//     simplifyData(curve, 1);
+//     // 1. 先检查所有的数据区间是否包含待查找点
+//     auto const si = curve->findBegin(time_range.lower, true) + 1; // start index
+//     auto const ei = curve->findBegin(time_range.upper, true) + 1; // end index
+
+//     // double const t0_s_s = curve->dataSortKey(si);
+//     // double const t0_s_e = curve->dataSortKey(ei);
+//     // double const x = curve->dataMainKey(si);
+//     // double const y = curve->dataMainValue(si);
+
+//     // QString const str = QString("t0 = %1, finded range = [%2,%3]").arg(t0_s_s, 0, 'f', 3).arg(t0_s_s, 0, 'f', 3).arg(t0_s_e, 0, 'f', 3);
+//     // qDebug() << str;
+
+//     // 选中点
+//     QCPDataRange index_range{si, ei + 1};
+//     curve->setSelection(QCPDataSelection{index_range});
+//     // 起点剧中
+//     if (curve == first_curve)
+//     {
+//       if (focus_when_select_)
+//       {
+//         FoucuPositionByIndex(curve, si);
+//       }
+//     }
 //   }
+
+//   // 当前选中点以改变消息发出
+//   // this->onFocusPoint(t0, false, true);
+
+//   this->replot();
 // }

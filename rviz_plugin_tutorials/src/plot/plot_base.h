@@ -29,7 +29,6 @@ protected:
   void keyPressEvent(QKeyEvent *event) override;
 
 public:
-  virtual void SyncDataAndView() = 0;
 protected slots:
   void onSelectionChangedByUser(); // 相应用户的选择改变
   void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);

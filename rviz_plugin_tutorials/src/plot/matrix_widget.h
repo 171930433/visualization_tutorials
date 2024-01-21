@@ -11,7 +11,6 @@ class MatrixWidget : public PlotBase
 
 public:
   MatrixWidget(QWidget *parent = nullptr);
-  void SyncDataAndView() override {}
 
   void CreatePlot(QString const &name, MatrixXQString const &field_names);
   void UpdatePlotLayout(int const row, int const col);
@@ -37,7 +36,4 @@ protected:
   QSharedPointer<QCPAxisTickerDateTime> dateTicker_;
 
 protected:
-  // void FocusPoint(double const t0) override;
-  void FouseRange(QCPRange const &time_range) {}
-  void FoucuPositionByIndex(QCPGraph *single_graph, int const dataIndex);
 };

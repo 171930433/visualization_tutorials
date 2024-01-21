@@ -100,40 +100,6 @@ void MatrixWidget::mouseWheel()
   // qDebug() <<" x_selected = " << x_selected;
 }
 
-void MatrixWidget::FoucuPositionByIndex(QCPGraph *single_graph, int const dataIndex)
-{
-  double const x = single_graph->dataMainKey(dataIndex);
-  double const y = single_graph->dataMainValue(dataIndex);
-
-  this->xAxis->setRange(x, xAxis->range().size(), Qt::AlignCenter);
-  this->yAxis->setRange(y, yAxis->range().size(), Qt::AlignCenter);
-}
-
-// void MatrixWidget::FocusPoint(double const t0)
-// {
-//   // auto *first_curve = all_curve_.front();
-
-//   for (int i = 0; i < this->graphCount(); ++i)
-//   {
-//     auto *single_graph = this->graph(i);
-
-//     // 1. 先检查所有的数据区间是否包含待查找点
-//     if (!single_graph->dataCount())
-//     {
-//       continue;
-//     }
-
-//     auto const dataIndex = single_graph->findBegin(t0, true);
-
-//     // 选中点
-//     QCPDataRange index_range{dataIndex, dataIndex + 1};
-//     single_graph->setSelection(QCPDataSelection{index_range});
-//     // 该点剧中
-//     FoucuPositionByIndex(single_graph, dataIndex);
-//   }
-
-//   this->replot();
-// }
 
 void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_names)
 {
