@@ -173,6 +173,8 @@ QCPGraph *PlotBase::CreateDefaultGraph(QCPAxisRect *rect)
 QCPAxisRect *PlotBase::CreateDefaultRect()
 {
   QCPAxisRect *rect = new QCPAxisRect(this);
+  qDebug() << QString("begin CreateDefaultRect done");
+
   rect->axis(QCPAxis::atLeft)->setLabel(QString("rect-%1").arg(this->axisRectCount()));
   // 默认缩放y轴
   rect->setRangeZoom(Qt::Vertical);
@@ -194,7 +196,34 @@ QCPAxisRect *PlotBase::CreateDefaultRect()
     axis->setLayer("axes");
     axis->grid()->setLayer("grid");
   }
+  // 
+  qDebug() << QString("CreateDefaultRect done");
   // 创建默认序列
   auto *curve = CreateDefaultGraph(rect);
   return rect;
+}
+
+
+void PlotBase::setupMatrixDemo(int row, int col)
+{
+  using namespace Eigen;
+  this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
+  this->clearPlottables();
+
+  for (int i = 0; i < row; i++)
+  {
+    for (int j = 0; j < col; j++)
+    {
+      QCPAxisRect *current_rect = CreateDefaultRect();
+      this->plotLayout()->addElement(i, j, current_rect);
+      // x轴不显示
+      if (i != row - 1)
+      {
+        current_rect->axis(QCPAxis::atBottom)->setTicks(false);
+        current_rect->axis(QCPAxis::atBottom)->setSubTicks(false);
+        current_rect->axis(QCPAxis::atBottom)->setTickLabels(false);
+      }
+    }
+  }
+  this->replot();
 }

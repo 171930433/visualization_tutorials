@@ -26,6 +26,7 @@ protected:
   void FocusPoint(double const t0) override;
   QCPGraph *CreateDefaultGraph(QCPAxisRect *rect);
   QCPAxisRect *CreateDefaultRect();
+  void setupMatrixDemo(int row, int col);
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
@@ -38,5 +39,4 @@ protected slots:
 protected:
   Type type_ = Type::None;
   QSharedPointer<QCPAxisTickerDateTime> dateTicker_;
-
 };

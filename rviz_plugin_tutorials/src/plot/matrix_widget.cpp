@@ -6,7 +6,7 @@
 MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
 {
   type_ = Type::Matrix;
-  
+
   // this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectAxes | QCP::iSelectPlottables);
   this->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
@@ -14,8 +14,6 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel()));
   // 默认状态
   this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
-  auto *rect = CreateDefaultRect();
-  this->plotLayout()->addElement(0, 0, rect);
 }
 
 void MatrixWidget::ShowSubplot(int const index)
@@ -96,13 +94,13 @@ void MatrixWidget::mouseWheel()
   // qDebug() <<" x_selected = " << x_selected;
 }
 
-
 void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_names)
 {
   //
   int const row = field_names.rows(), col = field_names.cols();
   qDebug() << QString("start row=%1 col=%2").arg(row).arg(col);
   setupMatrixDemo(row, col);
+  qDebug() << QString("end row=%1 col=%2").arg(row).arg(col);
 
   // this->rescaleAxes();
   for (int i = 0; i < row; i++)
@@ -193,7 +191,8 @@ void MatrixWidget::RowChanged(int const new_row)
 }
 void MatrixWidget::ColChanged(int const new_col)
 {
-  int const row = this->plotLayout()->rowCount();
+  //! 因为0,0 --> 1,1 是行和列单独变化的,
+  int const row = (this->plotLayout()->rowCount() < 1 ? 1 : this->plotLayout()->rowCount());
   int const old_col = this->plotLayout()->columnCount();
   qDebug() << QString("begin ColChanged, row=%3, %1--->%2").arg(old_col).arg(new_col).arg(row);
 
@@ -235,7 +234,7 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
 {
   int const old_row = this->plotLayout()->rowCount();
   int const old_col = this->plotLayout()->columnCount();
-  if (new_row <= 1 && new_col <= 1 && old_row == 1 && old_col == 1)
+  if (new_row < 1 || new_col < 1)
   {
     return;
   }
@@ -270,24 +269,4 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
   this->replot();
 }
 
-void MatrixWidget::setupMatrixDemo(int row, int col)
-{
-  using namespace Eigen;
 
-  for (int i = 0; i < row; i++)
-  {
-    for (int j = 0; j < col; j++)
-    {
-      QCPAxisRect *current_rect = CreateDefaultRect();
-      this->plotLayout()->addElement(i, j, current_rect);
-      // x轴不显示
-      if (i != row - 1)
-      {
-        current_rect->axis(QCPAxis::atBottom)->setTicks(false);
-        current_rect->axis(QCPAxis::atBottom)->setSubTicks(false);
-        current_rect->axis(QCPAxis::atBottom)->setTickLabels(false);
-      }
-    }
-  }
-  this->replot();
-}

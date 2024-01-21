@@ -19,7 +19,6 @@ public:
 protected:
 
 protected:
-  void setupMatrixDemo(int row, int col);
   std::map<int, QCPAxisRect *> all_rects_;
   
 private slots:
@@ -30,7 +29,6 @@ private slots:
 protected:
   void RowChanged(int const new_row);
   void ColChanged(int const new_col);
-  DisplaySyncBase *sync_display_ = nullptr;
 
 protected:
 };
