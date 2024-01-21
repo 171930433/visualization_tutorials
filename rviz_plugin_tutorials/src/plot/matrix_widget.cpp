@@ -6,9 +6,7 @@
 MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent)
 {
   type_ = Type::Matrix;
-  dateTicker_ = QSharedPointer<QCPAxisTickerDateTime>(new QCPAxisTickerDateTime);
-  dateTicker_->setDateTimeFormat("HH:mm:ss");
-
+  
   // this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectAxes);
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectAxes | QCP::iSelectPlottables);
   this->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
@@ -275,9 +273,6 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
 void MatrixWidget::setupMatrixDemo(int row, int col)
 {
   using namespace Eigen;
-  // demoName = "Vector3 Demo";
-
-  // rects_.resize(row, col);
 
   for (int i = 0; i < row; i++)
   {
@@ -295,59 +290,4 @@ void MatrixWidget::setupMatrixDemo(int row, int col)
     }
   }
   this->replot();
-}
-
-QCPGraph *MatrixWidget::CreateDefaultGraph(QCPAxisRect *rect)
-{
-
-  auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
-
-  curve->setSelectable(QCP::stDataRange);
-
-  // 设置散点样式和颜色
-  curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCross, Qt::blue));
-
-  // 设置直线样式
-  curve->setLineStyle(QCPGraph::LineStyle::lsLine);
-  QPen lp;
-  lp.setWidthF(2);
-  lp.setColor(Qt::gray);
-  curve->setPen(lp);
-
-  // 定制选中样式
-  QCPSelectionDecorator *decorator = curve->selectionDecorator();
-  QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
-  selectedScatterStyle.setSize(10);                                                           // 选中点的大小
-  decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
-
-  return curve;
-}
-QCPAxisRect *MatrixWidget::CreateDefaultRect()
-{
-  static int rect_count = 0;
-  QCPAxisRect *rect = new QCPAxisRect(this);
-  rect->axis(QCPAxis::atLeft)->setLabel(QString("rect-%1").arg(rect_count++));
-  // 默认缩放y轴
-  rect->setRangeZoom(Qt::Vertical);
-  // x轴样式
-  rect->axis(QCPAxis::atBottom)->setTicker(dateTicker_);
-  // y轴label在axis内侧
-  rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
-  rect->axis(QCPAxis::atLeft)->setSubTicks(false);
-  // 共x轴 (0,0)->所有 所有->(0,0)
-  if (this->graphCount() != 0)
-  {
-    connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this->axisRect(0)->axis(QCPAxis::atBottom),
-            SLOT(setRange(QCPRange)));
-    connect(this->axisRect(0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rect->axis(QCPAxis::atBottom),
-            SLOT(setRange(QCPRange)));
-  }
-  foreach (QCPAxis *axis, rect->axes())
-  {
-    axis->setLayer("axes");
-    axis->grid()->setLayer("grid");
-  }
-  // 创建默认序列
-  auto *curve = CreateDefaultGraph(rect);
-  return rect;
 }

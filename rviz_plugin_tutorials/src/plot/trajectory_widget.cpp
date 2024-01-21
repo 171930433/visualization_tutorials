@@ -13,6 +13,7 @@ TrajectoryWidget::TrajectoryWidget(QWidget *parent) : PlotBase(parent)
 
 void TrajectoryWidget::setupTrajectoryDemo()
 {
+  this->clearPlottables();
   // demoName = "Vector3 Demo";
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectLegend | QCP::iSelectPlottables);
 
@@ -58,17 +59,9 @@ void TrajectoryWidget::setupTrajectoryDemo()
   step_text_->setFont(QFont(font().family(), 9));
   step_text_->setPadding(QMargins(8, 0, 0, 0));
 
-  // connect slot that shows a message in the status bar when a graph is clicked:
-  // connect(this, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *,
-  // int)));
-
   // setup policy and connect slot for context menu popup:
   // this->setContextMenuPolicy(Qt::CustomContextMenu);
   // connect(this, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(contextMenuRequest(QPoint)));
-
-  // connect slot that ties some axis selections together (especially opposite axes):
-  // connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
-  // connect(this, SIGNAL(onSelectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
 
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel(QWheelEvent *)));
 }
@@ -96,10 +89,9 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                  
     ++i;
   }
 
-  // raw_data_->set(vec_data, true);
   qDebug() << QString("raw_data_ size = %1").arg(datas.size());
 
-  QCPCurve *curve = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到graph里面
+  QCPCurve *curve = new QCPCurve(this->xAxis, this->yAxis); // 自动注册到plot
   curve->setName(name);
   curve->setSelectable(QCP::stDataRange);
   curve->setData(time_index, x, y);

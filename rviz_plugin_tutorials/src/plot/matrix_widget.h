@@ -28,12 +28,9 @@ private slots:
   void mouseWheel();
 
 protected:
-  QCPGraph *CreateDefaultGraph(QCPAxisRect *rect);
-  QCPAxisRect *CreateDefaultRect();
   void RowChanged(int const new_row);
   void ColChanged(int const new_col);
   DisplaySyncBase *sync_display_ = nullptr;
-  QSharedPointer<QCPAxisTickerDateTime> dateTicker_;
 
 protected:
 };

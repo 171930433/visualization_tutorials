@@ -8,6 +8,49 @@
 #include "plot/trajectory_widget.h"
 #include "protobuf_helper.h"
 
+// ! 需要优化,太蠢了
+QCPScatterStyle scatterStyle(QCPAbstractPlottable *curve)
+{
+  auto *curve1 = dynamic_cast<QCPGraph *>(curve);
+  if (curve1)
+  {
+    return curve1->scatterStyle();
+  }
+  auto curve2 = dynamic_cast<QCPCurve *>(curve);
+  if (curve2)
+  {
+    return curve2->scatterStyle();
+  }
+}
+
+void setScatterStyle(QCPAbstractPlottable *curve, QCPScatterStyle const &ss)
+{
+  auto *curve1 = dynamic_cast<QCPGraph *>(curve);
+  if (curve1)
+  {
+    curve1->setScatterStyle(ss);
+  }
+  auto curve2 = dynamic_cast<QCPCurve *>(curve);
+  if (curve2)
+  {
+    curve2->setScatterStyle(ss);
+  }
+}
+
+void setLineStyle(QCPAbstractPlottable *curve, int line_style)
+{
+  auto *curve1 = dynamic_cast<QCPGraph *>(curve);
+  if (curve1)
+  {
+    curve1->setLineStyle(QCPGraph::LineStyle(line_style));
+  }
+  auto curve2 = dynamic_cast<QCPCurve *>(curve);
+  if (curve2)
+  {
+    curve2->setLineStyle(QCPCurve::LineStyle(line_style));
+  }
+}
+
 int GraphProperty::graph_counts_ = 0;
 
 GraphProperty::~GraphProperty()
@@ -45,14 +88,6 @@ GraphProperty::GraphProperty(TrajectoryWidget *plot, Property *parent)
   scatter_type_->addOption("ssDiamond", QCPScatterStyle::ScatterShape::ssDiamond);
   scatter_type_->addOption("ssStar", QCPScatterStyle::ScatterShape::ssStar);
   scatter_type_->addOption("ssTriangle", QCPScatterStyle::ScatterShape::ssTriangle);
-  // scatter_type_->addOption("ssTriangleInverted", QCPScatterStyle::ScatterShape::ssTriangleInverted);
-  // scatter_type_->addOption("ssCrossSquare", QCPScatterStyle::ScatterShape::ssCrossSquare);
-  // scatter_type_->addOption("ssPlusSquare", QCPScatterStyle::ScatterShape::ssPlusSquare);
-  // scatter_type_->addOption("ssCrossCircle", QCPScatterStyle::ScatterShape::ssCrossCircle);
-  // scatter_type_->addOption("ssPlusCircle", QCPScatterStyle::ScatterShape::ssPlusCircle);
-  // scatter_type_->addOption("ssPeace", QCPScatterStyle::ScatterShape::ssPeace);
-  // scatter_type_->addOption("ssPixmap", QCPScatterStyle::ScatterShape::ssPixmap);
-  // scatter_type_->addOption("ssCustom", QCPScatterStyle::ScatterShape::ssCustom);
 
   scatter_color_ = new rviz::ColorProperty("scatter color", QColor(Qt::blue), "set the color of all scatter", this, SLOT(UpdateScatterColor()));
 
@@ -61,8 +96,8 @@ GraphProperty::GraphProperty(TrajectoryWidget *plot, Property *parent)
   scatter_size_->setMax(10);
   // line
   line_type_ = new rviz::EnumProperty("line type", "Line", "the line type of trajectory", this, SLOT(UpdateLineStyle()));
-  line_type_->addOption("None", QCPCurve::LineStyle::lsNone);
-  line_type_->addOption("Line", QCPCurve::LineStyle::lsLine);
+  line_type_->addOption("None", 0);
+  line_type_->addOption("Line", 1);
 
   line_color_ = new rviz::ColorProperty("line color", QColor(Qt::gray), "set the color of line", this, SLOT(UpdateLineColor()));
   line_width_ = new rviz::IntProperty("line width", 1, "the line width of trajectory", this, SLOT(UpdateLineWidth()));
@@ -118,9 +153,9 @@ void GraphProperty::UpdateScatterSize()
   if (!curve_)
     return;
   auto const size = scatter_size_->getInt();
-  auto new_scatter_style = curve_->scatterStyle();
+  auto new_scatter_style = scatterStyle(curve_);
   new_scatter_style.setSize(size);
-  curve_->setScatterStyle(new_scatter_style);
+  setScatterStyle(curve_, new_scatter_style);
   plot_->replot();
 }
 
@@ -129,9 +164,10 @@ void GraphProperty::UpdateScatterShape()
   if (!curve_)
     return;
   auto const type = static_cast<QCPScatterStyle::ScatterShape>(scatter_type_->getOptionInt());
-  auto new_scatter_style = curve_->scatterStyle();
+  auto new_scatter_style = scatterStyle(curve_);
   new_scatter_style.setShape(type);
-  curve_->setScatterStyle(new_scatter_style);
+  setScatterStyle(curve_, new_scatter_style);
+
   plot_->replot();
 }
 void GraphProperty::UpdateScatterColor()
@@ -139,21 +175,22 @@ void GraphProperty::UpdateScatterColor()
   if (!curve_)
     return;
   auto const new_color = scatter_color_->getColor();
-  auto new_scatter_style = curve_->scatterStyle();
+  auto new_scatter_style = scatterStyle(curve_);
   QPen new_pen = new_scatter_style.pen();
   new_pen.setColor(new_color);
   new_scatter_style.setPen(new_pen);
-  curve_->setScatterStyle(new_scatter_style);
+  setScatterStyle(curve_, new_scatter_style);
+
   plot_->replot();
 }
 void GraphProperty::UpdateLineStyle()
 {
   if (!curve_)
     return;
-  auto const type = static_cast<QCPCurve::LineStyle>(line_type_->getOptionInt());
-  line_width_->setHidden(type == QCPCurve::LineStyle::lsNone ? true : false);
-  line_color_->setHidden(type == QCPCurve::LineStyle::lsNone ? true : false);
-  curve_->setLineStyle(type);
+  int const type = line_type_->getOptionInt();
+  line_width_->setHidden(type == 0 ? true : false);
+  line_color_->setHidden(type == 0 ? true : false);
+  setLineStyle(curve_, type);
   plot_->replot();
 }
 

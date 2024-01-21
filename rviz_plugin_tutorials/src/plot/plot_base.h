@@ -24,6 +24,8 @@ protected:
   PlotBase(QWidget *parent = nullptr);
   void FouseRange(QCPRange const &time_range) override;
   void FocusPoint(double const t0) override;
+  QCPGraph *CreateDefaultGraph(QCPAxisRect *rect);
+  QCPAxisRect *CreateDefaultRect();
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
@@ -35,5 +37,6 @@ protected slots:
 
 protected:
   Type type_ = Type::None;
-  QCPRange time_range_; // 当前所有数据的范围
+  QSharedPointer<QCPAxisTickerDateTime> dateTicker_;
+
 };

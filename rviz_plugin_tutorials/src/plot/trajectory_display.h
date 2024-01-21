@@ -65,7 +65,7 @@ protected:
   rviz::IntProperty *line_width_ = nullptr;   // line width
   rviz::ColorProperty *line_color_ = nullptr; // line color
 
-  QCPCurve *curve_;
+  QCPAbstractPlottable *curve_;
   TrajectoryWidget *plot_ = nullptr;
 };
 

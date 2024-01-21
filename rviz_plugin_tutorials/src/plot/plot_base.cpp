@@ -36,15 +36,17 @@ PlotBase::PlotBase(QWidget *parent) : QCustomPlot(parent)
 {
   //
   this->setVisible(false);
+  dateTicker_ = QSharedPointer<QCPAxisTickerDateTime>(new QCPAxisTickerDateTime);
+  dateTicker_->setDateTimeFormat("HH:mm:ss");
 
   connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
 }
 
 void PlotBase::resizeEvent(QResizeEvent *event)
 {
+  QCustomPlot::resizeEvent(event);
   this->replot();
 }
-
 
 void PlotBase::keyPressEvent(QKeyEvent *event)
 {
@@ -141,4 +143,58 @@ void PlotBase::onSelectionChangedByUser()
 
   this->replot();
   qDebug() << "PlotBase onSelectionChangedByUser end";
+}
+
+QCPGraph *PlotBase::CreateDefaultGraph(QCPAxisRect *rect)
+{
+
+  auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
+
+  curve->setSelectable(QCP::stDataRange);
+
+  // 设置散点样式和颜色
+  curve->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ScatterShape::ssCross, Qt::blue));
+
+  // 设置直线样式
+  curve->setLineStyle(QCPGraph::LineStyle::lsLine);
+  QPen lp;
+  lp.setWidthF(2);
+  lp.setColor(Qt::gray);
+  curve->setPen(lp);
+
+  // 定制选中样式
+  QCPSelectionDecorator *decorator = curve->selectionDecorator();
+  QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
+  selectedScatterStyle.setSize(10);                                                           // 选中点的大小
+  decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+
+  return curve;
+}
+QCPAxisRect *PlotBase::CreateDefaultRect()
+{
+  QCPAxisRect *rect = new QCPAxisRect(this);
+  rect->axis(QCPAxis::atLeft)->setLabel(QString("rect-%1").arg(this->axisRectCount()));
+  // 默认缩放y轴
+  rect->setRangeZoom(Qt::Vertical);
+  // x轴样式
+  rect->axis(QCPAxis::atBottom)->setTicker(dateTicker_);
+  // y轴label在axis内侧
+  rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
+  rect->axis(QCPAxis::atLeft)->setSubTicks(false);
+  // 共x轴 (0,0)->所有 所有->(0,0)
+  if (this->graphCount() != 0)
+  {
+    connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this->axisRect(0)->axis(QCPAxis::atBottom),
+            SLOT(setRange(QCPRange)));
+    connect(this->axisRect(0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rect->axis(QCPAxis::atBottom),
+            SLOT(setRange(QCPRange)));
+  }
+  foreach (QCPAxis *axis, rect->axes())
+  {
+    axis->setLayer("axes");
+    axis->grid()->setLayer("grid");
+  }
+  // 创建默认序列
+  auto *curve = CreateDefaultGraph(rect);
+  return rect;
 }
