@@ -31,7 +31,6 @@ protected:
 public:
 protected slots:
   void onSelectionChangedByUser(); // 相应用户的选择改变
-  void graphClicked(QCPAbstractPlottable *plottable, int dataIndex);
 
 protected:
   Type type_ = Type::None;

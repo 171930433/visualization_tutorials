@@ -76,7 +76,6 @@ void TrajectoryWidget::setupTrajectoryDemo()
   // connect(this, SIGNAL(onSelectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
 
   connect(this, SIGNAL(mouseWheel(QWheelEvent *)), this, SLOT(mouseWheel(QWheelEvent *)));
-
 }
 
 void TrajectoryWidget::RemoveCurve(QCPCurve *curve)
@@ -152,8 +151,10 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,                  
   // 定制选中样式
   QCPSelectionDecorator *decorator = curve->selectionDecorator();
   QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
-  selectedScatterStyle.setSize(10);                                                           // 选中点的大小
-  decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+  selectedScatterStyle.setSize(10);              // 选中点的大小
+  selectedScatterStyle.setPen(QColor(Qt::blue)); // 选中点的颜色
+
+  decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize | QCPScatterStyle::ScatterProperty::spPen); // 只有size使用设定值，其他的用plot的继承值
 
   all_curve_.push_back(curve);
 
@@ -189,7 +190,6 @@ void TrajectoryWidget::mouseWheel(QWheelEvent *event)
 
   // qDebug() << " step = " << step;
 }
-
 
 void TrajectoryWidget::resizeEvent(QResizeEvent *event)
 {

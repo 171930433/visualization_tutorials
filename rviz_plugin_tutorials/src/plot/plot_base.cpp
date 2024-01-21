@@ -22,15 +22,22 @@ void SelectByT0(QCPAbstractPlottable *single_graph, double const t0)
   single_graph->setSelection(QCPDataSelection{index_range});
 }
 
+// 选中区间
+void SelectByT0sT0e(QCPAbstractPlottable *single_graph, double const t0_s, double const t0_e)
+{
+  auto const dataIndex_s = single_graph->interface1D()->findBegin(t0_s, true);
+  auto const dataIndex_e = single_graph->interface1D()->findBegin(t0_e, true);
+  // 选中点
+  QCPDataRange index_range{dataIndex_s, dataIndex_e + 1};
+  single_graph->setSelection(QCPDataSelection{index_range});
+}
+
 PlotBase::PlotBase(QWidget *parent) : QCustomPlot(parent)
 {
   //
   this->setVisible(false);
 
-  // connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
-  // connect slot that shows a message in the status bar when a graph is clicked:
-  // connect(this, SIGNAL(plottableClick(QCPAbstractPlottable *, int, QMouseEvent *)), this, SLOT(graphClicked(QCPAbstractPlottable *, int)));
-  connect(this, &QCustomPlot::plottableClick, this, &PlotBase::graphClicked);
+  connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
 }
 
 void PlotBase::keyPressEvent(QKeyEvent *event)
@@ -53,6 +60,15 @@ void PlotBase::keyPressEvent(QKeyEvent *event)
 
 void PlotBase::FouseRange(QCPRange const &time_range)
 {
+  for (auto *single_rect : this->axisRects())
+  {
+    for (auto *single_plotable : single_rect->plottables())
+    {
+      SelectByT0sT0e(single_plotable, time_range.lower, time_range.upper);
+    }
+  }
+
+  this->replot();
 }
 
 void PlotBase::FocusPoint(double const t0)
@@ -73,78 +89,50 @@ void PlotBase::onSelectionChangedByUser()
 
   qDebug() << "PlotBase onSelectionChangedByUser begin";
 
-  // 第一个矩形
-  QCPAxisRect *first_rect = this->axisRect(0);
-  QList<QCPAbstractPlottable *> plottables = first_rect->plottables();
+  QList<QCPAbstractPlottable *> selected_plotable = this->selectedPlottables();
 
-  //
-  QCPDataRange range;
-  double start_t0 = 0;
-  // 第一个graph
-  for (auto *single_graph : first_rect->graphs())
+  if (selected_plotable.size() <= 0)
   {
-    range = single_graph->selection().dataRange();
-    if (!range.isEmpty())
-    {
-      start_t0 = single_graph->dataSortKey(range.begin());
-      // FocusByIndex(single_graph, range.begin());
-    }
-    break;
-  }
-  // 第一个curve
-  for (auto *single_plot : plottables)
-  {
-    QCPCurve *single_graph = dynamic_cast<QCPCurve *>(single_plot);
-    if (single_graph)
-    {
-      range = single_graph->selection().dataRange();
-      if (!range.isEmpty())
-      {
-        start_t0 = single_graph->dataSortKey(range.begin());
-        // FocusByIndex(single_graph, range.begin());
-      }
-      break;
-    }
+    qDebug() << " no serials select";
+    return;
   }
 
-  if (range.size() == 1)
+  if (selected_plotable.size() > 1)
   {
-    this->onFocusPoint(start_t0, false, true);
-  }
-  else if (range.size() > 1)
-  {
+    qDebug() << " select more than one serials";
+    return;
   }
 
-  this->replot();
-  qDebug() << "PlotBase onSelectionChangedByUser end";
-}
-
-void PlotBase::graphClicked(QCPAbstractPlottable *plottable, int dataIndex)
-{
-  // since we know we only have QCPGraphs in the plot, we can immediately access interface1D()
-  // usually it's better to first check whether interface1D() returns non-zero, and only then use it.
-  double t0_s = plottable->interface1D()->dataSortKey(dataIndex);
-  double x = plottable->interface1D()->dataMainKey(dataIndex);
-  double y = plottable->interface1D()->dataMainValue(dataIndex);
-
-  // 被点击的序列居中
-  FocusByIndex(plottable, dataIndex);
-
-  // 1. 当前rect,其余序列被选中
-  // 2. 其余rect, 主序列居中,其余序列被选中
+  QCPAbstractPlottable *single_plot = selected_plotable.first();
+  QCPDataRange index_range = single_plot->selection().dataRange(0);
+  double t0_s = single_plot->interface1D()->dataSortKey(index_range.begin());
+  double t0_e = single_plot->interface1D()->dataSortKey(index_range.end());
 
   for (auto *single_rect : this->axisRects())
   {
     for (auto *single_plotable : single_rect->plottables())
     {
-      SelectByT0(single_plotable, t0_s);
+      if (index_range.size() == 1)
+      {
+        SelectByT0(single_plotable, t0_s);
+      }
+      else if (index_range.size() > 1)
+      {
+        SelectByT0sT0e(single_plotable, t0_s, t0_e);
+      }
     }
   }
 
-  // QList<QCPAbstractPlottable *> plottables = first_rect->plottables();
+  if (index_range.size() == 1)
+  {
+    this->onFocusPoint(t0_s, false, true);
+  }
+  else if (index_range.size() > 1)
+  {
+    QCPRange time_range{t0_s, t0_e};
+    this->onFouseRange(time_range, false, true);
+  }
 
-  QString message = QString("Clicked on graph '%1' at data point #%2, t0=%5 x= %3 y = %4.").arg(plottable->name()).arg(dataIndex).arg(x).arg(y).arg(t0_s, 0, 'f', 3);
-  qDebug() << " " << message;
-
-  this->onFocusPoint(t0_s, false, true);
+  this->replot();
+  qDebug() << "PlotBase onSelectionChangedByUser end";
 }
