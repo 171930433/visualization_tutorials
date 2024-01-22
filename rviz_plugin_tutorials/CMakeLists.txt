@@ -77,6 +77,8 @@ set(SRC_FILES
   src/time_sync.cpp
   src/display_sync_base.cpp
   src/time_sync_tool.cpp
+  # cacher
+  src/cacher/cacher.cpp
   # proto
   src/protobuf_helper.cpp
   ${PROTO_SRCS} ${PROTO_HDRS}

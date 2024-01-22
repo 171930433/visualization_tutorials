@@ -2,18 +2,24 @@
 
 #include <google/protobuf/descriptor.h>
 #include <google/protobuf/reflection.h>
+#include <google/protobuf/dynamic_message.h>
 #include <map>
 #include <QString>
 #include <QStringList>
 #include <qvariant.h>
 #include "student.pb.h"
 
-using spMessage = std::shared_ptr<google::protobuf::Message>;
+#include "cacher/cacher.h"
+
+// using spMessage = std::shared_ptr<google::protobuf::Message>;
 using spPerson = std::shared_ptr<demo::Person>;
 
-extern std::map<size_t, spMessage> g_messages;
+// extern std::map<size_t, spMessage> g_messages;
 
 void InitPersons();
+
+spPbMsg CreateMessageByName(std::string const& name);
+
 void PrintProtoMsg2(const google::protobuf::Message &message);
 QStringList GetFildNames(const google::protobuf::Message &message, QString const &prefix = "");
 QVariant ReflectVaule(const google::protobuf::Message &message, google::protobuf::Descriptor const *descriptor, google::protobuf::Reflection const *reflection,

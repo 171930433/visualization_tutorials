@@ -26,9 +26,15 @@ public:
   }
 };
 
-void DataTableWidget::setData(const std::map<size_t, spMessage> &newData)
+double DataTableWidget::getLastDataTime() const
 {
-  QStringList headers = GetFildNames(*newData.begin()->second);
+  return model_->LastData(0).toDouble();
+}
+
+void DataTableWidget::setDataTypeName(std::string const &type_name)
+{
+  auto msg = CreateMessageByName(type_name);
+  QStringList headers = GetFildNames(*msg);
   qDebug() << " headers = " << headers;
 
   // column_->addItems(headers);
@@ -38,9 +44,12 @@ void DataTableWidget::setData(const std::map<size_t, spMessage> &newData)
 
   // 设置表头
   model_->setHeaders(headers);
+}
 
+void DataTableWidget::UpdateData(const std::map<size_t, sp_cPbMsg> &newData)
+{
   // 转换数据到适合模型的格式
-  model_->setData(newData);
+  model_->AddData(newData);
 }
 
 DataTableWidget::DataTableWidget(QWidget *parent) : QWidget(parent)

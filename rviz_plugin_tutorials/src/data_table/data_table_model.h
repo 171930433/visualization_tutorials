@@ -78,16 +78,16 @@ public:
   }
 
   // 设置数据
-  void setData(const std::map<size_t, spMessage> &newData)
+  void setData(const std::map<size_t, sp_cPbMsg> &newData)
   {
     beginResetModel();
     index_map_.setMap(newData);
     endResetModel();
   }
 
-  void AddData(const std::map<size_t, spMessage> &newData)
+  void AddData(const std::map<size_t, sp_cPbMsg> &newData)
   {
-    beginInsertRows(QModelIndex(), rowCount(), newData.size());
+    beginInsertRows(QModelIndex(), rowCount(), rowCount() + newData.size() - 1);
     index_map_.AddMap(newData);
     endInsertRows();
   }
@@ -163,7 +163,7 @@ public:
   QStringList const &headers() const { return headers_; }
 
 private:
-  IndexedMap<size_t, spMessage> index_map_;
+  IndexedMap<size_t, sp_cPbMsg> index_map_;
   QStringList headers_; // 存储表头
 };
 

@@ -111,39 +111,39 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
 
 void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &field_name)
 {
-  qDebug() << QString("UpdateFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);
-  // qDebug() << " rects_.size() = " << rects_.size() << " g_messages size = " << g_messages.size();
-  //
-  auto const &datas = g_messages;
+  // qDebug() << QString("UpdateFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);
+  // // qDebug() << " rects_.size() = " << rects_.size() << " g_messages size = " << g_messages.size();
+  // //
+  // auto const &datas = g_messages;
 
-  int const n = datas.size();
-  int i = 0;
-  QVector<double> y(n), time_index(n);
-  // QStringList const header = GetFildNames(*datas.begin()->second);
-  for (auto const &kv : datas)
-  {
-    auto const &message = *kv.second;
+  // int const n = datas.size();
+  // int i = 0;
+  // QVector<double> y(n), time_index(n);
+  // // QStringList const header = GetFildNames(*datas.begin()->second);
+  // for (auto const &kv : datas)
+  // {
+  //   auto const &message = *kv.second;
 
-    time_index[i] = kv.first / 1e3;
-    y[i] = GetValueByHeaderName(message, field_name).toDouble();
-    ++i;
-  }
+  //   time_index[i] = kv.first / 1e3;
+  //   y[i] = GetValueByHeaderName(message, field_name).toDouble();
+  //   ++i;
+  // }
 
-  qDebug() << " time_index = size = " << time_index.size() << " y size =" << y.size();
+  // qDebug() << " time_index = size = " << time_index.size() << " y size =" << y.size();
 
-  auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
+  // auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
 
-  QCPGraph *curve = rect->graphs()[0];
+  // QCPGraph *curve = rect->graphs()[0];
 
-  curve->setData(time_index, y);
-  curve->setSelectable(QCP::stDataRange);
+  // curve->setData(time_index, y);
+  // curve->setSelectable(QCP::stDataRange);
 
-  rect->axis(QCPAxis::atLeft)->setLabel(field_name);
-  curve->setName(field_name);
-  this->rescaleAxes();
-  this->replot();
+  // rect->axis(QCPAxis::atLeft)->setLabel(field_name);
+  // curve->setName(field_name);
+  // this->rescaleAxes();
+  // this->replot();
 
-  qDebug() << QString("UpdateFieldName end %1, size = %2").arg(field_name).arg(n);
+  // qDebug() << QString("UpdateFieldName end %1, size = %2").arg(field_name).arg(n);
 }
 
 void MatrixWidget::RowChanged(int const new_row)

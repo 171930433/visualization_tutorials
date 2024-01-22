@@ -1,5 +1,6 @@
 #include "data_table_display.h"
 #include <rviz/properties/int_property.h>
+#include <rviz/properties/editable_enum_property.h>
 
 #include "data_table/data_table_widget.h"
 
@@ -8,10 +9,20 @@ DataTableDisplay::DataTableDisplay()
   InitPersons();
 
   view_ = new DataTableWidget();
-  view_->setData(g_messages);
-  // view_->setMainInterval(100);
-  // view_->setSubRange(200);
   view_->setDisplaySync(this);
+
+  //
+  data_channel_ = new rviz::EditableEnumProperty("data_channel", "", "data_channel", this, SLOT(UpdateChannel()));
+  connect(data_channel_, &rviz::EditableEnumProperty::requestOptions, this, &DataTableDisplay::ListCurrentChannel);
+
+  main_interval_ = new rviz::IntProperty("interval", 100, "main grid interval[5,1000]", this, SLOT(UpdateInterval()));
+  main_interval_->setMin(5);
+  main_interval_->setMax(1000);
+  sub_range_ = new rviz::IntProperty("range", 100, "sub grid range [10,100]", this, SLOT(UpdateRange()));
+  sub_range_->setMin(10);
+  sub_range_->setMax(100);
+
+  connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncInfo()));
 }
 DataTableDisplay::~DataTableDisplay()
 {
@@ -21,16 +32,48 @@ DataTableDisplay::~DataTableDisplay()
   }
 }
 
+void DataTableDisplay::SyncInfo()
+{
+  // 去buffer里面查询通道更新
+  if (!view_ || data_channel_->getStdString() == "")
+  {
+    return;
+  }
+  // 当前时间
+  double t0 = view_->getLastDataTime();
+  auto msgs = g_cacher_->GetProtoWithChannleName(data_channel_->getStdString(), t0);
+  view_->UpdateData(msgs);
+
+  // 去buffer里面查询数据更新
+}
+
+void DataTableDisplay::UpdateChannel()
+{
+  dataTimer_.stop();
+
+  auto channel_name = data_channel_->getStdString();
+  auto channel_typename = g_cacher_->GetChannelNamesWithTypeName();
+  view_->setDataTypeName(channel_typename[channel_name]);
+
+  dataTimer_.start(500);
+}
+
+void DataTableDisplay::ListCurrentChannel()
+{
+  auto const names = g_cacher_->GetChannelNames();
+  data_channel_->clearOptions();
+  for (auto const &name : names)
+  {
+    data_channel_->addOptionStd(name);
+    qDebug() << "name = " << QString::fromStdString(name);
+  }
+
+  qDebug() << QString("DataTableDisplay::ListCurrentChannel() called ,size= %1 ").arg(names.size());
+}
+
 // Overrides from Display
 void DataTableDisplay::onInitialize()
 {
-  main_interval_ = new rviz::IntProperty("interval", 100, "main grid interval[5,1000]", this, SLOT(UpdateInterval()));
-  main_interval_->setMin(5);
-  main_interval_->setMax(1000);
-  sub_range_ = new rviz::IntProperty("range", 100, "sub grid range [10,100]", this, SLOT(UpdateRange()));
-  sub_range_->setMin(10);
-  sub_range_->setMax(100);
-
   setAssociatedWidget(view_);
 }
 

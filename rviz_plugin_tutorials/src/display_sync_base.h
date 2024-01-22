@@ -4,6 +4,9 @@
 #include <rviz/display.h>
 #include <map>
 
+#include "cacher/cacher.h"
+
+
 class ITimeSync;
 
 class DisplaySyncBase : public rviz::Display

@@ -1,11 +1,13 @@
 #include "protobuf_helper.h"
 #include <iostream>
 #include <qmath.h>
-std::map<size_t, spMessage> g_messages;
+
+// std::map<size_t, spMessage> g_messages;
+bool g_demo_data_inited = false;
 
 void InitPersons()
 {
-  if (g_messages.size() != 0)
+  if (g_demo_data_inited)
   {
     return;
   }
@@ -37,8 +39,30 @@ void InitPersons()
     auto att = person->mutable_att();
     att->set_x(3 * sin(M_PI * 2 / n * i)), att->set_y(3 * cos(M_PI * 2 / n * i)), att->set_z(i * 1.0 / n);
 
-    g_messages[time_index] = person;
+    // g_messages[time_index] = person;
+    //
+    spPerson person2 = std::make_shared<demo::Person>(*person);
+
+    // 添加到cacher
+    g_cacher_->push_back("/demo/trj1", header->t0(), person);
+    g_cacher_->push_back("/demo/trj2", header->t0(), person2);
   }
+  g_demo_data_inited = true;
+}
+
+spPbMsg CreateMessageByName(std::string const &name)
+{
+  using namespace google::protobuf;
+  // 获取DescriptorPool，默认情况下它包含了所有已知的protobuf类型
+  const DescriptorPool *pool = DescriptorPool::generated_pool();
+  const Descriptor *descriptor = pool->FindMessageTypeByName(name);
+  if (descriptor == nullptr)
+  {
+    return nullptr;
+  }
+  DynamicMessageFactory factory;
+  const Message *prototype = factory.GetPrototype(descriptor);
+  return spPbMsg(prototype->New());
 }
 
 QStringList GetFildNames(const google::protobuf::Message &message, QString const &prefix)
@@ -51,14 +75,14 @@ QStringList GetFildNames(const google::protobuf::Message &message, QString const
   for (int i = 0; i < fields; ++i)
   {
     auto *single_filed = descriptor->field(i);
+    QString parent = (prefix == "" ? "" : prefix + "-");
     if (single_filed->type() == FieldDescriptor::TYPE_MESSAGE)
     {
       auto const &msg = reflection->GetMessage(message, single_filed);
-      result << GetFildNames(msg, QString::fromStdString(single_filed->name()));
+      result << GetFildNames(msg, parent + QString::fromStdString(single_filed->name()));
     }
     else
     {
-      QString parent = (prefix == "" ? "" : prefix + "-");
       result << parent + QString::fromStdString(single_filed->name());
     }
   }

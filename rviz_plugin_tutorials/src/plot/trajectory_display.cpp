@@ -24,11 +24,10 @@ void GraphProperty::SyncInfo()
   }
   // 当前时间
   double t0 = (curve_->interface1D()->dataCount() == 0 ? 0 : curve_->interface1D()->dataSortKey(curve_->interface1D()->dataCount() - 1));
-  auto it = g_messages.upper_bound(t0 * 1e3);
-  if (it != g_messages.end())
+  auto msgs = g_cacher_->GetProtoWithChannleName(curve_->name().toStdString(), t0);
+  if (!msgs.empty())
   {
-    std::map<size_t, spMessage> new_data(it, g_messages.end());
-    plot_->UpdateTrajectory(curve_->name(), g_messages);
+    plot_->UpdateTrajectory(curve_->name(), msgs);
     plot_->replot();
   }
 
@@ -44,8 +43,8 @@ GraphProperty::GraphProperty(TrajectoryWidget *plot, Property *parent)
 
   channel_name_prop_ = new rviz::EnumProperty("topic name", "None", "the topic of trajectory", this, SLOT(UpdateTopic()));
   channel_name_prop_->addOption("None", 0);
-  channel_name_prop_->addOption("random-0", 1);
-  channel_name_prop_->addOption("random-1", 2);
+  channel_name_prop_->addOption("/demo/trj1", 1);
+  channel_name_prop_->addOption("/demo/trj2", 2);
 
   // scatter
   scatter_type_ = new rviz::EnumProperty("Point type", "None", "the point type of trajectory", this, SLOT(UpdateScatterShape()));

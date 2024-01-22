@@ -108,7 +108,7 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,       // curve le
   return curve;
 }
 
-void TrajectoryWidget::UpdateTrajectory(QString const &name, std::map<size_t, spMessage> const &new_data)
+void TrajectoryWidget::UpdateTrajectory(QString const &name, std::map<size_t, sp_cPbMsg> const &new_data)
 {
   static double y_offset = 0;
 

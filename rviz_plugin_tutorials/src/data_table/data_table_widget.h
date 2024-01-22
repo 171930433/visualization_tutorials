@@ -26,7 +26,9 @@ public:
   void CreateRowVectorPlot(QString const &name, QStringList const &field_names);
   void CreateVectorPlot(QString const &name, QStringList const &field_names);
 
-  void setData(const std::map<size_t, spMessage> &newData);
+  void setDataTypeName(std::string const &type_name);
+  void UpdateData(const std::map<size_t, sp_cPbMsg> &newData);
+  double getLastDataTime() const;
 
 public slots:
   void setMainInterval(int interval);
