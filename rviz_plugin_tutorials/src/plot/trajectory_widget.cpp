@@ -108,19 +108,13 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,       // curve le
   return curve;
 }
 
-void TrajectoryWidget::UpdateTrajectory(QString const &name, std::map<size_t, sp_cPbMsg> const &new_data)
+void TrajectoryWidget::UpdateTrajectory(QCPCurve *curve, std::map<size_t, sp_cPbMsg> const &new_data)
 {
-  static double y_offset = 0;
-
   // raw data
-  auto it = std::find_if(mPlottables.begin(), mPlottables.end(), [name](QCPAbstractPlottable *plot)
-                         { return plot->name() == name; });
-  if (it == mPlottables.end())
+  if (!curve)
   {
-    qDebug() << " no trajectory with name " << name;
     return;
   }
-  QCPCurve *curve = dynamic_cast<QCPCurve *>(*it);
   //
   int const n = new_data.size();
   QVector<double> x(n), y(n), time_index(n);
@@ -131,12 +125,11 @@ void TrajectoryWidget::UpdateTrajectory(QString const &name, std::map<size_t, sp
     auto const &message = *kv.second;
     time_index[i] = kv.first / 1e3;
     x[i] = GetValueByHeaderName(message, QString("pos-x")).toDouble();
-    y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble() + y_offset;
+    y[i] = GetValueByHeaderName(message, QString("pos-y")).toDouble();
     ++i;
   }
   curve->addData(time_index, x, y);
 
-  y_offset++;
   qDebug() << QString("raw_data_ size = %1").arg(new_data.size());
 }
 

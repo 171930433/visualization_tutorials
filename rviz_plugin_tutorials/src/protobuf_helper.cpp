@@ -45,6 +45,7 @@ void InitPersons()
     //
     spPerson person2 = std::make_shared<demo::Person>(*person);
     person2->set_name("2");
+    person2->mutable_pos()->set_y(person2->mutable_pos()->y() + 1);
 
     // 添加到cacher
     g_cacher_->push_back("/demo/trj1", header->t0(), person);

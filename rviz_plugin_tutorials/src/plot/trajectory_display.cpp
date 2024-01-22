@@ -13,6 +13,13 @@ int GraphProperty::graph_counts_ = 0;
 GraphProperty::~GraphProperty()
 {
   graph_counts_--;
+  dataTimer_.stop();
+  // curve_->setVisible(false);
+  if (curve_)
+  {
+    plot_->removePlottable(curve_);
+    plot_->replot();
+  }
 }
 
 void GraphProperty::SyncInfo()
@@ -27,7 +34,8 @@ void GraphProperty::SyncInfo()
   auto msgs = g_cacher_->GetProtoWithChannleName(curve_->name().toStdString(), t0);
   if (!msgs.empty())
   {
-    plot_->UpdateTrajectory(curve_->name(), msgs);
+    qDebug() << QString("new msgs form t0= %1").arg(t0, 0, 'f', 3);
+    plot_->UpdateTrajectory(curve_, msgs);
     plot_->replot();
   }
 
@@ -207,7 +215,6 @@ TrajectoryDisplay::~TrajectoryDisplay()
   if (initialized())
   {
     delete view_;
-    graphs_.clear();
   }
 }
 
@@ -231,11 +238,14 @@ void TrajectoryDisplay::UpdateGraphCount()
   int const new_count = counts_prop_->getInt();
   int const old_count = graphs_.size();
 
+  auto when_graph_delete = [this](GraphProperty *graph)
+  { this->takeChild(graph); delete graph; };
+
   if (new_count < old_count) // 删除元素
   {
     for (int i = new_count; i < old_count; ++i)
     {
-      this->takeChild(graphs_.back().get());
+      // this->takeChild(graphs_.back().get());
       graphs_.pop_back();
     }
   }
@@ -243,7 +253,8 @@ void TrajectoryDisplay::UpdateGraphCount()
   {
     for (int i = old_count; i < new_count; ++i)
     {
-      graphs_.push_back(std::make_shared<GraphProperty>(view_, this));
+      // graphs_.push_back(std::make_shared<GraphProperty>(view_, this));
+      graphs_.push_back(std::shared_ptr<GraphProperty>(new GraphProperty(view_, this), when_graph_delete));
     }
   }
   // qDebug() <<" UpdateGraphCount called";
