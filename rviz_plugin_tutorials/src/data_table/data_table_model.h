@@ -21,6 +21,11 @@ public:
   std::vector<V> values_;
 
 public:
+  void reset()
+  {
+    key_to_index_.clear();
+    values_.clear();
+  }
   void setMap(std::map<K, V> const &raw_map)
   {
     for (auto kv : raw_map)
@@ -81,6 +86,7 @@ public:
   void setData(const std::map<size_t, sp_cPbMsg> &newData)
   {
     beginResetModel();
+    index_map_.reset();
     index_map_.setMap(newData);
     endResetModel();
   }
@@ -90,12 +96,18 @@ public:
     beginInsertRows(QModelIndex(), rowCount(), rowCount() + newData.size() - 1);
     index_map_.AddMap(newData);
     endInsertRows();
+    qDebug() << "add data called " << index_map_.size();
   }
 
   // 设置表头
   void setHeaders(const QStringList &headers)
   {
-    headers_ = headers;
+    if (headers_.empty())
+    {
+      beginResetModel();
+      headers_ = headers;
+      endResetModel();
+    }
   }
 
   int rowCount(const QModelIndex &parent = QModelIndex()) const override
@@ -123,6 +135,7 @@ public:
     {
       return QVariant();
     }
+
     return GetValueByHeaderName(*index_map_.getByIndex(index.row()), headers_[index.column()]);
   }
   QVariant LastData(int col) const

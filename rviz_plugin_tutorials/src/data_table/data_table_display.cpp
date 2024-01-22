@@ -42,7 +42,11 @@ void DataTableDisplay::SyncInfo()
   // 当前时间
   double t0 = view_->getLastDataTime();
   auto msgs = g_cacher_->GetProtoWithChannleName(data_channel_->getStdString(), t0);
-  view_->UpdateData(msgs);
+  if (!msgs.empty())
+  {
+    view_->UpdateData(msgs);
+    qDebug() << QString("add size =  %1").arg(msgs.size());
+  }
 
   // 去buffer里面查询数据更新
 }

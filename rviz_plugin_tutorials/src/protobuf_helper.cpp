@@ -1,6 +1,7 @@
 #include "protobuf_helper.h"
 #include <iostream>
 #include <qmath.h>
+#include <QDebug>
 
 // std::map<size_t, spMessage> g_messages;
 bool g_demo_data_inited = false;
@@ -53,16 +54,18 @@ void InitPersons()
 spPbMsg CreateMessageByName(std::string const &name)
 {
   using namespace google::protobuf;
-  // 获取DescriptorPool，默认情况下它包含了所有已知的protobuf类型
-  const DescriptorPool *pool = DescriptorPool::generated_pool();
-  const Descriptor *descriptor = pool->FindMessageTypeByName(name);
-  if (descriptor == nullptr)
+  spPbMsg message = nullptr;
+  auto *descriptor = DescriptorPool::generated_pool()->FindMessageTypeByName(name);
+  // std::cout << descriptor->DebugString() << "\n";
+  if (descriptor)
   {
-    return nullptr;
+    auto *prototype = MessageFactory::generated_factory()->GetPrototype(descriptor);
+    if (prototype)
+    {
+      message.reset(prototype->New());
+    }
   }
-  DynamicMessageFactory factory;
-  const Message *prototype = factory.GetPrototype(descriptor);
-  return spPbMsg(prototype->New());
+  return message;
 }
 
 QStringList GetFildNames(const google::protobuf::Message &message, QString const &prefix)
