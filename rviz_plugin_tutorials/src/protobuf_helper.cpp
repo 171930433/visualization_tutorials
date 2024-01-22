@@ -27,6 +27,7 @@ void InitPersons()
   {
     size_t time_index = (current_time + i * 0.01) * 1e3;
     spPerson person = std::make_shared<demo::Person>();
+    person->set_name("1");
     auto header = person->mutable_header();
     header->set_t0(current_time + i * 0.01);
     header->set_index(i);
@@ -43,6 +44,7 @@ void InitPersons()
     // g_messages[time_index] = person;
     //
     spPerson person2 = std::make_shared<demo::Person>(*person);
+    person2->set_name("2");
 
     // 添加到cacher
     g_cacher_->push_back("/demo/trj1", header->t0(), person);

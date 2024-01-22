@@ -33,11 +33,11 @@ double DataTableWidget::getLastDataTime() const
 
 void DataTableWidget::setDataTypeName(std::string const &type_name)
 {
-  qDebug() << " headers = " << QString::fromStdString(type_name);
+  model_->Reset();
+  // qDebug() << " headers = " << QString::fromStdString(type_name);
 
   auto msg = CreateMessageByName(type_name);
-  qDebug() << " msg = " << (msg == nullptr);
-  qDebug() << " msg = " << QString::fromStdString(msg->DebugString());
+  // qDebug() << " msg = " << QString::fromStdString(msg->DebugString());
 
   QStringList headers = GetFildNames(*msg);
   qDebug() << " headers = " << headers;

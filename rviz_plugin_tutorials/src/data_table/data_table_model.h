@@ -82,6 +82,14 @@ public:
   {
   }
 
+  void Reset()
+  {
+    beginResetModel();
+    index_map_.reset();
+    headers_.clear();
+    endResetModel();
+  }
+
   // 设置数据
   void setData(const std::map<size_t, sp_cPbMsg> &newData)
   {
@@ -102,12 +110,9 @@ public:
   // 设置表头
   void setHeaders(const QStringList &headers)
   {
-    if (headers_.empty())
-    {
-      beginResetModel();
-      headers_ = headers;
-      endResetModel();
-    }
+    beginInsertColumns(QModelIndex(), columnCount(), columnCount() + headers.size() - 1);
+    headers_ = headers;
+    endInsertColumns();
   }
 
   int rowCount(const QModelIndex &parent = QModelIndex()) const override
