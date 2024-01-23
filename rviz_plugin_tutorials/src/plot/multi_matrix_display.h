@@ -20,14 +20,31 @@ namespace rviz
   class IntProperty;
   class StringProperty;
   class EnumProperty;
-  class BoolProperty;
+  // class BoolProperty;
   class GroupProperty;
   class ColorProperty;
 }
+class MatrixWidget;
 
 using MatrixXQStringProp = Eigen::Matrix<rviz::StringProperty *, Eigen::Dynamic, Eigen::Dynamic>;
 
-class MatrixWidget;
+class RectProperty : public rviz::BoolProperty
+{
+  Q_OBJECT
+
+public:
+  RectProperty(MatrixWidget *plot, Property *parent = nullptr);
+public Q_SLOTS:
+
+  void UpdateChannelCount(int const count);
+
+protected:
+  std::deque<std::shared_ptr<QCPGraph>> graphs_;
+  std::deque<std::shared_ptr<rviz::EnumProperty>> graphs_prop_;
+  MatrixWidget *plot_;
+};
+using MatrixXRectProp = Eigen::Matrix<std::shared_ptr<RectProperty>, Eigen::Dynamic, Eigen::Dynamic>;
+
 // class QCPCurve;
 
 class MultiMatrixDisplay : public DisplaySyncBase
@@ -58,7 +75,6 @@ private Q_SLOTS:
 private:
   MatrixWidget *view_ = nullptr;
 
-  MatrixXQStringProp fields_prop_;
   rviz::IntProperty *row_prop_ = nullptr;
   rviz::IntProperty *col_prop_ = nullptr;
   rviz::IntProperty *counts_prop_ = nullptr; // 通道数目
@@ -66,4 +82,5 @@ private:
 private:
   static int object_count_;
   std::deque<std::shared_ptr<rviz::EnumProperty>> data_channels_;
+  MatrixXRectProp fields_prop_;
 };

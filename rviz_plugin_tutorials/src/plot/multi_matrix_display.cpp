@@ -9,6 +9,37 @@
 #include "plot/matrix_widget.h"
 #include "protobuf_helper.h"
 
+RectProperty::RectProperty(MatrixWidget *plot, Property *parent)
+    : rviz::BoolProperty("rect", true, "sub plot", parent),
+      plot_(plot)
+{
+}
+
+void RectProperty::UpdateChannelCount(int const count)
+{
+  int const new_count = count;
+  int const old_count = graphs_prop_.size();
+
+  if (new_count < old_count) // 删除元素
+  {
+    for (int i = new_count; i < old_count; ++i)
+    {
+      this->takeChild(graphs_prop_.back().get());
+      graphs_prop_.pop_back();
+    }
+  }
+  else
+  {
+    for (int i = old_count; i < new_count; ++i)
+    {
+      QString channel_header = (graphs_prop_.size() == 0 ? QString("main_filed") : QString("field-%1").arg(graphs_prop_.size()));
+      auto field = std::make_shared<rviz::EnumProperty>(channel_header, "", "field_name", this, SLOT(UpdateChannel()));
+      // connect(field.get(), &rviz::EnumProperty::requestOptions, this, &MultiMatrixDisplay::ListCurrentChannel);
+      graphs_prop_.push_back(field);
+    }
+  }
+}
+
 int MultiMatrixDisplay::object_count_ = 0;
 QString MultiMatrixDisplay::generateName()
 {
@@ -25,7 +56,7 @@ MultiMatrixDisplay::MultiMatrixDisplay()
   //
   counts_prop_ = new rviz::IntProperty("channel counts", 0, "the number of channel counts", this, SLOT(UpdateChannelCount()));
   counts_prop_->setMin(1);
-  counts_prop_->setMax(0);
+  counts_prop_->setMax(10);
 
   // ! 需要互相访问,限制范围的set需要在row col都构造完再设置
   row_prop_ = new rviz::IntProperty("row count", 0, "row of mat graphs", this, SLOT(UpdateRow()));
@@ -105,9 +136,13 @@ void MultiMatrixDisplay::UpdateRow()
     {
       for (int j = 0; j < col; ++j)
       {
-        fields_prop_(i, j) = new rviz::StringProperty(QString("rect-%1-%2").arg(i).arg(j), "", "matrix plot field", this);
-        connect(fields_prop_(i, j), &Property::changed, [this, i, j]()
-                { this->UpdateFieldName(i, j); });
+        // 创建rect property
+        auto rect_prop = std::make_shared<RectProperty>(view_, this);
+        rect_prop->setName(QString("rect-%1-%2").arg(i).arg(j));
+        rect_prop->UpdateChannelCount(counts_prop_->getInt());
+        connect(counts_prop_, &rviz::IntProperty::changed, [this, rect_prop]()
+                { rect_prop->UpdateChannelCount(this->counts_prop_->getInt()); });
+        fields_prop_(i, j) = rect_prop;
       }
     }
   }
@@ -117,8 +152,8 @@ void MultiMatrixDisplay::UpdateRow()
     {
       for (int j = 0; j < col; ++j)
       {
-        this->takeChild(fields_prop_(i, j));
-        delete fields_prop_(i, j);
+        this->takeChild(fields_prop_(i, j).get());
+        // delete fields_prop_(i, j);
       }
     }
     fields_prop_.conservativeResize(new_row, col); // 删除操作
@@ -144,9 +179,12 @@ void MultiMatrixDisplay::UpdateCol()
     {
       for (int j = old_col; j < new_col; ++j)
       {
-        fields_prop_(i, j) = new rviz::StringProperty(QString("rect-%1-%2").arg(i).arg(j), "", "matrix plot field", this);
-        connect(fields_prop_(i, j), &Property::changed, [this, i, j]()
-                { this->UpdateFieldName(i, j); });
+        auto rect_prop = std::make_shared<RectProperty>(view_, this);
+        rect_prop->setName(QString("rect-%1-%2").arg(i).arg(j));
+        rect_prop->UpdateChannelCount(counts_prop_->getInt());
+        connect(counts_prop_, &rviz::IntProperty::changed, [this, rect_prop]()
+                { rect_prop->UpdateChannelCount(this->counts_prop_->getInt()); });
+        fields_prop_(i, j) = rect_prop;
       }
     }
   }
@@ -156,8 +194,8 @@ void MultiMatrixDisplay::UpdateCol()
     {
       for (int j = new_col; j < old_col; ++j)
       {
-        this->takeChild(fields_prop_(i, j));
-        delete fields_prop_(i, j);
+        this->takeChild(fields_prop_(i, j).get());
+        // delete fields_prop_(i, j);
       }
     }
     fields_prop_.conservativeResize(row, new_col); // 删除操作
@@ -167,12 +205,12 @@ void MultiMatrixDisplay::UpdateCol()
 
 void MultiMatrixDisplay::UpdateFieldName(int const row, int const col)
 {
-  QString const &field_name = fields_prop_(row, col)->getString();
-  if (field_name == "")
-  {
-    return;
-  }
-  view_->UpdateFieldName(row, col, field_name);
+  // QString const &field_name = fields_prop_(row, col)->getString();
+  // if (field_name == "")
+  // {
+  //   return;
+  // }
+  // view_->UpdateFieldName(row, col, field_name);
 }
 
 void MultiMatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &field_names)
@@ -186,7 +224,7 @@ void MultiMatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString co
   {
     for (int j = 0; j < field_names.cols(); ++j)
     {
-      fields_prop_(i, j)->setString(field_names(i, j));
+      // fields_prop_(i, j)->setString(field_names(i, j));
     }
   }
 }
