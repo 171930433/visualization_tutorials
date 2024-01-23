@@ -1,13 +1,13 @@
 #pragma once
+#include "cacher/cacher.h"
 #include "plot/plot_base.h"
-#include <map>
 #include <deque>
 #include <eigen3/Eigen/Dense>
+#include <map>
 
 class QWidget;
 class DisplaySyncBase;
-class MatrixWidget : public PlotBase
-{
+class MatrixWidget : public PlotBase {
   Q_OBJECT
 
 public:
@@ -18,6 +18,10 @@ public:
   void CreateGraphByFieldName(int const row, int const col, QString const &field_name);
 
   std::deque<std::shared_ptr<QCPGraph>> AddGraphInRect(int const row, int const col, int count);
+  double getLastDataTime(std::string const &channel_name) const;
+  void AddNewData(std::string const &channel_name,
+                  std::map<size_t, sp_cPbMsg> const &new_data,
+                  int const channel_index = 0); // channel_index 表示第几个通道
 
 protected:
 protected:
@@ -33,4 +37,5 @@ protected:
   void ColChanged(int const new_col);
 
 protected:
+  CacherBuffer channel_msgs_; // 所有更新的数据缓存
 };

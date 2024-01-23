@@ -17,7 +17,7 @@ QString MatrixDisplay::generateName() { return QString("MatrixDisplay-p%1").arg(
 
 MatrixDisplay::MatrixDisplay() {
   InitPersons();
-  setClassId("rviz_plugin_tutorials/MatrixDisplay");  // 和描述文件得一致
+  setClassId("rviz_plugin_tutorials/MatrixDisplay"); // 和描述文件得一致
   view_ = new MatrixWidget();
   view_->setDisplaySync(this);
 
@@ -34,9 +34,31 @@ MatrixDisplay::MatrixDisplay() {
   col_prop_->setMax(10);
 
   ++object_count_;
+  connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncInfo()));
 }
 
-void MatrixDisplay::UpdateChannelName() {}
+void MatrixDisplay::SyncInfo() {
+  // 去buffer里面查询通道更新
+  std::string channel_name = data_channel_->getStdString();
+  if (!view_ || channel_name == "") { return; }
+  // 当前时间
+  double t0 = view_->getLastDataTime(channel_name);
+  auto msgs = g_cacher_->GetProtoWithChannleName(channel_name, t0);
+  if (!msgs.empty()) {
+    view_->AddNewData(channel_name, msgs);
+    qDebug() << QString("add size =  %1").arg(msgs.size());
+  }
+
+  // 去buffer里面查询数据更新
+}
+
+void MatrixDisplay::UpdateChannelName() {
+  dataTimer_.stop();
+
+  // 需要重置所有的graph
+
+  dataTimer_.start(500);
+}
 
 std::shared_ptr<rviz::FieldListProperty> MatrixDisplay::CreateFiledProperty(int const row, int const col) {
   auto when_delete = [this](rviz::FieldListProperty *elem) {
@@ -54,9 +76,7 @@ std::shared_ptr<rviz::FieldListProperty> MatrixDisplay::CreateFiledProperty(int 
 }
 
 MatrixDisplay::~MatrixDisplay() {
-  if (initialized()) {
-    delete view_;
-  }
+  if (initialized()) { delete view_; }
   --object_count_;
 }
 
@@ -64,19 +84,16 @@ void MatrixDisplay::UpdateRow() {
   int const old_row = fields_prop_.rows();
   int const new_row = row_prop_->getInt();
   int const col = col_prop_->getInt();
-  if (col == 0) {
-    return;
-  }
+
   fields_prop_.conservativeResize(new_row, col);
 
   // 增加
-  if (old_row < new_row) {
-    for (int i = old_row; i < new_row; ++i) {
-      for (int j = 0; j < col; ++j) {
-        fields_prop_(i, j) = CreateFiledProperty(i, j);
-      }
+  for (int i = old_row; i < new_row; ++i) {
+    for (int j = 0; j < col; ++j) {
+      fields_prop_(i, j) = CreateFiledProperty(i, j);
     }
   }
+
   qDebug() << QString("col_prop_->getInt()=%1*%2").arg(new_row).arg(col_prop_->getInt());
   view_->UpdatePlotLayout(new_row, col);
 }
@@ -84,16 +101,12 @@ void MatrixDisplay::UpdateCol() {
   int const old_col = fields_prop_.cols();
   int const new_col = col_prop_->getInt();
   int const row = row_prop_->getInt();
-  if (row == 0) {
-    return;
-  }
+  if (row == 0) { return; }
   fields_prop_.conservativeResize(row, new_col);
   // 增加
-  if (old_col < new_col) {
-    for (int i = 0; i < row; ++i) {
-      for (int j = old_col; j < new_col; ++j) {
-        fields_prop_(i, j) = CreateFiledProperty(i, j);
-      }
+  for (int i = 0; i < row; ++i) {
+    for (int j = old_col; j < new_col; ++j) {
+      fields_prop_(i, j) = CreateFiledProperty(i, j);
     }
   }
 
@@ -102,10 +115,11 @@ void MatrixDisplay::UpdateCol() {
 
 void MatrixDisplay::UpdateFieldName(int const row, int const col) {
   QString const &field_name = fields_prop_(row, col)->getString();
-  if (field_name == "") {
-    return;
-  }
+  if (field_name == "") { return; }
+
+  dataTimer_.stop();
   view_->CreateGraphByFieldName(row, col, field_name);
+  dataTimer_.start(500);
 }
 
 void MatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &field_names) {
@@ -128,21 +142,12 @@ void MatrixDisplay::update(float dt, float ros_dt) {}
 
 void MatrixDisplay::load(const rviz::Config &config) {
   int row = 0;
-  if (config.mapGetInt("row count", &row)) {
-    row_prop_->setInt(row);
-  }
+  if (config.mapGetInt("row count", &row)) { row_prop_->setInt(row); }
   int col = 0;
-  if (config.mapGetInt("col count", &col)) {
-    col_prop_->setInt(col);
-  }
+  if (config.mapGetInt("col count", &col)) { col_prop_->setInt(col); }
   rviz::Display::load(config);
 }
 void MatrixDisplay::save(rviz::Config config) const { rviz::Display::save(config); }
-
-// void MatrixDisplay::AddSeries(QString const &name, QStringList const &field_names)
-// {
-//   view_->AddSeries(name, field_names);
-// }
 
 #include <pluginlib/class_list_macros.h>
 PLUGINLIB_EXPORT_CLASS(MatrixDisplay, rviz::Display)

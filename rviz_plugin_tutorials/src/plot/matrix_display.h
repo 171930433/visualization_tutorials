@@ -56,6 +56,8 @@ private Q_SLOTS:
   void UpdateFieldName(int const row, int const col);
   void UpdateRow();
   void UpdateCol();
+  void SyncInfo();
+
 
 private:
   std::shared_ptr<rviz::FieldListProperty> CreateFiledProperty(int const row, int const col);
@@ -67,6 +69,7 @@ private:
   rviz::IntProperty *row_prop_ = nullptr;
   rviz::IntProperty *col_prop_ = nullptr;
   rviz::CachedChannelProperty *data_channel_;
+  QTimer dataTimer_; // 检查是否有数据更新
 
 private:
   static int object_count_;
