@@ -34,15 +34,17 @@ class RectProperty : public rviz::BoolProperty
 
 public:
   RectProperty(MatrixWidget *plot, Property *parent = nullptr);
+  void setLayout(int const row, int const col) { row_ = row, col_ = col_; }
 public Q_SLOTS:
 
   void UpdateChannelCount(int const count);
-  void UpdateFieldNames(int const count, QStringList const& names);
+  void UpdateFieldNames(int const count, QStringList const &names);
 
 protected:
   std::deque<std::shared_ptr<QCPGraph>> graphs_;
   std::deque<std::shared_ptr<rviz::EditableEnumProperty>> graphs_prop_;
   MatrixWidget *plot_;
+  int row_, col_;
 };
 using MatrixXRectProp = Eigen::Matrix<std::shared_ptr<RectProperty>, Eigen::Dynamic, Eigen::Dynamic>;
 
@@ -75,7 +77,8 @@ private Q_SLOTS:
   void ListCurrentChannel(rviz::EditableEnumProperty *topics);
 
 private:
-   std::shared_ptr<RectProperty> CreateRectProperty(int const row, int const col);
+  std::shared_ptr<RectProperty> CreateRectProperty(int const row, int const col);
+
 private:
   MatrixWidget *view_ = nullptr;
 

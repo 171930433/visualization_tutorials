@@ -267,3 +267,18 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col)
   this->plotLayout()->simplify();
   this->replot();
 }
+
+std::deque<std::shared_ptr<QCPGraph>> MatrixWidget::AddGraphInRect(int const row, int const col, int count)
+{
+  std::deque<std::shared_ptr<QCPGraph>> result(count);
+  QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
+
+  for (int i = 0; i < count; ++i)
+  {
+    std::shared_ptr<QCPGraph> one_graph;
+    auto new_graph = CreateDefaultGraph(current_rect);
+    one_graph.reset(new_graph);
+    result[i] = one_graph;
+  }
+  return result;
+}

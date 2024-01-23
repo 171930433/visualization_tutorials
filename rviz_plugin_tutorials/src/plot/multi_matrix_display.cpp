@@ -45,7 +45,11 @@ void RectProperty::UpdateChannelCount(int const count)
     for (int i = old_count; i < new_count; ++i)
     {
       QString channel_header = (graphs_prop_.size() == 0 ? QString("main_filed") : QString("field-%1").arg(graphs_prop_.size()));
-      auto field = std::make_shared<rviz::EditableEnumProperty>(channel_header, "", "field_name", this, SLOT(UpdateChannel()));
+      auto field = std::make_shared<rviz::EditableEnumProperty>(channel_header, "", "field_name", this);
+
+      connect(field.get(), &rviz::EditableEnumProperty::changed, [this]()
+              { this->graphs_ = plot_->AddGraphInRect(row_, col_, graphs_prop_.size()); });
+
       // connect(field.get(), &rviz::EditableEnumProperty::requestOptions, this, &MultiMatrixDisplay::ListCurrentChannel);
       graphs_prop_.push_back(field);
     }
@@ -156,7 +160,7 @@ std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const r
   std::shared_ptr<RectProperty> rect_prop(new RectProperty(view_, this), when_delete);
   rect_prop->setName(QString("rect-%1-%2").arg(row).arg(col));
   rect_prop->UpdateChannelCount(counts_prop_->getInt());
-
+  rect_prop->setLayout(row, col);
   auto when_channel_count_changed = [this, rect_prop]()
   { rect_prop->UpdateChannelCount(this->counts_prop_->getInt()); };
 
