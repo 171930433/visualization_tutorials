@@ -104,7 +104,6 @@ void MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString 
 
   rect->axis(QCPAxis::atLeft)->setLabel(field_name);
   curve->setName(field_name);
-  this->rescaleAxes();
 
   qDebug() << QString("CreateGraphByFieldName end %1").arg(field_name);
   // 检查已经缓存的数据,是否需要更新
@@ -114,11 +113,14 @@ void MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString 
   for (auto const &kv : channel_msgs_.begin()->second) {
     auto const &message = *kv.second;
     double const time_index = kv.first / 1e3;
-    double const y = GetValueByHeaderName(message, curve->name()).toDouble();
+    double const y = GetValueByHeaderName(message, field_name).toDouble();
     curve->addData(time_index, y);
   }
-  qDebug() << QString("CreateGraphByFieldName fist time %1, size = %2").arg(field_name).arg(curve->interface1D()->dataCount());
+  qDebug() << QString("CreateGraphByFieldName fist time %1, size = %2")
+                  .arg(field_name)
+                  .arg(curve->interface1D()->dataCount());
 
+  this->rescaleAxes();
   this->replot();
 }
 
