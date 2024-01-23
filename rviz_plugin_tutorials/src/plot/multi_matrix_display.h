@@ -19,7 +19,7 @@ namespace rviz
 {
   class IntProperty;
   class StringProperty;
-  class EnumProperty;
+  class EditableEnumProperty;
   // class BoolProperty;
   class GroupProperty;
   class ColorProperty;
@@ -37,10 +37,11 @@ public:
 public Q_SLOTS:
 
   void UpdateChannelCount(int const count);
+  void UpdateFieldNames(int const count, QStringList const& names);
 
 protected:
   std::deque<std::shared_ptr<QCPGraph>> graphs_;
-  std::deque<std::shared_ptr<rviz::EnumProperty>> graphs_prop_;
+  std::deque<std::shared_ptr<rviz::EditableEnumProperty>> graphs_prop_;
   MatrixWidget *plot_;
 };
 using MatrixXRectProp = Eigen::Matrix<std::shared_ptr<RectProperty>, Eigen::Dynamic, Eigen::Dynamic>;
@@ -70,8 +71,11 @@ private Q_SLOTS:
   void UpdateRow();
   void UpdateCol();
   void UpdateChannelCount();
-  void ListCurrentChannel(rviz::EnumProperty *topics);
+  void UpdateChannelName(int const row);
+  void ListCurrentChannel(rviz::EditableEnumProperty *topics);
 
+private:
+   std::shared_ptr<RectProperty> CreateRectProperty(int const row, int const col);
 private:
   MatrixWidget *view_ = nullptr;
 
@@ -81,6 +85,6 @@ private:
 
 private:
   static int object_count_;
-  std::deque<std::shared_ptr<rviz::EnumProperty>> data_channels_;
+  std::deque<std::shared_ptr<rviz::EditableEnumProperty>> data_channels_;
   MatrixXRectProp fields_prop_;
 };

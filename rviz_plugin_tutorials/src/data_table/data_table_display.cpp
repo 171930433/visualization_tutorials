@@ -56,8 +56,8 @@ void DataTableDisplay::UpdateChannel()
   dataTimer_.stop();
 
   auto channel_name = data_channel_->getStdString();
-  auto channel_typename = g_cacher_->GetChannelNamesWithTypeName();
-  view_->setDataTypeName(channel_typename[channel_name]);
+  auto type_name = g_cacher_->GetTypeNameWithChannelName(channel_name);
+  view_->setDataTypeName(type_name);
 
   dataTimer_.start(500);
 }

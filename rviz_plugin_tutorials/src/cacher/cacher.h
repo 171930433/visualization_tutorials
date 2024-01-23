@@ -113,15 +113,11 @@ public:
     return result;
   }
 
-  std::map<std::string, std::string> GetChannelNamesWithTypeName()
+  std::string GetTypeNameWithChannelName(std::string const &name)
   {
     std::map<std::string, std::string> result;
     std::lock_guard<std::mutex> lock(mtx_named_buff_);
-    for (auto const &kv : named_buff_)
-    {
-      result[kv.first] = kv.second.begin()->second->GetTypeName();
-    }
-    return result;
+    return named_buff_[name].begin()->second->GetTypeName();
   }
 
 private:
