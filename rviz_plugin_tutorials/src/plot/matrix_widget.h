@@ -15,7 +15,7 @@ public:
 
   void CreatePlot(QString const &name, MatrixXQString const &field_names);
   void UpdatePlotLayout(int const row, int const col);
-  void UpdateFieldName(int const row, int const col, QString const &field_name);
+  void CreateGraphByFieldName(int const row, int const col, QString const &field_name);
 
   std::deque<std::shared_ptr<QCPGraph>> AddGraphInRect(int const row, int const col, int count);
 

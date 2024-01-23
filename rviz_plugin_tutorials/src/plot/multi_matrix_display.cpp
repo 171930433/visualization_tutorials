@@ -227,7 +227,7 @@ void MultiMatrixDisplay::UpdateFieldName(int const row, int const col)
   // {
   //   return;
   // }
-  // view_->UpdateFieldName(row, col, field_name);
+  // view_->CreateGraphByFieldName(row, col, field_name);
 }
 
 void MultiMatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &field_names)

@@ -42,7 +42,7 @@ MatrixDisplay::MatrixDisplay()
 
 void MatrixDisplay::UpdateChannelName()
 {
-  auto channel_name = data_channels_->getStdString();
+  auto channel_name = data_channel_->getStdString();
   auto type_name = g_cacher_->GetTypeNameWithChannelName(channel_name);
   auto msg = CreateMessageByName(type_name);
   auto field_names = GetFildNames(*msg);
@@ -67,7 +67,7 @@ std::shared_ptr<rviz::EditableEnumProperty> MatrixDisplay::CreateEditEnumPropert
   rviz::EditableEnumProperty *new_field = new rviz::EditableEnumProperty(QString("field-%1-%2").arg(row).arg(col), "", "matrix plot field", this);
   std::shared_ptr<rviz::EditableEnumProperty> result(new_field, when_delete);
 
-  connect(new_field.get(), &Property::changed, [this, row, col]()
+  connect(new_field, &Property::changed, [this, row, col]()
           { this->UpdateFieldName(row, col); });
 
   return result;
@@ -113,22 +113,9 @@ void MatrixDisplay::UpdateRow()
     {
       for (int j = 0; j < col; ++j)
       {
-
         fields_prop_(i, j) = CreateEditEnumProperty(i, j);
       }
     }
-  }
-  else // 删除
-  {
-    for (int i = new_row; i < old_row; ++i)
-    {
-      for (int j = 0; j < col; ++j)
-      {
-        // this->takeChild(fields_prop_(i, j));
-        // delete fields_prop_(i, j);
-      }
-    }
-    fields_prop_.conservativeResize(new_row, col); // 删除操作
   }
   qDebug() << QString("col_prop_->getInt()=%1*%2").arg(new_row).arg(col_prop_->getInt());
   view_->UpdatePlotLayout(new_row, col);
@@ -143,10 +130,10 @@ void MatrixDisplay::UpdateCol()
   {
     return;
   }
+  fields_prop_.conservativeResize(row, new_col);
   // 增加
   if (old_col < new_col)
   {
-    fields_prop_.conservativeResize(row, new_col);
     for (int i = 0; i < row; ++i)
     {
       for (int j = old_col; j < new_col; ++j)
@@ -155,18 +142,7 @@ void MatrixDisplay::UpdateCol()
       }
     }
   }
-  else // 删除
-  {
-    for (int i = 0; i < row; ++i)
-    {
-      for (int j = new_col; j < old_col; ++j)
-      {
-        // this->takeChild(fields_prop_(i, j));
-        // delete fields_prop_(i, j);
-      }
-    }
-    fields_prop_.conservativeResize(row, new_col); // 删除操作
-  }
+
   view_->UpdatePlotLayout(row, new_col);
 }
 
@@ -177,7 +153,7 @@ void MatrixDisplay::UpdateFieldName(int const row, int const col)
   {
     return;
   }
-  view_->UpdateFieldName(row, col, field_name);
+  view_->CreateGraphByFieldName(row, col, field_name);
 }
 
 void MatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &field_names)

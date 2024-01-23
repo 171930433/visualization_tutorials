@@ -102,16 +102,16 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
   {
     for (int j = 0; j < col; j++)
     {
-      UpdateFieldName(i, j, field_names(i, j));
+      CreateGraphByFieldName(i, j, field_names(i, j));
     }
   }
 
   qDebug() << QString("end filed size =%1").arg(field_names.size());
 }
 
-void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &field_name)
+void MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString const &field_name)
 {
-  // qDebug() << QString("UpdateFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);
+  qDebug() << QString("CreateGraphByFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);
   // // qDebug() << " rects_.size() = " << rects_.size() << " g_messages size = " << g_messages.size();
   // //
   // auto const &datas = g_messages;
@@ -131,19 +131,19 @@ void MatrixWidget::UpdateFieldName(int const row, int const col, QString const &
 
   // qDebug() << " time_index = size = " << time_index.size() << " y size =" << y.size();
 
-  // auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
+  auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
 
-  // QCPGraph *curve = rect->graphs()[0];
+  QCPGraph *curve = CreateDefaultGraph(rect);
 
   // curve->setData(time_index, y);
   // curve->setSelectable(QCP::stDataRange);
 
-  // rect->axis(QCPAxis::atLeft)->setLabel(field_name);
-  // curve->setName(field_name);
-  // this->rescaleAxes();
-  // this->replot();
+  rect->axis(QCPAxis::atLeft)->setLabel(field_name);
+  curve->setName(field_name);
+  this->rescaleAxes();
+  this->replot();
 
-  // qDebug() << QString("UpdateFieldName end %1, size = %2").arg(field_name).arg(n);
+  qDebug() << QString("CreateGraphByFieldName end %1, size = %2").arg(field_name).arg(0);
 }
 
 void MatrixWidget::RowChanged(int const new_row)

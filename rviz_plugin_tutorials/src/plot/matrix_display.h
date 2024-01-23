@@ -26,7 +26,7 @@ namespace rviz
   class ColorProperty;
 }
 
-using MatrixXQEEnumProp = Eigen::Matrix<rviz::EditableEnumProperty *, Eigen::Dynamic, Eigen::Dynamic>;
+using MatrixXQEEnumProp = Eigen::Matrix<std::shared_ptr<rviz::EditableEnumProperty>, Eigen::Dynamic, Eigen::Dynamic>;
 
 class MatrixWidget;
 // class QCPCurve;

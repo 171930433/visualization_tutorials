@@ -220,7 +220,7 @@ QCPAxisRect *PlotBase::CreateDefaultRect()
   //
   qDebug() << QString("CreateDefaultRect done");
   // 创建默认序列
-  auto *curve = CreateDefaultGraph(rect);
+  // auto *curve = CreateDefaultGraph(rect);
   return rect;
 }
 
