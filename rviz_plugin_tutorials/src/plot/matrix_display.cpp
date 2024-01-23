@@ -1,5 +1,6 @@
 #include <rviz/properties/int_property.h>
 #include <rviz/properties/enum_property.h>
+#include <rviz/properties/editable_enum_property.h>
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/color_property.h>
 #include <rviz/properties/string_property.h>
@@ -22,6 +23,12 @@ MatrixDisplay::MatrixDisplay()
   view_ = new MatrixWidget();
   view_->setDisplaySync(this);
 
+  //
+  data_channel_ = new rviz::EditableEnumProperty("main_channel", "", "data_channel", this);
+  connect(data_channel_, &rviz::EditableEnumProperty::changed, [this]()
+          { this->UpdateChannelName(); });
+  connect(data_channel_, &rviz::EditableEnumProperty::requestOptions, this, &MatrixDisplay::ListCurrentChannel);
+
   // ! 需要互相访问,限制范围的set需要在row col都构造完再设置
   row_prop_ = new rviz::IntProperty("row count", 0, "row of mat graphs", this, SLOT(UpdateRow()));
   col_prop_ = new rviz::IntProperty("col count", 0, "col of mat graphs", this, SLOT(UpdateCol()));
@@ -31,6 +38,52 @@ MatrixDisplay::MatrixDisplay()
   col_prop_->setMax(10);
 
   ++object_count_;
+}
+
+void MatrixDisplay::UpdateChannelName()
+{
+  auto channel_name = data_channels_->getStdString();
+  auto type_name = g_cacher_->GetTypeNameWithChannelName(channel_name);
+  auto msg = CreateMessageByName(type_name);
+  auto field_names = GetFildNames(*msg);
+
+  for (int i = 0; i < fields_prop_.size(); ++i)
+  {
+    fields_prop_.data()[i]->clearOptions();
+    fields_prop_.data()[i]->addOption("None");
+
+    for (auto const &name : field_names)
+    {
+
+      fields_prop_.data()[i]->addOption(name);
+    }
+  }
+}
+
+std::shared_ptr<rviz::EditableEnumProperty> MatrixDisplay::CreateEditEnumProperty(int const row, int const col)
+{
+  auto when_delete = [this](rviz::EditableEnumProperty *elem)
+  { this->takeChild(elem);  delete elem; };
+  rviz::EditableEnumProperty *new_field = new rviz::EditableEnumProperty(QString("field-%1-%2").arg(row).arg(col), "", "matrix plot field", this);
+  std::shared_ptr<rviz::EditableEnumProperty> result(new_field, when_delete);
+
+  connect(new_field.get(), &Property::changed, [this, row, col]()
+          { this->UpdateFieldName(row, col); });
+
+  return result;
+}
+
+void MatrixDisplay::ListCurrentChannel(rviz::EditableEnumProperty *topics)
+{
+  auto const names = g_cacher_->GetChannelNames();
+  topics->clearOptions();
+  for (auto const &name : names)
+  {
+    topics->addOptionStd(name);
+    // qDebug() << "name = " << QString::fromStdString(name);
+  }
+
+  qDebug() << QString("MatrixDisplay::ListCurrentChannel() called ,size= %1 ").arg(names.size());
 }
 
 MatrixDisplay::~MatrixDisplay()
@@ -51,18 +104,17 @@ void MatrixDisplay::UpdateRow()
   {
     return;
   }
+  fields_prop_.conservativeResize(new_row, col);
 
   // 增加
   if (old_row < new_row)
   {
-    fields_prop_.conservativeResize(new_row, col);
     for (int i = old_row; i < new_row; ++i)
     {
       for (int j = 0; j < col; ++j)
       {
-        fields_prop_(i, j) = new rviz::StringProperty(QString("field-%1-%2").arg(i).arg(j), "", "matrix plot field", this);
-        connect(fields_prop_(i, j), &Property::changed, [this, i, j]()
-                { this->UpdateFieldName(i, j); });
+
+        fields_prop_(i, j) = CreateEditEnumProperty(i, j);
       }
     }
   }
@@ -72,8 +124,8 @@ void MatrixDisplay::UpdateRow()
     {
       for (int j = 0; j < col; ++j)
       {
-        this->takeChild(fields_prop_(i, j));
-        delete fields_prop_(i, j);
+        // this->takeChild(fields_prop_(i, j));
+        // delete fields_prop_(i, j);
       }
     }
     fields_prop_.conservativeResize(new_row, col); // 删除操作
@@ -99,9 +151,7 @@ void MatrixDisplay::UpdateCol()
     {
       for (int j = old_col; j < new_col; ++j)
       {
-        fields_prop_(i, j) = new rviz::StringProperty(QString("field-%1-%2").arg(i).arg(j), "", "matrix plot field", this);
-        connect(fields_prop_(i, j), &Property::changed, [this, i, j]()
-                { this->UpdateFieldName(i, j); });
+        fields_prop_(i, j) = CreateEditEnumProperty(i, j);
       }
     }
   }
@@ -111,8 +161,8 @@ void MatrixDisplay::UpdateCol()
     {
       for (int j = new_col; j < old_col; ++j)
       {
-        this->takeChild(fields_prop_(i, j));
-        delete fields_prop_(i, j);
+        // this->takeChild(fields_prop_(i, j));
+        // delete fields_prop_(i, j);
       }
     }
     fields_prop_.conservativeResize(row, new_col); // 删除操作

@@ -20,12 +20,13 @@ namespace rviz
   class IntProperty;
   class StringProperty;
   class EnumProperty;
+  class EditableEnumProperty;
   class BoolProperty;
   class GroupProperty;
   class ColorProperty;
 }
 
-using MatrixXQStringProp = Eigen::Matrix<rviz::StringProperty *, Eigen::Dynamic, Eigen::Dynamic>;
+using MatrixXQEEnumProp = Eigen::Matrix<rviz::EditableEnumProperty *, Eigen::Dynamic, Eigen::Dynamic>;
 
 class MatrixWidget;
 // class QCPCurve;
@@ -36,7 +37,7 @@ class MatrixDisplay : public DisplaySyncBase
 public:
   MatrixDisplay();
   ~MatrixDisplay() override;
-  static QString generateName();  // 防止用户重建时名称重复
+  static QString generateName(); // 防止用户重建时名称重复
 
 public:
   // void AddSeries(QString const &name, QStringList const &field_names);
@@ -49,16 +50,23 @@ public:
   void update(float dt, float ros_dt) override;
 
 private Q_SLOTS:
+  void UpdateChannelName();
   void UpdateFieldName(int const row, int const col);
   void UpdateRow();
   void UpdateCol();
+  void ListCurrentChannel(rviz::EditableEnumProperty *topics);
+
+private:
+  std::shared_ptr<rviz::EditableEnumProperty> CreateEditEnumProperty(int const row, int const col);
 
 private:
   MatrixWidget *view_ = nullptr;
 
-  MatrixXQStringProp fields_prop_;
+  MatrixXQEEnumProp fields_prop_;
   rviz::IntProperty *row_prop_ = nullptr;
   rviz::IntProperty *col_prop_ = nullptr;
+  rviz::EditableEnumProperty *data_channel_;
+
 private:
   static int object_count_;
 };
