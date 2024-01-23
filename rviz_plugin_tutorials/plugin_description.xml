@@ -51,6 +51,13 @@
     </description>
   </class>
   <!--  -->
+  <class name="rviz_plugin_tutorials/MultiMatrixDisplay"
+         type="MultiMatrixDisplay"
+         base_class_type="rviz::Display">
+    <description>
+      MultiMatrixDisplay .
+    </description>
+  </class>
   <!--  -->
   <class name="rviz_plugin_tutorials/DataTableDisplay"
          type="DataTableDisplay"
