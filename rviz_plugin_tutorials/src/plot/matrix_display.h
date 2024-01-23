@@ -21,12 +21,14 @@ namespace rviz
   class StringProperty;
   class EnumProperty;
   class EditableEnumProperty;
+  class CachedChannelProperty;
+  class FieldListProperty;
   class BoolProperty;
   class GroupProperty;
   class ColorProperty;
 }
 
-using MatrixXQEEnumProp = Eigen::Matrix<std::shared_ptr<rviz::EditableEnumProperty>, Eigen::Dynamic, Eigen::Dynamic>;
+using MatrixXQEEnumProp = Eigen::Matrix<std::shared_ptr<rviz::FieldListProperty>, Eigen::Dynamic, Eigen::Dynamic>;
 
 class MatrixWidget;
 // class QCPCurve;
@@ -54,10 +56,9 @@ private Q_SLOTS:
   void UpdateFieldName(int const row, int const col);
   void UpdateRow();
   void UpdateCol();
-  void ListCurrentChannel(rviz::EditableEnumProperty *topics);
 
 private:
-  std::shared_ptr<rviz::EditableEnumProperty> CreateEditEnumProperty(int const row, int const col);
+  std::shared_ptr<rviz::FieldListProperty> CreateFiledProperty(int const row, int const col);
 
 private:
   MatrixWidget *view_ = nullptr;
@@ -65,7 +66,7 @@ private:
   MatrixXQEEnumProp fields_prop_;
   rviz::IntProperty *row_prop_ = nullptr;
   rviz::IntProperty *col_prop_ = nullptr;
-  rviz::EditableEnumProperty *data_channel_;
+  rviz::CachedChannelProperty *data_channel_;
 
 private:
   static int object_count_;

@@ -85,6 +85,7 @@ set(SRC_FILES
   ${PROTO_SRCS} ${PROTO_HDRS}
   # properties
   src/properties/longitude_latitude_property.cpp
+  src/properties/cached_channel_property.cpp
   # 
   ${RESOURCE_FILES}
 )
