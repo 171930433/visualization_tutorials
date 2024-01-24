@@ -158,7 +158,10 @@ std::shared_ptr<QCPGraph> PlotBase::CreateDefaultGraph(QCPAxisRect *rect) {
                              QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
 
   // 需要考虑资源回收
-  auto when_delete = [this](QCPGraph *elem) { this->removeGraph(elem); };
+  auto when_delete = [this](QCPGraph *elem) {
+    this->removeGraph(elem);
+    // qDebug() << QString("name = %1, deleted").arg(elem->name());
+  };
   std::shared_ptr<QCPGraph> result(curve, when_delete);
 
   return result;

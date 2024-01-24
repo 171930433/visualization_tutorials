@@ -105,7 +105,7 @@ void MatrixDisplay::UpdateRow() {
     }
   }
 
-  qDebug() << QString("col_prop_->getInt()=%1*%2").arg(new_row).arg(col_prop_->getInt());
+  qDebug() << QString("col_prop_->getInt()=%1*%2").arg(new_row).arg(col);
   view_->UpdatePlotLayout(new_row, col);
 }
 void MatrixDisplay::UpdateCol() {
@@ -126,10 +126,18 @@ void MatrixDisplay::UpdateCol() {
 
 void MatrixDisplay::UpdateFieldName(int const row, int const col) {
   QString const &field_name = fields_prop_(row, col)->getString();
-  if (field_name == "") { return; }
+  qDebug() << QString("UpdateFieldName = %1").arg(field_name);
+
+  if (!fields_prop_(row, col)) { return; }
 
   dataTimer_.stop();
-  fields_prop_(row, col)->graph_ = view_->CreateGraphByFieldName(row, col, field_name);
+  if (!field_name.isEmpty()) {
+    fields_prop_(row, col)->graph_ = view_->CreateGraphByFieldName(row, col, field_name);
+  } else {
+    fields_prop_(row, col)->graph_ = nullptr;
+  }
+  view_->replot();
+
   dataTimer_.start(500);
 }
 

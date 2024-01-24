@@ -122,7 +122,7 @@ MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString const
                   .arg(curve->interface1D()->dataCount());
 
   this->rescaleAxes();
-  this->replot();
+  // this->replot();
 
   return curve;
 }
