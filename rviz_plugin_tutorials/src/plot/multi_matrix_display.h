@@ -1,8 +1,9 @@
 #pragma once
 
+#include "properties/cached_channel_property.h"
+#include <rviz/display.h>
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/int_property.h>
-#include <rviz/display.h>
 
 #include "display_sync_base.h"
 #include "trajectory_widget.h"
@@ -29,7 +30,7 @@ public:
   void setLayout(int const row, int const col) { row_ = row, col_ = col_; }
 public Q_SLOTS:
 
-  void UpdateChannelCount(std::deque<std::shared_ptr<rviz::CachedChannelProperty>> const &channels);
+  void UpdateChannelCount(rviz::MatrixXChannel const &channels);
   void UpdateFieldNames(int const count, QStringList const &names);
 
 protected:
@@ -64,7 +65,6 @@ private Q_SLOTS:
   void UpdateRow();
   void UpdateCol();
   void UpdateChannelCount();
-  void UpdateChannelName(int const row);
 
 private:
   std::shared_ptr<RectProperty> CreateRectProperty(int const row, int const col);
@@ -78,7 +78,9 @@ private:
 
 private:
   static int object_count_;
-  std::deque<std::shared_ptr<rviz::CachedChannelProperty>> data_channels_;
+  // std::deque<std::shared_ptr<rviz::CachedChannelProperty>> data_channels_;
+
+  rviz::MatrixXChannel data_channels_;
   MatrixXRectProp fields_prop_;
   friend RectProperty;
 };

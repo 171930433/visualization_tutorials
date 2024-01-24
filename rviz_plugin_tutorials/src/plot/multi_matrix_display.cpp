@@ -23,7 +23,7 @@ void RectProperty::UpdateFieldNames(int const count, QStringList const &names) {
   }
 }
 
-void RectProperty::UpdateChannelCount(std::deque<std::shared_ptr<rviz::CachedChannelProperty>> const &channels) {
+void RectProperty::UpdateChannelCount(rviz::MatrixXChannel const &channels) {
   int const new_count = channels.size();
   int const old_count = graphs_prop_.size();
 
@@ -38,10 +38,7 @@ void RectProperty::UpdateChannelCount(std::deque<std::shared_ptr<rviz::CachedCha
       QString channel_header =
           (graphs_prop_.size() == 0 ? QString("main_filed") : QString("field-%1").arg(graphs_prop_.size()));
       auto field = std::make_shared<rviz::FieldListProperty>(channel_header, "", "field_name", this);
-
-      // connect(field.get(), &rviz::EditableEnumProperty::changed, [this]()
-      //         { this->graphs_ = plot_->AddGraphInRect(row_, col_, graphs_prop_.size()); });
-
+      field->setChannelProperty(channels(i, 0).get());
       graphs_prop_.push_back(field);
     }
   }
@@ -82,35 +79,24 @@ MultiMatrixDisplay::~MultiMatrixDisplay() {
   --object_count_;
 }
 
-void MultiMatrixDisplay::UpdateChannelName(int const row) {
-  auto channel_name = data_channels_[row]->getStdString();
-  auto type_name = g_cacher_->GetTypeNameWithChannelName(channel_name);
-  auto msg = CreateMessageByName(type_name);
-  auto field_names = GetFildNames(*msg);
-
-  for (int i = 0; i < fields_prop_.size(); ++i) {
-    fields_prop_.data()[i]->UpdateFieldNames(row, field_names);
-  }
-}
-
 void MultiMatrixDisplay::UpdateChannelCount() {
   int const new_count = counts_prop_->getInt();
   int const old_count = data_channels_.size();
 
-  if (new_count < old_count) // 删除元素
-  {
-    for (int i = new_count; i < old_count; ++i) {
-      this->takeChild(data_channels_.back().get());
-      data_channels_.pop_back();
-    }
-  } else {
-    for (int i = old_count; i < new_count; ++i) {
-      QString channel_header = (data_channels_.size() == 0 ? QString("main_channel")
-                                                           : QString("data_channel-%1").arg(data_channels_.size()));
-      auto single_changel =
-          std::make_shared<rviz::CachedChannelProperty>(channel_header, "", "data_channel", counts_prop_);
-      data_channels_.push_back(single_changel);
-    }
+  data_channels_.conservativeResize(new_count, 1);
+  auto when_delete = [this](rviz::CachedChannelProperty *elem) {
+    this->takeChild(elem);
+    delete elem;
+  };
+
+  // 新增加元素
+  for (int i = old_count; i < new_count; ++i) {
+    QString channel_header =
+        (data_channels_.size() == 0 ? QString("main_channel") : QString("data_channel-%1").arg(data_channels_.size()));
+
+    auto single_changel = new rviz::CachedChannelProperty(channel_header, "", "data_channel", counts_prop_);
+    std::shared_ptr<rviz::CachedChannelProperty> new_single_changel(single_changel, when_delete);
+    data_channels_(i, 0) = new_single_changel;
   }
 }
 
