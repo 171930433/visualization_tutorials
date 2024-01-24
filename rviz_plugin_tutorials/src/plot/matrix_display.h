@@ -1,18 +1,14 @@
 #pragma once
 
-// #include <rviz/properties/color_property.h>
-// #include <rviz/properties/float_property.h>
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/int_property.h>
-
-// #include <rviz/properties/vector_property.h>
-// #include <rviz/properties/enum_property.h>
-// #include <rviz/properties/tf_frame_property.h>
 #include <rviz/display.h>
 
 #include "display_sync_base.h"
 #include <deque>
 #include <eigen3/Eigen/Dense>
+#include "properties/sub_plot_property.h"
+
 
 namespace rviz {
 class IntProperty;
@@ -56,13 +52,13 @@ private Q_SLOTS:
   void SyncInfo();
 
 private:
-  std::shared_ptr<SubGraphPlot> CreateSubGraphPlot(int const row, int const col);
+  std::shared_ptr<rviz::SubGraphProperty> CreateSubGraphPlot(int const row, int const col);
 
 private:
   MatrixWidget *view_ = nullptr;
 
   // MatrixXFieldList fields_prop_;
-  MatrixXSubGraph fields_prop_;
+  rviz::MatrixXSubGraph fields_prop_;
   rviz::IntProperty *row_prop_ = nullptr;
   rviz::IntProperty *col_prop_ = nullptr;
   rviz::CachedChannelProperty *data_channel_;

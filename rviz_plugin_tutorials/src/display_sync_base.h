@@ -7,8 +7,6 @@
 
 #include "cacher/cacher.h"
 
-using MatrixXSubGraph = Eigen::Matrix<std::shared_ptr<SubGraphPlot>, Eigen::Dynamic, Eigen::Dynamic>;
-
 class ITimeSync;
 
 class DisplaySyncBase : public rviz::Display

@@ -86,6 +86,7 @@ set(SRC_FILES
   # properties
   src/properties/longitude_latitude_property.cpp
   src/properties/cached_channel_property.cpp
+  src/properties/sub_plot_property.cpp
   # 
   ${RESOURCE_FILES}
 )

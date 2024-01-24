@@ -9,8 +9,8 @@
 #include <rviz/visualization_manager.h>
 
 #include "plot/matrix_widget.h"
-#include "protobuf_helper.h"
 #include "properties/cached_channel_property.h"
+#include "protobuf_helper.h"
 
 int MatrixDisplay::object_count_ = 0;
 QString MatrixDisplay::generateName() { return QString("MatrixDisplay-p%1").arg(object_count_); }
@@ -62,23 +62,17 @@ void MatrixDisplay::UpdateChannelName() {
   dataTimer_.start(500);
 }
 
-std::shared_ptr<SubGraphPlot> MatrixDisplay::CreateSubGraphPlot(int const row, int const col) {
-  auto when_delete = [this](rviz::FieldListProperty *elem) {
+std::shared_ptr<rviz::SubGraphProperty> MatrixDisplay::CreateSubGraphPlot(int const row, int const col) {
+  auto when_delete = [this](rviz::SubGraphProperty *elem) {
     this->takeChild(elem);
     delete elem;
   };
   //
-  auto result = std::make_shared<SubGraphPlot>();
-  //
-  auto *new_field =
-      new rviz::FieldListProperty(QString("field-%1-%2").arg(row).arg(col), "", "matrix plot field", this);
+  auto *new_field = new rviz::SubGraphProperty(QString("field-%1-%2").arg(row).arg(col), "", "matrix plot field", this);
   new_field->setChannelProperty(data_channel_);
-  std::shared_ptr<rviz::FieldListProperty> new_field_prop(new_field, when_delete);
-
+  std::shared_ptr<rviz::SubGraphProperty> result(new_field, when_delete);
   connect(new_field, &Property::changed, [this, row, col]() { this->UpdateFieldName(row, col); });
   //
-  result->field_prop_ = new_field_prop;
-
   qDebug() << QString("created row=%1,col=%2").arg(row).arg(col);
   return result;
 }
@@ -129,9 +123,9 @@ void MatrixDisplay::UpdateFieldName(int const row, int const col) {
 
   dataTimer_.stop();
   if (!field_name.isEmpty()) {
-    fields_prop_(row, col)->graph_ = view_->CreateGraphByFieldName(row, col, field_name);
+    fields_prop_(row, col)->graph() = view_->CreateGraphByFieldName(row, col, field_name);
   } else {
-    fields_prop_(row, col)->graph_ = nullptr;
+    fields_prop_(row, col)->graph().reset();
   }
   view_->replot();
 

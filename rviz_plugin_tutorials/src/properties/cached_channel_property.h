@@ -28,7 +28,7 @@ public:
                     QObject *receiver = nullptr);
   void setChannelProperty(CachedChannelProperty *channel);
   QString getChannelName() const;
-private Q_SLOTS:
+protected Q_SLOTS:
   void ListFieldNames(); // 列举当前通道的类型的所有字段名称
 protected:
   CachedChannelProperty *channel_;
