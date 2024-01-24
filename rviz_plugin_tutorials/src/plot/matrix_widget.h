@@ -7,6 +7,8 @@
 
 class QWidget;
 class DisplaySyncBase;
+using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
+
 class MatrixWidget : public PlotBase {
   Q_OBJECT
 

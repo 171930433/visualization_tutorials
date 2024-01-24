@@ -26,6 +26,7 @@ class ColorProperty;
 } // namespace rviz
 class MatrixWidget;
 
+using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
 using MatrixXQStringProp = Eigen::Matrix<rviz::StringProperty *, Eigen::Dynamic, Eigen::Dynamic>;
 
 class RectProperty : public rviz::BoolProperty {

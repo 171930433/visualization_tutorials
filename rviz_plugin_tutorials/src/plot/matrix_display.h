@@ -28,6 +28,7 @@ class ColorProperty;
 
 class MatrixWidget;
 class SubGraphPlot;
+using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
 
 
 class MatrixDisplay : public DisplaySyncBase {

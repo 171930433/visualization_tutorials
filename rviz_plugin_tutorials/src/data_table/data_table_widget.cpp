@@ -9,6 +9,7 @@
 
 #include <QStyledItemDelegate>
 #include <QString>
+using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
 
 class DoublePrecisionDelegate : public QStyledItemDelegate
 {
