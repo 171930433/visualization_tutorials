@@ -11,37 +11,62 @@
 #include "properties/cached_channel_property.h"
 #include "protobuf_helper.h"
 
-RectProperty::RectProperty(MatrixWidget *plot, Property *parent)
-    : rviz::BoolProperty("rect", true, "sub plot", parent), plot_(plot) {}
+RectProperty::RectProperty(MatrixWidget *plot, MultiMatrixDisplay *parent)
+    : rviz::BoolProperty("rect", true, "sub plot", parent), plot_(plot) {
+  connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncInfo()));
+}
 
-void RectProperty::UpdateFieldNames(int const count, QStringList const &names) {
-  graphs_prop_[count]->clearOptions();
-  graphs_prop_[count]->addOption("None");
+void RectProperty::SyncInfo() {
+  // 去buffer里面查询通道更新
+  // std::string channel_name = data_channel_->getStdString();
+  // if (!view_ || channel_name == "") { return; }
+  // // 当前时间
+  // double t0 = view_->getLastDataTime(channel_name);
+  // auto msgs = g_cacher_->GetProtoWithChannleName(channel_name, t0);
+  // if (!msgs.empty()) {
+  //   view_->AddNewData(channel_name, msgs);
+  //   view_->rescaleAxes(); //! 此处目前必
+  //   view_->replot();
+  //   // qDebug() << QString("add size =  %1").arg(msgs.size());
+  // }
 
-  for (auto const &name : names) {
-    graphs_prop_[count]->addOption(name);
+  // 去buffer里面查询数据更新
+}
+
+void RectProperty::UpdateChannelCount() {
+  int const new_count = channels_->size();
+  int const old_count = graphs_.size();
+
+  auto when_delete = [this](rviz::SubGraphProperty *elem) {
+    this->takeChild(elem);
+    delete elem;
+  };
+
+  graphs_.conservativeResize(new_count, 1);
+  for (int i = old_count; i < new_count; ++i) {
+    QString channel_header = (graphs_.size() == 0 ? QString("main_filed") : QString("field-%1").arg(graphs_.size()));
+    auto field = new rviz::SubGraphProperty(channel_header, "", "field_name", this);
+    // field->setChannelProperty((*channels_)(i, 0).get());
+    field->setChannelProperty(channels_->operator()(i, 0).get());
+    std::shared_ptr<rviz::SubGraphProperty> result(field, when_delete);
+    connect(field, &rviz::Property::changed, [this, result]() { this->UpdateFieldName(result); });
+    graphs_(i, 0) = result;
   }
 }
 
-void RectProperty::UpdateChannelCount(rviz::MatrixXChannel const &channels) {
-  int const new_count = channels.size();
-  int const old_count = graphs_prop_.size();
+void RectProperty::UpdateFieldName(std::shared_ptr<rviz::SubGraphProperty> sub_graph) {
+  QString const &field_name = sub_graph->getString();
+  qDebug() << QString("UpdateFieldName = %1").arg(field_name);
 
-  if (new_count < old_count) // 删除元素
-  {
-    for (int i = new_count; i < old_count; ++i) {
-      this->takeChild(graphs_prop_.back().get());
-      graphs_prop_.pop_back();
-    }
+  dataTimer_.stop();
+  if (!field_name.isEmpty()) {
+    sub_graph->graph() = plot_->CreateGraphByFieldName(row_, col_, field_name);
   } else {
-    for (int i = old_count; i < new_count; ++i) {
-      QString channel_header =
-          (graphs_prop_.size() == 0 ? QString("main_filed") : QString("field-%1").arg(graphs_prop_.size()));
-      auto field = std::make_shared<rviz::FieldListProperty>(channel_header, "", "field_name", this);
-      field->setChannelProperty(channels(i, 0).get());
-      graphs_prop_.push_back(field);
-    }
+    sub_graph->graph().reset();
   }
+  plot_->replot();
+
+  dataTimer_.start(500);
 }
 
 int MultiMatrixDisplay::object_count_ = 0;
@@ -108,9 +133,9 @@ std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const r
 
   std::shared_ptr<RectProperty> rect_prop(new RectProperty(view_, this), when_delete);
   rect_prop->setName(QString("rect-%1-%2").arg(row).arg(col));
-  rect_prop->UpdateChannelCount(data_channels_);
+  rect_prop->UpdateChannelCount();
   rect_prop->setLayout(row, col);
-  auto when_channel_count_changed = [this, rect_prop]() { rect_prop->UpdateChannelCount(this->data_channels_); };
+  auto when_channel_count_changed = [this, rect_prop]() { rect_prop->UpdateChannelCount(); };
 
   connect(counts_prop_, &rviz::IntProperty::changed, when_channel_count_changed);
   return rect_prop;
@@ -124,11 +149,9 @@ void MultiMatrixDisplay::UpdateRow() {
 
   fields_prop_.conservativeResize(new_row, col);
   // 增加
-  if (old_row < new_row) {
-    for (int i = old_row; i < new_row; ++i) {
-      for (int j = 0; j < col; ++j) {
-        fields_prop_(i, j) = CreateRectProperty(i, j);
-      }
+  for (int i = old_row; i < new_row; ++i) {
+    for (int j = 0; j < col; ++j) {
+      fields_prop_(i, j) = CreateRectProperty(i, j);
     }
   }
 
@@ -142,24 +165,13 @@ void MultiMatrixDisplay::UpdateCol() {
   if (row == 0) { return; }
   fields_prop_.conservativeResize(row, new_col);
   // 增加
-  if (old_col < new_col) {
-    for (int i = 0; i < row; ++i) {
-      for (int j = old_col; j < new_col; ++j) {
-        fields_prop_(i, j) = CreateRectProperty(i, j);
-      }
+  for (int i = 0; i < row; ++i) {
+    for (int j = old_col; j < new_col; ++j) {
+      fields_prop_(i, j) = CreateRectProperty(i, j);
     }
   }
 
   view_->UpdatePlotLayout(row, new_col);
-}
-
-void MultiMatrixDisplay::UpdateFieldName(int const row, int const col) {
-  // QString const &field_name = fields_prop_(row, col)->getString();
-  // if (field_name == "")
-  // {
-  //   return;
-  // }
-  // view_->CreateGraphByFieldName(row, col, field_name);
 }
 
 void MultiMatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &field_names) {

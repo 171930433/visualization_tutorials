@@ -254,11 +254,15 @@ void MatrixWidget::AddNewData(std::string const &channel_name,
     for (QCPAxisRect *rect : axisRects()) {
       auto all_graphs = rect->graphs();
       if (all_graphs.empty()) { continue; } // 尚未添加任何字段
-      QCPGraph *single_graph = all_graphs[channel_index];
-      double const y = GetValueByHeaderName(message, single_graph->name()).toDouble();
-      single_graph->addData(time_index, y);
+      for (QCPGraph *single_graph : all_graphs) {
+        double const y = GetValueByHeaderName(message, single_graph->name()).toDouble();
+        single_graph->addData(time_index, y);
+      }
     }
   }
-  channel_msgs_[channel_name].insert(new_data.begin(), new_data.end());
+  if (new_data.size()) {
+    channel_msgs_[channel_name].insert(new_data.begin(), new_data.end());
+    this->rescaleAxes();
+  }
   qDebug() << QString("MatrixWidget::AddNewData added %1 points").arg(new_data.size());
 }

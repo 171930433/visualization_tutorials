@@ -23,7 +23,6 @@ class ColorProperty;
 } // namespace rviz
 
 class MatrixWidget;
-class SubGraphPlot;
 using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
 
 

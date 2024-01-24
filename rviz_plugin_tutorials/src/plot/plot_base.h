@@ -4,23 +4,6 @@
 #include <eigen3/Eigen/Dense>
 #include <map>
 
-namespace rviz {
-class CachedChannelProperty;
-class FieldListProperty;
-} // namespace rviz
-
-class SubGraphPlot {
-public:
-  SubGraphPlot();
-  ~SubGraphPlot();
-  QString getString();
-  void setString(QString const &str);
-
-public:
-  std::shared_ptr<rviz::FieldListProperty> field_prop_ = nullptr;
-  std::shared_ptr<QCPGraph> graph_ = nullptr;
-};
-
 class PlotBase : public QCustomPlot, public ITimeSync {
   Q_OBJECT
 public:

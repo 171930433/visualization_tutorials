@@ -1,6 +1,7 @@
 #pragma once
 
 #include "properties/cached_channel_property.h"
+#include "properties/sub_plot_property.h"
 #include <rviz/display.h>
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/int_property.h>
@@ -13,12 +14,11 @@
 namespace rviz {
 class IntProperty;
 class StringProperty;
-class EditableEnumProperty;
-class CachedChannelProperty;
 class GroupProperty;
 class ColorProperty;
 } // namespace rviz
 class MatrixWidget;
+class MatrixXChannel;
 
 using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
 
@@ -26,17 +26,20 @@ class RectProperty : public rviz::BoolProperty {
   Q_OBJECT
 
 public:
-  RectProperty(MatrixWidget *plot, Property *parent = nullptr);
+  RectProperty(MatrixWidget *plot, MultiMatrixDisplay *parent);
   void setLayout(int const row, int const col) { row_ = row, col_ = col_; }
 public Q_SLOTS:
+  void UpdateChannelCount();
+  void UpdateFieldName(std::shared_ptr<rviz::SubGraphProperty> sub_graph);
+  void SyncInfo();
 
-  void UpdateChannelCount(rviz::MatrixXChannel const &channels);
-  void UpdateFieldNames(int const count, QStringList const &names);
 
 protected:
-  std::deque<std::shared_ptr<QCPGraph>> graphs_;
-  std::deque<std::shared_ptr<rviz::FieldListProperty>> graphs_prop_;
+  rviz::MatrixXSubGraph graphs_;
+  QTimer dataTimer_; // 检查是否有数据更新
+
   MatrixWidget *plot_;
+  rviz::MatrixXChannel* channels_;
   int row_, col_;
 };
 using MatrixXRectProp = Eigen::Matrix<std::shared_ptr<RectProperty>, Eigen::Dynamic, Eigen::Dynamic>;
@@ -61,7 +64,6 @@ public:
   void update(float dt, float ros_dt) override;
 
 private Q_SLOTS:
-  void UpdateFieldName(int const row, int const col);
   void UpdateRow();
   void UpdateCol();
   void UpdateChannelCount();
