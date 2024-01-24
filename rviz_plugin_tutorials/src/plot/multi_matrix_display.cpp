@@ -105,11 +105,12 @@ std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const r
     delete elem;
   };
 
-  std::shared_ptr<RectProperty> rect_prop(new RectProperty(view_, this), when_delete);
+  RectProperty *new_rect = new RectProperty(view_, this);
+  std::shared_ptr<RectProperty> rect_prop(new_rect, when_delete);
   rect_prop->setName(QString("rect-%1-%2").arg(row).arg(col));
   rect_prop->setLayout(row, col);
   rect_prop->UpdateChannelCount();
-  auto when_channel_count_changed = [this, rect_prop]() { rect_prop->UpdateChannelCount(); };
+  auto when_channel_count_changed = [this, new_rect]() { new_rect->UpdateChannelCount(); };
 
   connect(counts_prop_, &rviz::IntProperty::changed, when_channel_count_changed);
   return rect_prop;

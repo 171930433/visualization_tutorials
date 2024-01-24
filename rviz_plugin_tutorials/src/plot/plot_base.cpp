@@ -17,18 +17,18 @@ void FocusByIndex(QCPAbstractPlottable *single_graph, int const dataIndex) {
 }
 
 void SelectByT0(QCPAbstractPlottable *single_graph, double const t0) {
-  auto const dataIndex = single_graph->interface1D()->findBegin(t0, true);
+  auto const dataIndex = single_graph->interface1D()->findBegin(t0, false);
   // 选中点
-  QCPDataRange index_range{dataIndex, dataIndex + 1};
+  QCPDataRange index_range{dataIndex, dataIndex};
   single_graph->setSelection(QCPDataSelection{index_range});
 }
 
 // 选中区间
 void SelectByT0sT0e(QCPAbstractPlottable *single_graph, double const t0_s, double const t0_e) {
-  auto const dataIndex_s = single_graph->interface1D()->findBegin(t0_s, true);
-  auto const dataIndex_e = single_graph->interface1D()->findBegin(t0_e, true);
+  auto const dataIndex_s = single_graph->interface1D()->findBegin(t0_s, false);
+  auto const dataIndex_e = single_graph->interface1D()->findBegin(t0_e, false);
   // 选中点
-  QCPDataRange index_range{dataIndex_s, dataIndex_e + 1};
+  QCPDataRange index_range{dataIndex_s, dataIndex_e};
   single_graph->setSelection(QCPDataSelection{index_range});
 }
 
@@ -117,9 +117,9 @@ void PlotBase::onSelectionChangedByUser() {
 
   for (auto *single_rect : this->axisRects()) {
     for (auto *single_plotable : single_rect->plottables()) {
-      if (index_range.size() == 1) {
+      if (index_range.isEmpty()) {
         SelectByT0(single_plotable, t0_s);
-      } else if (index_range.size() > 1) {
+      } else if (index_range.size() >= 1) {
         SelectByT0sT0e(single_plotable, t0_s, t0_e);
       }
     }
