@@ -51,8 +51,9 @@ void MatrixDisplay::SyncInfo() {
   auto msgs = g_cacher_->GetProtoWithChannleName(channel_name, t0);
   if (!msgs.empty()) {
     view_->AddNewData(channel_name, msgs);
-    qDebug() << QString("add size =  %1").arg(msgs.size());
-    view_->replot();
+    view_->rescaleAxes();   //! 此处目前必
+    view_->replot();    
+    // qDebug() << QString("add size =  %1").arg(msgs.size());
   }
 
   // 去buffer里面查询数据更新
@@ -160,6 +161,8 @@ void MatrixDisplay::onInitialize() { setAssociatedWidget(view_); }
 void MatrixDisplay::update(float dt, float ros_dt) {}
 
 void MatrixDisplay::load(const rviz::Config &config) {
+  QString channel_name;
+  if (config.mapGetString("main_channel", &channel_name)) { data_channel_->setString(channel_name); }
   int row = 0;
   if (config.mapGetInt("row count", &row)) { row_prop_->setInt(row); }
   int col = 0;
