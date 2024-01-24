@@ -17,9 +17,9 @@ public:
 
   void CreatePlot(QString const &name, MatrixXQString const &field_names);
   void UpdatePlotLayout(int const row, int const col);
-  std::shared_ptr<QCPGraph> CreateGraphByFieldName(int const row, int const col, QString const &field_name);
+  std::shared_ptr<QCPGraph>
+  CreateGraphByFieldName(int const row, int const col, QString const &channel_name, QString const &field_name);
 
-  std::deque<std::shared_ptr<QCPGraph>> AddGraphInRect(int const row, int const col, int count);
   double getLastDataTime(std::string const &channel_name) const;
   void AddNewData(std::string const &channel_name,
                   std::map<size_t, sp_cPbMsg> const &new_data,

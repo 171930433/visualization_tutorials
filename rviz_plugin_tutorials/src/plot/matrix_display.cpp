@@ -22,7 +22,7 @@ MatrixDisplay::MatrixDisplay() {
   view_->setDisplaySync(this);
 
   //
-  data_channel_ = new rviz::CachedChannelProperty("main_channel", "", "data_channel", this);
+  data_channel_ = new rviz::CachedChannelProperty("channel_name", "", "data_channel", this);
   connect(data_channel_, &rviz::CachedChannelProperty::changed, [this]() { this->UpdateChannelName(); });
 
   // ! 需要互相访问,限制范围的set需要在row col都构造完再设置
@@ -117,13 +117,14 @@ void MatrixDisplay::UpdateCol() {
 
 void MatrixDisplay::UpdateFieldName(int const row, int const col) {
   QString const &field_name = fields_prop_(row, col)->getString();
+  QString const &channel_name = fields_prop_(row, col)->getChannelName();
   qDebug() << QString("UpdateFieldName = %1").arg(field_name);
 
   if (!fields_prop_(row, col)) { return; }
 
   dataTimer_.stop();
   if (!field_name.isEmpty()) {
-    fields_prop_(row, col)->graph() = view_->CreateGraphByFieldName(row, col, field_name);
+    fields_prop_(row, col)->graph() = view_->CreateGraphByFieldName(row, col, channel_name, field_name);
   } else {
     fields_prop_(row, col)->graph().reset();
   }

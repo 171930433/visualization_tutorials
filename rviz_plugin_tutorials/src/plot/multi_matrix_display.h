@@ -19,6 +19,7 @@ class ColorProperty;
 } // namespace rviz
 class MatrixWidget;
 class MatrixXChannel;
+class MultiMatrixDisplay;
 
 using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
 
@@ -27,19 +28,14 @@ class RectProperty : public rviz::BoolProperty {
 
 public:
   RectProperty(MatrixWidget *plot, MultiMatrixDisplay *parent);
-  void setLayout(int const row, int const col) { row_ = row, col_ = col_; }
+  void setLayout(int const row, int const col) { row_ = row, col_ = col; }
 public Q_SLOTS:
   void UpdateChannelCount();
-  void UpdateFieldName(std::shared_ptr<rviz::SubGraphProperty> sub_graph);
-  void SyncInfo();
-
 
 protected:
   rviz::MatrixXSubGraph graphs_;
-  QTimer dataTimer_; // 检查是否有数据更新
-
+  MultiMatrixDisplay *parent_;
   MatrixWidget *plot_;
-  rviz::MatrixXChannel* channels_;
   int row_, col_;
 };
 using MatrixXRectProp = Eigen::Matrix<std::shared_ptr<RectProperty>, Eigen::Dynamic, Eigen::Dynamic>;
@@ -67,12 +63,17 @@ private Q_SLOTS:
   void UpdateRow();
   void UpdateCol();
   void UpdateChannelCount();
+  void SyncInfo();
+public Q_SLOTS:
+
+  void UpdateFieldName(rviz::SubGraphProperty *sub_graph, int const row, int const col);
 
 private:
   std::shared_ptr<RectProperty> CreateRectProperty(int const row, int const col);
 
 private:
   MatrixWidget *view_ = nullptr;
+  QTimer dataTimer_; // 检查是否有数据更新
 
   rviz::IntProperty *row_prop_ = nullptr;
   rviz::IntProperty *col_prop_ = nullptr;
@@ -80,7 +81,6 @@ private:
 
 private:
   static int object_count_;
-  // std::deque<std::shared_ptr<rviz::CachedChannelProperty>> data_channels_;
 
   rviz::MatrixXChannel data_channels_;
   MatrixXRectProp fields_prop_;

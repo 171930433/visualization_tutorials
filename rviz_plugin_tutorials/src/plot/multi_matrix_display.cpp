@@ -12,61 +12,33 @@
 #include "protobuf_helper.h"
 
 RectProperty::RectProperty(MatrixWidget *plot, MultiMatrixDisplay *parent)
-    : rviz::BoolProperty("rect", true, "sub plot", parent), plot_(plot) {
-  connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncInfo()));
-}
-
-void RectProperty::SyncInfo() {
-  // 去buffer里面查询通道更新
-  // std::string channel_name = data_channel_->getStdString();
-  // if (!view_ || channel_name == "") { return; }
-  // // 当前时间
-  // double t0 = view_->getLastDataTime(channel_name);
-  // auto msgs = g_cacher_->GetProtoWithChannleName(channel_name, t0);
-  // if (!msgs.empty()) {
-  //   view_->AddNewData(channel_name, msgs);
-  //   view_->rescaleAxes(); //! 此处目前必
-  //   view_->replot();
-  //   // qDebug() << QString("add size =  %1").arg(msgs.size());
-  // }
-
-  // 去buffer里面查询数据更新
-}
+    : rviz::BoolProperty("rect", true, "sub plot", parent), plot_(plot), parent_(parent) {}
 
 void RectProperty::UpdateChannelCount() {
-  int const new_count = channels_->size();
+  qDebug() << QString("RectProperty::UpdateChannelCount() from %1 to %2")
+                  .arg(graphs_.size())
+                  .arg(parent_->data_channels_.size());
+  int const new_count = parent_->data_channels_.size();
   int const old_count = graphs_.size();
 
   auto when_delete = [this](rviz::SubGraphProperty *elem) {
+    // qDebug() << QString("rviz::SubGraphProperty deleted, name = %1 ").arg(elem->getName());
     this->takeChild(elem);
     delete elem;
   };
 
   graphs_.conservativeResize(new_count, 1);
   for (int i = old_count; i < new_count; ++i) {
-    QString channel_header = (graphs_.size() == 0 ? QString("main_filed") : QString("field-%1").arg(graphs_.size()));
+    QString channel_header = (i == 0 ? QString("main_filed") : QString("field-%1").arg(i));
     auto field = new rviz::SubGraphProperty(channel_header, "", "field_name", this);
-    // field->setChannelProperty((*channels_)(i, 0).get());
-    field->setChannelProperty(channels_->operator()(i, 0).get());
+    field->setChannelProperty(parent_->data_channels_(i, 0).get());
     std::shared_ptr<rviz::SubGraphProperty> result(field, when_delete);
-    connect(field, &rviz::Property::changed, [this, result]() { this->UpdateFieldName(result); });
+    connect(field, &rviz::Property::changed, [this, field]() {
+      this->parent_->UpdateFieldName(field, this->row_, this->col_);
+    });
     graphs_(i, 0) = result;
   }
-}
-
-void RectProperty::UpdateFieldName(std::shared_ptr<rviz::SubGraphProperty> sub_graph) {
-  QString const &field_name = sub_graph->getString();
-  qDebug() << QString("UpdateFieldName = %1").arg(field_name);
-
-  dataTimer_.stop();
-  if (!field_name.isEmpty()) {
-    sub_graph->graph() = plot_->CreateGraphByFieldName(row_, col_, field_name);
-  } else {
-    sub_graph->graph().reset();
-  }
-  plot_->replot();
-
-  dataTimer_.start(500);
+  qDebug() << QString("RectProperty::UpdateChannelCount() end ,size is %1").arg(graphs_.size());
 }
 
 int MultiMatrixDisplay::object_count_ = 0;
@@ -97,6 +69,7 @@ MultiMatrixDisplay::MultiMatrixDisplay() {
   counts_prop_->setMax(10);
 
   ++object_count_;
+  connect(&dataTimer_, SIGNAL(timeout()), this, SLOT(SyncInfo()));
 }
 
 MultiMatrixDisplay::~MultiMatrixDisplay() {
@@ -116,16 +89,17 @@ void MultiMatrixDisplay::UpdateChannelCount() {
 
   // 新增加元素
   for (int i = old_count; i < new_count; ++i) {
-    QString channel_header =
-        (data_channels_.size() == 0 ? QString("main_channel") : QString("data_channel-%1").arg(data_channels_.size()));
+    QString channel_header = (i == 0 ? QString("main_channel") : QString("channel-%1").arg(i));
 
     auto single_changel = new rviz::CachedChannelProperty(channel_header, "", "data_channel", counts_prop_);
     std::shared_ptr<rviz::CachedChannelProperty> new_single_changel(single_changel, when_delete);
     data_channels_(i, 0) = new_single_changel;
   }
+  view_->replot();
 }
 
 std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const row, int const col) {
+  qDebug() << QString("CreateRectProperty row=%1,col=%2").arg(row).arg(col);
   auto when_delete = [this](RectProperty *elem) {
     this->takeChild(elem);
     delete elem;
@@ -133,8 +107,8 @@ std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const r
 
   std::shared_ptr<RectProperty> rect_prop(new RectProperty(view_, this), when_delete);
   rect_prop->setName(QString("rect-%1-%2").arg(row).arg(col));
-  rect_prop->UpdateChannelCount();
   rect_prop->setLayout(row, col);
+  rect_prop->UpdateChannelCount();
   auto when_channel_count_changed = [this, rect_prop]() { rect_prop->UpdateChannelCount(); };
 
   connect(counts_prop_, &rviz::IntProperty::changed, when_channel_count_changed);
@@ -185,6 +159,41 @@ void MultiMatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString co
       // fields_prop_(i, j)->setString(field_names(i, j));
     }
   }
+}
+
+void MultiMatrixDisplay::SyncInfo() {
+  // 去buffer里面查询通道更新
+  if (!view_ || data_channels_.rows() == 0) { return; }
+  // 当前时间
+  for (int i = 0; i < data_channels_.rows(); ++i) {
+    std::string const channel_name = data_channels_(i, 0)->getStdString();
+    double t0 = view_->getLastDataTime(channel_name);
+    auto msgs = g_cacher_->GetProtoWithChannleName(channel_name, t0);
+    if (!msgs.empty()) {
+      view_->AddNewData(channel_name, msgs);
+      view_->rescaleAxes(); //! 此处目前必
+      view_->replot();
+      // qDebug() << QString("add size =  %1").arg(msgs.size());
+    }
+  }
+
+  // 去buffer里面查询数据更新
+}
+
+void MultiMatrixDisplay::UpdateFieldName(rviz::SubGraphProperty *sub_graph, int const row, int const col) {
+  QString const &field_name = sub_graph->getString();
+  QString const &channel_name = sub_graph->getChannelName();
+  qDebug() << QString("UpdateFieldName, channel = %1, field = %2").arg(channel_name).arg(field_name);
+
+  dataTimer_.stop();
+  if (field_name.isEmpty() || channel_name.isEmpty()) {
+    sub_graph->graph().reset();
+  } else {
+    sub_graph->graph() = view_->CreateGraphByFieldName(row, col, channel_name, field_name);
+  }
+  view_->replot();
+
+  dataTimer_.start(500);
 }
 
 // Overrides from Display

@@ -3,6 +3,7 @@
 #include "time_sync.h"
 #include <eigen3/Eigen/Dense>
 #include <map>
+#include <unordered_map>
 
 class PlotBase : public QCustomPlot, public ITimeSync {
   Q_OBJECT
@@ -14,7 +15,7 @@ protected:
   PlotBase(QWidget *parent = nullptr);
   void FouseRange(QCPRange const &time_range) override;
   void FocusPoint(double const t0) override;
-  std::shared_ptr<QCPGraph> CreateDefaultGraph(QCPAxisRect *rect);
+  std::shared_ptr<QCPGraph> CreateDefaultGraph(QCPAxisRect *rect, QString const &channel_name);
   QCPAxisRect *CreateDefaultRect();
   void setupMatrixDemo(int row, int col);
 
@@ -30,4 +31,6 @@ protected slots:
 protected:
   Type type_ = Type::None;
   QSharedPointer<QCPAxisTickerDateTime> dateTicker_;
+  QMap<QString, QList<QCPGraph *>> channel_graph_; // 通道名到grap的映射
+  QMap<QString, QList<QCPCurve *>> channel_curve_; // 通道名到grap的映射
 };

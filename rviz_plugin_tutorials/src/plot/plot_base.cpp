@@ -2,8 +2,8 @@
 
 #include "display_sync_base.h"
 #include "plot/plot_base.h"
-#include <rviz/display_context.h>
 #include "properties/cached_channel_property.h"
+#include <rviz/display_context.h>
 
 void FocusByIndex(QCPAbstractPlottable *single_graph, int const dataIndex) {
   double const x = single_graph->interface1D()->dataMainKey(dataIndex);
@@ -136,7 +136,7 @@ void PlotBase::onSelectionChangedByUser() {
   qDebug() << "PlotBase onSelectionChangedByUser end";
 }
 
-std::shared_ptr<QCPGraph> PlotBase::CreateDefaultGraph(QCPAxisRect *rect) {
+std::shared_ptr<QCPGraph> PlotBase::CreateDefaultGraph(QCPAxisRect *rect, QString const &channel_name) {
   auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
 
   curve->setSelectable(QCP::stDataRange);
@@ -158,8 +158,10 @@ std::shared_ptr<QCPGraph> PlotBase::CreateDefaultGraph(QCPAxisRect *rect) {
   decorator->setScatterStyle(selectedScatterStyle,
                              QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
 
+  channel_graph_[channel_name].push_back(curve);
   // 需要考虑资源回收
-  auto when_delete = [this](QCPGraph *elem) {
+  auto when_delete = [this, channel_name](QCPGraph *elem) {
+    this->channel_graph_[channel_name].removeOne(elem);
     this->removeGraph(elem);
     // qDebug() << QString("name = %1, deleted").arg(elem->name());
   };

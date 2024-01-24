@@ -95,13 +95,19 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
   qDebug() << QString("end filed size =%1").arg(field_names.size());
 }
 
-std::shared_ptr<QCPGraph>
-MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString const &field_name) {
-  qDebug() << QString("CreateGraphByFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);
+std::shared_ptr<QCPGraph> MatrixWidget::CreateGraphByFieldName(int const row,
+                                                               int const col,
+                                                               QString const &channel_name,
+                                                               QString const &field_name) {
+  qDebug() << QString("CreateGraphByFieldName start, channel = %1,field = %2, row=%3, col=%4")
+                  .arg(channel_name)
+                  .arg(field_name)
+                  .arg(row)
+                  .arg(col);
 
   auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
 
-  std::shared_ptr<QCPGraph> curve = CreateDefaultGraph(rect);
+  std::shared_ptr<QCPGraph> curve = CreateDefaultGraph(rect, channel_name);
 
   rect->axis(QCPAxis::atLeft)->setLabel(field_name);
   curve->setName(field_name);
@@ -111,7 +117,7 @@ MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString const
 
   if (channel_msgs_.empty()) { return curve; }
 
-  for (auto const &kv : channel_msgs_.begin()->second) {
+  for (auto const &kv : channel_msgs_[channel_name.toStdString()]) {
     auto const &message = *kv.second;
     double const time_index = kv.first / 1e3;
     double const y = GetValueByHeaderName(message, field_name).toDouble();
@@ -226,17 +232,6 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col) {
   this->replot();
 }
 
-std::deque<std::shared_ptr<QCPGraph>> MatrixWidget::AddGraphInRect(int const row, int const col, int count) {
-  std::deque<std::shared_ptr<QCPGraph>> result(count);
-  QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
-
-  for (int i = 0; i < count; ++i) {
-    auto new_graph = CreateDefaultGraph(current_rect);
-    result[i] = new_graph;
-  }
-  return result;
-}
-
 double MatrixWidget::getLastDataTime(std::string const &channel_name) const {
   if (channel_msgs_.find(channel_name) == channel_msgs_.end()) { return 0; }
   return channel_msgs_.at(channel_name).rbegin()->first / 1e3;
@@ -251,13 +246,10 @@ void MatrixWidget::AddNewData(std::string const &channel_name,
     auto const &message = *kv.second;
     double const time_index = kv.first / 1e3;
 
-    for (QCPAxisRect *rect : axisRects()) {
-      auto all_graphs = rect->graphs();
-      if (all_graphs.empty()) { continue; } // 尚未添加任何字段
-      for (QCPGraph *single_graph : all_graphs) {
-        double const y = GetValueByHeaderName(message, single_graph->name()).toDouble();
-        single_graph->addData(time_index, y);
-      }
+    auto single_channel_graphs = channel_graph_[QString::fromStdString(channel_name)];
+    for (auto *single_graph : single_channel_graphs) {
+      double const y = GetValueByHeaderName(message, single_graph->name()).toDouble();
+      single_graph->addData(time_index, y);
     }
   }
   if (new_data.size()) {
