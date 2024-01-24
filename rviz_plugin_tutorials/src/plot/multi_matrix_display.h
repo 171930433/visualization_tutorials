@@ -1,13 +1,7 @@
 #pragma once
 
-// #include <rviz/properties/color_property.h>
-// #include <rviz/properties/float_property.h>
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/int_property.h>
-
-// #include <rviz/properties/vector_property.h>
-// #include <rviz/properties/enum_property.h>
-// #include <rviz/properties/tf_frame_property.h>
 #include <rviz/display.h>
 
 #include "display_sync_base.h"
@@ -20,14 +14,12 @@ class IntProperty;
 class StringProperty;
 class EditableEnumProperty;
 class CachedChannelProperty;
-// class BoolProperty;
 class GroupProperty;
 class ColorProperty;
 } // namespace rviz
 class MatrixWidget;
 
 using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
-using MatrixXQStringProp = Eigen::Matrix<rviz::StringProperty *, Eigen::Dynamic, Eigen::Dynamic>;
 
 class RectProperty : public rviz::BoolProperty {
   Q_OBJECT

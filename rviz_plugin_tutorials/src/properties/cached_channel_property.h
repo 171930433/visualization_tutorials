@@ -37,3 +37,4 @@ protected:
 } // namespace rviz
 
 using MatrixXFieldList = Eigen::Matrix<std::shared_ptr<rviz::FieldListProperty>, Eigen::Dynamic, Eigen::Dynamic>;
+using MatrixXChannel = Eigen::Matrix<std::shared_ptr<rviz::CachedChannelProperty>, Eigen::Dynamic, Eigen::Dynamic>;
