@@ -252,9 +252,9 @@ void DataTableWidget::showHeaderMenu(const QPoint &pos)
 
   QMenu *menu = new QMenu(this);
   menu->addAction("create row plot", this, [this, filed_names]()
-                  { this->CreateRowVectorPlot("", filed_names); });
+                  { this->CreateRowVectorPlot(this->getChannelName(), filed_names); });
   menu->addAction("create col plot", this, [this, filed_names]()
-                  { this->CreateVectorPlot("", filed_names); });
+                  { this->CreateVectorPlot(this->getChannelName(), filed_names); });
   // 添加更多操作...
   QMenu *sub_menu = new QMenu("create matrix plot", menu);
   menu->addMenu(sub_menu);

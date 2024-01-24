@@ -1,12 +1,12 @@
 #pragma once
 
-#include <QWidget>
-#include <QTableView>
 #include <QHBoxLayout>
-#include <vector>
+#include <QTableView>
+#include <QWidget>
+#include <eigen3/Eigen/Dense>
 #include <qdebug.h>
 #include <string>
-#include <eigen3/Eigen/Dense>
+#include <vector>
 
 #include "data_table/data_table_model.h"
 #include "time_sync.h"
@@ -15,8 +15,7 @@ class DataTableDisplay;
 class DisplaySyncBase;
 class MatrixDisplay;
 class FilterWidget;
-class DataTableWidget : public QWidget, public ITimeSync
-{
+class DataTableWidget : public QWidget, public ITimeSync {
   Q_OBJECT
 
 public:
@@ -26,6 +25,8 @@ public:
   void CreateRowVectorPlot(QString const &name, QStringList const &field_names);
   void CreateVectorPlot(QString const &name, QStringList const &field_names);
 
+  void setChannelName(QString const &name) { channel_name_ = name; };
+  QString getChannelName() { return channel_name_; };
   void setDataTypeName(std::string const &type_name);
   void UpdateData(const std::map<size_t, sp_cPbMsg> &newData);
   double getLastDataTime() const;
@@ -49,6 +50,7 @@ private:
   void showHeaderMenu(const QPoint &pos);
 
 private:
+  QString channel_name_;
   QTableView *mainTableView_;
   QTableView *subTableView_;
   //

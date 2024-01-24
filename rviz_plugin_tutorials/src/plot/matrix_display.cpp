@@ -51,8 +51,8 @@ void MatrixDisplay::SyncInfo() {
   auto msgs = g_cacher_->GetProtoWithChannleName(channel_name, t0);
   if (!msgs.empty()) {
     view_->AddNewData(channel_name, msgs);
-    view_->rescaleAxes();   //! 此处目前必
-    view_->replot();    
+    view_->rescaleAxes(); //! 此处目前必
+    view_->replot();
     // qDebug() << QString("add size =  %1").arg(msgs.size());
   }
 
@@ -84,6 +84,7 @@ std::shared_ptr<SubGraphPlot> MatrixDisplay::CreateSubGraphPlot(int const row, i
   //
   result->field_prop_ = new_field_prop;
 
+  qDebug() << QString("created row=%1,col=%2").arg(row).arg(col);
   return result;
 }
 
@@ -145,6 +146,7 @@ void MatrixDisplay::UpdateFieldName(int const row, int const col) {
 void MatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &field_names) {
   view_->CreatePlot(name, field_names);
   // 创建property
+  data_channel_->setString(name);
   row_prop_->setInt(field_names.rows());
   col_prop_->setInt(field_names.cols());
 

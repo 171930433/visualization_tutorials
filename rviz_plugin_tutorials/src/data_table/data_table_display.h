@@ -16,6 +16,7 @@ namespace rviz
 {
   class IntProperty;
   class EditableEnumProperty;
+  class CachedChannelProperty;
 }
 
 class DataTableWidget;
@@ -35,7 +36,6 @@ private Q_SLOTS:
   void UpdateInterval();
   void UpdateRange();
   void UpdateChannel();
-  void ListCurrentChannel();
   void SyncInfo();
 
 private:
@@ -43,7 +43,7 @@ private:
 
   rviz::IntProperty *main_interval_;
   rviz::IntProperty *sub_range_;
-  rviz::EditableEnumProperty *data_channel_; // 错误，需要使用cyber_topic_property
+  rviz::CachedChannelProperty *data_channel_; // 错误，需要使用cyber_topic_property
   QTimer dataTimer_; // 检查是否有数据更新
 
 };
