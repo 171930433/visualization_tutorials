@@ -7,6 +7,8 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <eigen3/Eigen/Dense>
+#include <QString>
 
 #include "cacher/utils.h"
 
@@ -31,6 +33,7 @@
 
 using sp_cPbMsg = std::shared_ptr<google::protobuf::Message const>;
 using spPbMsg = std::shared_ptr<google::protobuf::Message>;
+using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
 
 class Cacher {
 public:

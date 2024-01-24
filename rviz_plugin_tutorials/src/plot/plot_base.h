@@ -4,9 +4,22 @@
 #include <eigen3/Eigen/Dense>
 #include <map>
 
-using MatrixXQString = Eigen::Matrix<QString, Eigen::Dynamic, Eigen::Dynamic>;
-// Eigen::Matrix<QCPAxisRect *, Eigen::Dynamic, Eigen::Dynamic> rects_;
-// Eigen::Matrix<QCPGraph *, Eigen::Dynamic, Eigen::Dynamic> graphs_;
+namespace rviz {
+class CachedChannelProperty;
+class FieldListProperty;
+} // namespace rviz
+
+class SubGraphPlot {
+public:
+  SubGraphPlot();
+  ~SubGraphPlot();
+  QString getString();
+  void setString(QString const &str);
+
+public:
+  std::shared_ptr<rviz::FieldListProperty> field_prop_ = nullptr;
+  std::shared_ptr<QCPGraph> graph_ = nullptr;
+};
 
 class PlotBase : public QCustomPlot, public ITimeSync {
   Q_OBJECT

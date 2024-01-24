@@ -9,13 +9,8 @@
 #include <rviz/visualization_manager.h>
 
 #include "plot/matrix_widget.h"
-#include "properties/cached_channel_property.h"
 #include "protobuf_helper.h"
-
-SubGraphPlot::SubGraphPlot() {}
-SubGraphPlot::~SubGraphPlot() {}
-QString SubGraphPlot::getString() { return field_prop_->getString(); }
-void SubGraphPlot::setString(QString const &str) { field_prop_->setString(str); }
+#include "properties/cached_channel_property.h"
 
 int MatrixDisplay::object_count_ = 0;
 QString MatrixDisplay::generateName() { return QString("MatrixDisplay-p%1").arg(object_count_); }

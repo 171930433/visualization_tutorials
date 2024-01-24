@@ -33,4 +33,7 @@ private Q_SLOTS:
 protected:
   CachedChannelProperty *channel_;
 };
+
 } // namespace rviz
+
+using MatrixXFieldList = Eigen::Matrix<std::shared_ptr<rviz::FieldListProperty>, Eigen::Dynamic, Eigen::Dynamic>;

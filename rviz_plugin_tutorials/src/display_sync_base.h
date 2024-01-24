@@ -1,11 +1,13 @@
 #pragma once
 
-#include "plot/qcustomplot.h"
+#include "plot/plot_base.h"
 #include <rviz/display.h>
 #include <map>
+#include <eigen3/Eigen/Dense>
 
 #include "cacher/cacher.h"
 
+using MatrixXSubGraph = Eigen::Matrix<std::shared_ptr<SubGraphPlot>, Eigen::Dynamic, Eigen::Dynamic>;
 
 class ITimeSync;
 

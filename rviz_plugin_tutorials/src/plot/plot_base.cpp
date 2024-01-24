@@ -3,6 +3,12 @@
 #include "display_sync_base.h"
 #include "plot/plot_base.h"
 #include <rviz/display_context.h>
+#include "properties/cached_channel_property.h"
+
+SubGraphPlot::SubGraphPlot() {}
+SubGraphPlot::~SubGraphPlot() {}
+QString SubGraphPlot::getString() { return field_prop_->getString(); }
+void SubGraphPlot::setString(QString const &str) { field_prop_->setString(str); }
 
 void FocusByIndex(QCPAbstractPlottable *single_graph, int const dataIndex) {
   double const x = single_graph->interface1D()->dataMainKey(dataIndex);

@@ -15,21 +15,20 @@
 #include <deque>
 #include <eigen3/Eigen/Dense>
 
-namespace rviz
-{
-  class IntProperty;
-  class StringProperty;
-  class EditableEnumProperty;
-  // class BoolProperty;
-  class GroupProperty;
-  class ColorProperty;
-}
+namespace rviz {
+class IntProperty;
+class StringProperty;
+class EditableEnumProperty;
+class CachedChannelProperty;
+// class BoolProperty;
+class GroupProperty;
+class ColorProperty;
+} // namespace rviz
 class MatrixWidget;
 
 using MatrixXQStringProp = Eigen::Matrix<rviz::StringProperty *, Eigen::Dynamic, Eigen::Dynamic>;
 
-class RectProperty : public rviz::BoolProperty
-{
+class RectProperty : public rviz::BoolProperty {
   Q_OBJECT
 
 public:
@@ -37,12 +36,12 @@ public:
   void setLayout(int const row, int const col) { row_ = row, col_ = col_; }
 public Q_SLOTS:
 
-  void UpdateChannelCount(int const count);
+  void UpdateChannelCount(std::deque<std::shared_ptr<rviz::CachedChannelProperty>> const &channels);
   void UpdateFieldNames(int const count, QStringList const &names);
 
 protected:
   std::deque<std::shared_ptr<QCPGraph>> graphs_;
-  std::deque<std::shared_ptr<rviz::EditableEnumProperty>> graphs_prop_;
+  std::deque<std::shared_ptr<rviz::FieldListProperty>> graphs_prop_;
   MatrixWidget *plot_;
   int row_, col_;
 };
@@ -50,8 +49,7 @@ using MatrixXRectProp = Eigen::Matrix<std::shared_ptr<RectProperty>, Eigen::Dyna
 
 // class QCPCurve;
 
-class MultiMatrixDisplay : public DisplaySyncBase
-{
+class MultiMatrixDisplay : public DisplaySyncBase {
   Q_OBJECT
 public:
   MultiMatrixDisplay();
@@ -74,7 +72,6 @@ private Q_SLOTS:
   void UpdateCol();
   void UpdateChannelCount();
   void UpdateChannelName(int const row);
-  void ListCurrentChannel(rviz::EditableEnumProperty *topics);
 
 private:
   std::shared_ptr<RectProperty> CreateRectProperty(int const row, int const col);
@@ -88,6 +85,7 @@ private:
 
 private:
   static int object_count_;
-  std::deque<std::shared_ptr<rviz::EditableEnumProperty>> data_channels_;
+  std::deque<std::shared_ptr<rviz::CachedChannelProperty>> data_channels_;
   MatrixXRectProp fields_prop_;
+  friend RectProperty;
 };
