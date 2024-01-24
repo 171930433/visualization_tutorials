@@ -15,26 +15,36 @@
 #include <deque>
 #include <eigen3/Eigen/Dense>
 
-namespace rviz
-{
-  class IntProperty;
-  class StringProperty;
-  class EnumProperty;
-  class EditableEnumProperty;
-  class CachedChannelProperty;
-  class FieldListProperty;
-  class BoolProperty;
-  class GroupProperty;
-  class ColorProperty;
-}
-
-using MatrixXQEEnumProp = Eigen::Matrix<std::shared_ptr<rviz::FieldListProperty>, Eigen::Dynamic, Eigen::Dynamic>;
+namespace rviz {
+class IntProperty;
+class StringProperty;
+class EnumProperty;
+class EditableEnumProperty;
+class CachedChannelProperty;
+class FieldListProperty;
+class BoolProperty;
+class GroupProperty;
+class ColorProperty;
+} // namespace rviz
 
 class MatrixWidget;
-// class QCPCurve;
 
-class MatrixDisplay : public DisplaySyncBase
-{
+class SubGraphPlot {
+public:
+  SubGraphPlot();
+  ~SubGraphPlot();
+  QString getString();
+  void setString(QString const &str);
+
+public:
+  std::shared_ptr<rviz::FieldListProperty> field_prop_ = nullptr;
+  std::shared_ptr<QCPGraph> graph_ = nullptr;
+};
+
+using MatrixXQEEnumProp = Eigen::Matrix<std::shared_ptr<rviz::FieldListProperty>, Eigen::Dynamic, Eigen::Dynamic>;
+using MatrixXSubGraph = Eigen::Matrix<std::shared_ptr<SubGraphPlot>, Eigen::Dynamic, Eigen::Dynamic>;
+
+class MatrixDisplay : public DisplaySyncBase {
   Q_OBJECT
 public:
   MatrixDisplay();
@@ -58,14 +68,14 @@ private Q_SLOTS:
   void UpdateCol();
   void SyncInfo();
 
-
 private:
-  std::shared_ptr<rviz::FieldListProperty> CreateFiledProperty(int const row, int const col);
+  std::shared_ptr<SubGraphPlot> CreateSubGraphPlot(int const row, int const col);
 
 private:
   MatrixWidget *view_ = nullptr;
 
-  MatrixXQEEnumProp fields_prop_;
+  // MatrixXQEEnumProp fields_prop_;
+  MatrixXSubGraph fields_prop_;
   rviz::IntProperty *row_prop_ = nullptr;
   rviz::IntProperty *col_prop_ = nullptr;
   rviz::CachedChannelProperty *data_channel_;

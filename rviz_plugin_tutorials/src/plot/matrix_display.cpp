@@ -12,6 +12,11 @@
 #include "properties/cached_channel_property.h"
 #include "protobuf_helper.h"
 
+SubGraphPlot::SubGraphPlot() {}
+SubGraphPlot::~SubGraphPlot() {}
+QString SubGraphPlot::getString() { return field_prop_->getString(); }
+void SubGraphPlot::setString(QString const &str) { field_prop_->setString(str); }
+
 int MatrixDisplay::object_count_ = 0;
 QString MatrixDisplay::generateName() { return QString("MatrixDisplay-p%1").arg(object_count_); }
 
@@ -47,6 +52,7 @@ void MatrixDisplay::SyncInfo() {
   if (!msgs.empty()) {
     view_->AddNewData(channel_name, msgs);
     qDebug() << QString("add size =  %1").arg(msgs.size());
+    view_->replot();
   }
 
   // 去buffer里面查询数据更新
@@ -60,17 +66,22 @@ void MatrixDisplay::UpdateChannelName() {
   dataTimer_.start(500);
 }
 
-std::shared_ptr<rviz::FieldListProperty> MatrixDisplay::CreateFiledProperty(int const row, int const col) {
+std::shared_ptr<SubGraphPlot> MatrixDisplay::CreateSubGraphPlot(int const row, int const col) {
   auto when_delete = [this](rviz::FieldListProperty *elem) {
     this->takeChild(elem);
     delete elem;
   };
+  //
+  auto result = std::make_shared<SubGraphPlot>();
+  //
   auto *new_field =
       new rviz::FieldListProperty(QString("field-%1-%2").arg(row).arg(col), "", "matrix plot field", this);
   new_field->setChannelProperty(data_channel_);
-  std::shared_ptr<rviz::FieldListProperty> result(new_field, when_delete);
+  std::shared_ptr<rviz::FieldListProperty> new_field_prop(new_field, when_delete);
 
   connect(new_field, &Property::changed, [this, row, col]() { this->UpdateFieldName(row, col); });
+  //
+  result->field_prop_ = new_field_prop;
 
   return result;
 }
@@ -90,7 +101,7 @@ void MatrixDisplay::UpdateRow() {
   // 增加
   for (int i = old_row; i < new_row; ++i) {
     for (int j = 0; j < col; ++j) {
-      fields_prop_(i, j) = CreateFiledProperty(i, j);
+      fields_prop_(i, j) = CreateSubGraphPlot(i, j);
     }
   }
 
@@ -106,7 +117,7 @@ void MatrixDisplay::UpdateCol() {
   // 增加
   for (int i = 0; i < row; ++i) {
     for (int j = old_col; j < new_col; ++j) {
-      fields_prop_(i, j) = CreateFiledProperty(i, j);
+      fields_prop_(i, j) = CreateSubGraphPlot(i, j);
     }
   }
 
@@ -118,7 +129,7 @@ void MatrixDisplay::UpdateFieldName(int const row, int const col) {
   if (field_name == "") { return; }
 
   dataTimer_.stop();
-  view_->CreateGraphByFieldName(row, col, field_name);
+  fields_prop_(row, col)->graph_ = view_->CreateGraphByFieldName(row, col, field_name);
   dataTimer_.start(500);
 }
 

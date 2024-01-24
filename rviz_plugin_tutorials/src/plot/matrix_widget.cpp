@@ -95,12 +95,13 @@ void MatrixWidget::CreatePlot(QString const &name, MatrixXQString const &field_n
   qDebug() << QString("end filed size =%1").arg(field_names.size());
 }
 
-void MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString const &field_name) {
+std::shared_ptr<QCPGraph>
+MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString const &field_name) {
   qDebug() << QString("CreateGraphByFieldName start %1, row=%2, col=%3").arg(field_name).arg(row).arg(col);
 
   auto *rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
 
-  QCPGraph *curve = CreateDefaultGraph(rect);
+  std::shared_ptr<QCPGraph> curve = CreateDefaultGraph(rect);
 
   rect->axis(QCPAxis::atLeft)->setLabel(field_name);
   curve->setName(field_name);
@@ -108,7 +109,7 @@ void MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString 
   qDebug() << QString("CreateGraphByFieldName end %1").arg(field_name);
   // 检查已经缓存的数据,是否需要更新
 
-  if (channel_msgs_.empty()) { return; }
+  if (channel_msgs_.empty()) { return curve; }
 
   for (auto const &kv : channel_msgs_.begin()->second) {
     auto const &message = *kv.second;
@@ -122,6 +123,8 @@ void MatrixWidget::CreateGraphByFieldName(int const row, int const col, QString 
 
   this->rescaleAxes();
   this->replot();
+
+  return curve;
 }
 
 void MatrixWidget::RowChanged(int const new_row) {
@@ -228,10 +231,8 @@ std::deque<std::shared_ptr<QCPGraph>> MatrixWidget::AddGraphInRect(int const row
   QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(row, col));
 
   for (int i = 0; i < count; ++i) {
-    std::shared_ptr<QCPGraph> one_graph;
     auto new_graph = CreateDefaultGraph(current_rect);
-    one_graph.reset(new_graph);
-    result[i] = one_graph;
+    result[i] = new_graph;
   }
   return result;
 }

@@ -1,11 +1,10 @@
 #include <QWidget>
 
-#include "plot/plot_base.h"
 #include "display_sync_base.h"
+#include "plot/plot_base.h"
 #include <rviz/display_context.h>
 
-void FocusByIndex(QCPAbstractPlottable *single_graph, int const dataIndex)
-{
+void FocusByIndex(QCPAbstractPlottable *single_graph, int const dataIndex) {
   double const x = single_graph->interface1D()->dataMainKey(dataIndex);
   double const y = single_graph->interface1D()->dataMainValue(dataIndex);
 
@@ -16,8 +15,7 @@ void FocusByIndex(QCPAbstractPlottable *single_graph, int const dataIndex)
   y_axis->setRange(y, y_axis->range().size(), Qt::AlignCenter);
 }
 
-void SelectByT0(QCPAbstractPlottable *single_graph, double const t0)
-{
+void SelectByT0(QCPAbstractPlottable *single_graph, double const t0) {
   auto const dataIndex = single_graph->interface1D()->findBegin(t0, true);
   // 选中点
   QCPDataRange index_range{dataIndex, dataIndex + 1};
@@ -25,8 +23,7 @@ void SelectByT0(QCPAbstractPlottable *single_graph, double const t0)
 }
 
 // 选中区间
-void SelectByT0sT0e(QCPAbstractPlottable *single_graph, double const t0_s, double const t0_e)
-{
+void SelectByT0sT0e(QCPAbstractPlottable *single_graph, double const t0_s, double const t0_e) {
   auto const dataIndex_s = single_graph->interface1D()->findBegin(t0_s, true);
   auto const dataIndex_e = single_graph->interface1D()->findBegin(t0_e, true);
   // 选中点
@@ -34,8 +31,7 @@ void SelectByT0sT0e(QCPAbstractPlottable *single_graph, double const t0_s, doubl
   single_graph->setSelection(QCPDataSelection{index_range});
 }
 
-PlotBase::PlotBase(QWidget *parent) : QCustomPlot(parent)
-{
+PlotBase::PlotBase(QWidget *parent) : QCustomPlot(parent) {
   //
   this->setVisible(false);
   dateTicker_ = QSharedPointer<QCPAxisTickerDateTime>(new QCPAxisTickerDateTime);
@@ -44,41 +40,32 @@ PlotBase::PlotBase(QWidget *parent) : QCustomPlot(parent)
   connect(this, SIGNAL(selectionChangedByUser()), this, SLOT(onSelectionChangedByUser()));
 }
 
-void PlotBase::resizeEvent(QResizeEvent *event)
-{
+void PlotBase::resizeEvent(QResizeEvent *event) {
   QCustomPlot::resizeEvent(event);
   this->replot();
 }
 
-void PlotBase::keyPressEvent(QKeyEvent *event)
-{
+void PlotBase::keyPressEvent(QKeyEvent *event) {
   QCustomPlot::keyPressEvent(event);
 
-  if (event->key() == Qt::Key_S)
-  {
-    if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect)
-    {
+  if (event->key() == Qt::Key_S) {
+    if (this->selectionRectMode() == QCP::SelectionRectMode::srmSelect) {
       this->setSelectionRectMode(QCP::SelectionRectMode::srmNone);
       QWidget::setCursor(Qt::ArrowCursor);
-    }
-    else
-    {
+    } else {
       this->setSelectionRectMode(QCP::SelectionRectMode::srmSelect);
       QWidget::setCursor(Qt::CrossCursor);
     }
   }
 }
 
-void PlotBase::mouseMoveEvent(QMouseEvent *event)
-{
+void PlotBase::mouseMoveEvent(QMouseEvent *event) {
   QCustomPlot::mouseMoveEvent(event);
 
   QString str;
 
-  for (auto *single_rect : this->axisRects())
-  {
-    if (single_rect->rect().contains(event->pos()))
-    {
+  for (auto *single_rect : this->axisRects()) {
+    if (single_rect->rect().contains(event->pos())) {
       double const x = single_rect->axis(QCPAxis::atBottom)->pixelToCoord(event->pos().x());
       double const y = single_rect->axis(QCPAxis::atLeft)->pixelToCoord(event->pos().y());
       str = QString("mouse pos = [%1,%2]").arg(x, 0, 'f', 3).arg(y, 0, 'f', 8);
@@ -87,12 +74,9 @@ void PlotBase::mouseMoveEvent(QMouseEvent *event)
   }
 }
 
-void PlotBase::FouseRange(QCPRange const &time_range)
-{
-  for (auto *single_rect : this->axisRects())
-  {
-    for (auto *single_plotable : single_rect->plottables())
-    {
+void PlotBase::FouseRange(QCPRange const &time_range) {
+  for (auto *single_rect : this->axisRects()) {
+    for (auto *single_plotable : single_rect->plottables()) {
       SelectByT0sT0e(single_plotable, time_range.lower, time_range.upper);
     }
   }
@@ -100,12 +84,9 @@ void PlotBase::FouseRange(QCPRange const &time_range)
   this->replot();
 }
 
-void PlotBase::FocusPoint(double const t0)
-{
-  for (auto *single_rect : this->axisRects())
-  {
-    for (auto *single_plotable : single_rect->plottables())
-    {
+void PlotBase::FocusPoint(double const t0) {
+  for (auto *single_rect : this->axisRects()) {
+    for (auto *single_plotable : single_rect->plottables()) {
       SelectByT0(single_plotable, t0);
     }
   }
@@ -113,21 +94,17 @@ void PlotBase::FocusPoint(double const t0)
   this->replot();
 }
 
-void PlotBase::onSelectionChangedByUser()
-{
-
+void PlotBase::onSelectionChangedByUser() {
   qDebug() << "PlotBase onSelectionChangedByUser begin";
 
   QList<QCPAbstractPlottable *> selected_plotable = this->selectedPlottables();
 
-  if (selected_plotable.size() <= 0)
-  {
+  if (selected_plotable.size() <= 0) {
     qDebug() << " no serials select";
     return;
   }
 
-  if (selected_plotable.size() > 1)
-  {
+  if (selected_plotable.size() > 1) {
     qDebug() << " select more than one serials";
     return;
   }
@@ -137,27 +114,19 @@ void PlotBase::onSelectionChangedByUser()
   double t0_s = single_plot->interface1D()->dataSortKey(index_range.begin());
   double t0_e = single_plot->interface1D()->dataSortKey(index_range.end());
 
-  for (auto *single_rect : this->axisRects())
-  {
-    for (auto *single_plotable : single_rect->plottables())
-    {
-      if (index_range.size() == 1)
-      {
+  for (auto *single_rect : this->axisRects()) {
+    for (auto *single_plotable : single_rect->plottables()) {
+      if (index_range.size() == 1) {
         SelectByT0(single_plotable, t0_s);
-      }
-      else if (index_range.size() > 1)
-      {
+      } else if (index_range.size() > 1) {
         SelectByT0sT0e(single_plotable, t0_s, t0_e);
       }
     }
   }
 
-  if (index_range.size() == 1)
-  {
+  if (index_range.size() == 1) {
     this->onFocusPoint(t0_s, false, true);
-  }
-  else if (index_range.size() > 1)
-  {
+  } else if (index_range.size() > 1) {
     QCPRange time_range{t0_s, t0_e};
     this->onFouseRange(time_range, false, true);
   }
@@ -166,9 +135,7 @@ void PlotBase::onSelectionChangedByUser()
   qDebug() << "PlotBase onSelectionChangedByUser end";
 }
 
-QCPGraph *PlotBase::CreateDefaultGraph(QCPAxisRect *rect)
-{
-
+std::shared_ptr<QCPGraph> PlotBase::CreateDefaultGraph(QCPAxisRect *rect) {
   auto *curve = this->addGraph(rect->axis(QCPAxis::atBottom), rect->axis(QCPAxis::atLeft));
 
   curve->setSelectable(QCP::stDataRange);
@@ -186,13 +153,17 @@ QCPGraph *PlotBase::CreateDefaultGraph(QCPAxisRect *rect)
   // 定制选中样式
   QCPSelectionDecorator *decorator = curve->selectionDecorator();
   QCPScatterStyle selectedScatterStyle = decorator->scatterStyle();
-  selectedScatterStyle.setSize(10);                                                           // 选中点的大小
-  decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
+  selectedScatterStyle.setSize(10); // 选中点的大小
+  decorator->setScatterStyle(selectedScatterStyle,
+                             QCPScatterStyle::ScatterProperty::spSize); // 只有size使用设定值，其他的用plot的继承值
 
-  return curve;
+  // 需要考虑资源回收
+  auto when_delete = [this](QCPGraph *elem) { this->removeGraph(elem); };
+  std::shared_ptr<QCPGraph> result(curve);
+
+  return result;
 }
-QCPAxisRect *PlotBase::CreateDefaultRect()
-{
+QCPAxisRect *PlotBase::CreateDefaultRect() {
   QCPAxisRect *rect = new QCPAxisRect(this);
   qDebug() << QString("begin CreateDefaultRect done");
 
@@ -205,15 +176,17 @@ QCPAxisRect *PlotBase::CreateDefaultRect()
   rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
   rect->axis(QCPAxis::atLeft)->setSubTicks(false);
   // 共x轴 (0,0)->所有 所有->(0,0)
-  if (this->graphCount() != 0)
-  {
-    connect(rect->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), this->axisRect(0)->axis(QCPAxis::atBottom),
+  if (this->graphCount() != 0) {
+    connect(rect->axis(QCPAxis::atBottom),
+            SIGNAL(rangeChanged(QCPRange)),
+            this->axisRect(0)->axis(QCPAxis::atBottom),
             SLOT(setRange(QCPRange)));
-    connect(this->axisRect(0)->axis(QCPAxis::atBottom), SIGNAL(rangeChanged(QCPRange)), rect->axis(QCPAxis::atBottom),
+    connect(this->axisRect(0)->axis(QCPAxis::atBottom),
+            SIGNAL(rangeChanged(QCPRange)),
+            rect->axis(QCPAxis::atBottom),
             SLOT(setRange(QCPRange)));
   }
-  foreach (QCPAxis *axis, rect->axes())
-  {
+  foreach (QCPAxis *axis, rect->axes()) {
     axis->setLayer("axes");
     axis->grid()->setLayer("grid");
   }
@@ -224,24 +197,21 @@ QCPAxisRect *PlotBase::CreateDefaultRect()
   return rect;
 }
 
-void PlotBase::setupMatrixDemo(int row, int col)
-{
-  this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectAxes | QCP::iSelectPlottables);
+void PlotBase::setupMatrixDemo(int row, int col) {
+  this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectAxes |
+                        QCP::iSelectPlottables);
   this->setMultiSelectModifier(Qt::KeyboardModifier::ControlModifier);
 
   this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
   this->clearPlottables();
 
-  for (int i = 0; i < row; i++)
-  {
-    for (int j = 0; j < col; j++)
-    {
+  for (int i = 0; i < row; i++) {
+    for (int j = 0; j < col; j++) {
       QCPAxisRect *current_rect = CreateDefaultRect();
       this->plotLayout()->addElement(i, j, current_rect);
       //
       // x轴不显示
-      if (i != row - 1)
-      {
+      if (i != row - 1) {
         current_rect->axis(QCPAxis::atBottom)->setTicks(false);
         current_rect->axis(QCPAxis::atBottom)->setSubTicks(false);
         current_rect->axis(QCPAxis::atBottom)->setTickLabels(false);
