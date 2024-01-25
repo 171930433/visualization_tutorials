@@ -213,6 +213,17 @@ std::shared_ptr<QCPAxisRect> PlotBase::CreateDefaultRect() {
   // auto *curve = CreateDefaultGraph(rect);
   return new_rect;
 }
+void PlotBase::RowColChanged(int const new_row, int const new_col) {
+  all_rects_.resize(new_row, new_col);
+
+  for (int i = 0; i < new_row; i++) {
+    for (int j = 0; j < new_col; j++) {
+      if (all_rects_(i, j)) { continue; }
+      all_rects_(i, j) = CreateDefaultRect();
+      plotLayout()->addElement(i, j, all_rects_(i, j).get());
+    }
+  }
+}
 
 void PlotBase::setupMatrixDemo(int row, int col) {
   this->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iMultiSelect | QCP::iSelectAxes |
@@ -222,12 +233,11 @@ void PlotBase::setupMatrixDemo(int row, int col) {
   this->plotLayout()->clear(); // let's start from scratch and remove the default axis rect
   this->clearPlottables();
 
+  RowColChanged(row, col);
+
   for (int i = 0; i < row; i++) {
     for (int j = 0; j < col; j++) {
-      all_rects_(i, j) = CreateDefaultRect();
       QCPAxisRect *current_rect = all_rects_(i, j).get();
-      this->plotLayout()->addElement(i, j, current_rect);
-      //
       // x轴不显示
       if (i != row - 1) {
         current_rect->axis(QCPAxis::atBottom)->setTicks(false);

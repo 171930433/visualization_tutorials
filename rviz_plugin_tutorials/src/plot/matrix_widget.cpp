@@ -128,18 +128,6 @@ std::shared_ptr<QCPGraph> MatrixWidget::CreateGraphByFieldName(int const row,
   return curve;
 }
 
-void MatrixWidget::RowColChanged(int const new_row, int const new_col) {
-  all_rects_.resize(new_row, new_col);
-
-  for (int i = 0; i < new_row; i++) {
-    for (int j = 0; j < new_col; j++) {
-      if (all_rects_(i, j)) { continue; }
-      all_rects_(i, j) = CreateDefaultRect();
-      plotLayout()->addElement(i, j, all_rects_(i, j).get());
-    }
-  }
-}
-
 void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col) {
   int const old_row = all_rects_.rows();
   int const old_col = all_rects_.cols();

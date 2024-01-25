@@ -33,7 +33,6 @@ private slots:
   void mouseWheel();
 
 protected:
-  void RowColChanged(int const new_row, int const new_col);
 
 protected:
   CacherBuffer channel_msgs_; // 所有更新的数据缓存

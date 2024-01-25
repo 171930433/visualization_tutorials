@@ -19,6 +19,7 @@ protected:
   std::shared_ptr<QCPGraph> CreateDefaultGraph(QCPAxisRect *rect, QString const &channel_name);
   std::shared_ptr<QCPAxisRect> CreateDefaultRect();
   void setupMatrixDemo(int row, int col);
+  void RowColChanged(int const new_row, int const new_col);
 
 protected:
   void keyPressEvent(QKeyEvent *event) override;
