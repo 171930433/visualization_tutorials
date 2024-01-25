@@ -115,7 +115,10 @@ std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const r
   rect_prop->setName(QString("rect-%1-%2").arg(row).arg(col));
   rect_prop->setLayout(row, col);
   rect_prop->UpdateChannelCount();
-  auto when_channel_count_changed = [this, new_rect]() { new_rect->UpdateChannelCount(); };
+  std::weak_ptr<RectProperty> wk_rect(rect_prop);
+  auto when_channel_count_changed = [this, wk_rect]() {
+    if (auto sp = wk_rect.lock()) { sp->UpdateChannelCount(); }
+  };
 
   connect(counts_prop_, &rviz::IntProperty::changed, when_channel_count_changed);
   return rect_prop;
@@ -127,6 +130,10 @@ void MultiMatrixDisplay::UpdateRow() {
   int const col = col_prop_->getInt();
   if (col == 0) { return; }
 
+  qDebug() << QString("------------------------MultiMatrixDisplay::UpdateRow() begin, size is [%1,%2]")
+                  .arg(fields_prop_.rows())
+                  .arg(fields_prop_.cols());
+
   fields_prop_.resize(new_row, col);
   // 增加
   for (int i = old_row; i < new_row; ++i) {
@@ -135,7 +142,9 @@ void MultiMatrixDisplay::UpdateRow() {
     }
   }
 
-  qDebug() << QString("col_prop_->getInt()=%1*%2").arg(new_row).arg(col_prop_->getInt());
+  qDebug() << QString("------------------------MultiMatrixDisplay::UpdateRow() begin, size is [%1,%2]")
+                  .arg(fields_prop_.rows())
+                  .arg(fields_prop_.cols());
   view_->UpdatePlotLayout(new_row, col);
 }
 void MultiMatrixDisplay::UpdateCol() {
@@ -143,6 +152,11 @@ void MultiMatrixDisplay::UpdateCol() {
   int const new_col = col_prop_->getInt();
   int const row = row_prop_->getInt();
   if (row == 0) { return; }
+
+  qDebug() << QString("------------------------MultiMatrixDisplay::UpdateCol() begin, size is [%1,%2]")
+                  .arg(fields_prop_.rows())
+                  .arg(fields_prop_.cols());
+
   fields_prop_.resize(row, new_col);
   // 增加
   for (int i = 0; i < row; ++i) {
@@ -151,6 +165,9 @@ void MultiMatrixDisplay::UpdateCol() {
     }
   }
 
+  qDebug() << QString("------------------------MultiMatrixDisplay::UpdateCol() end, size is [%1,%2]")
+                  .arg(fields_prop_.rows())
+                  .arg(fields_prop_.cols());
   view_->UpdatePlotLayout(row, new_col);
 }
 

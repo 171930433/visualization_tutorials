@@ -4,6 +4,7 @@
 #include <eigen3/Eigen/Dense>
 #include <map>
 #include <unordered_map>
+#include "properties/sub_plot_property.h"
 
 class PlotBase : public QCustomPlot, public ITimeSync {
   Q_OBJECT
@@ -16,7 +17,7 @@ protected:
   void FouseRange(QCPRange const &time_range) override;
   void FocusPoint(double const t0) override;
   std::shared_ptr<QCPGraph> CreateDefaultGraph(QCPAxisRect *rect, QString const &channel_name);
-  QCPAxisRect *CreateDefaultRect();
+  std::shared_ptr<QCPAxisRect> CreateDefaultRect();
   void setupMatrixDemo(int row, int col);
 
 protected:
@@ -33,4 +34,6 @@ protected:
   QSharedPointer<QCPAxisTickerDateTime> dateTicker_;
   QMap<QString, QList<QCPGraph *>> channel_graph_; // 通道名到grap的映射
   QMap<QString, QList<QCPCurve *>> channel_curve_; // 通道名到grap的映射
+  // 额外的rect索引,因为this->plotLayout()->rowCount() col 会包含有nullptr
+  rviz::MatrixX<QCPAxisRect> all_rects_;
 };

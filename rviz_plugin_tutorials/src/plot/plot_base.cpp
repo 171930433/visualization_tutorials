@@ -175,7 +175,7 @@ std::shared_ptr<QCPGraph> PlotBase::CreateDefaultGraph(QCPAxisRect *rect, QStrin
 
   return result;
 }
-QCPAxisRect *PlotBase::CreateDefaultRect() {
+std::shared_ptr<QCPAxisRect> PlotBase::CreateDefaultRect() {
   QCPAxisRect *rect = new QCPAxisRect(this);
   qDebug() << QString("begin CreateDefaultRect done");
 
@@ -204,9 +204,14 @@ QCPAxisRect *PlotBase::CreateDefaultRect() {
   }
   //
   qDebug() << QString("CreateDefaultRect done");
-  // 创建默认序列
+  // 需要考虑资源回收
+  auto when_delete = [this](QCPAxisRect *elem) {
+    this->plotLayout()->remove(elem);
+    // qDebug() << QString("name = %1, deleted").arg(elem->name());
+  };
+  std::shared_ptr<QCPAxisRect> new_rect(rect, when_delete);
   // auto *curve = CreateDefaultGraph(rect);
-  return rect;
+  return new_rect;
 }
 
 void PlotBase::setupMatrixDemo(int row, int col) {
@@ -219,7 +224,8 @@ void PlotBase::setupMatrixDemo(int row, int col) {
 
   for (int i = 0; i < row; i++) {
     for (int j = 0; j < col; j++) {
-      QCPAxisRect *current_rect = CreateDefaultRect();
+      all_rects_(i, j) = CreateDefaultRect();
+      QCPAxisRect *current_rect = all_rects_(i, j).get();
       this->plotLayout()->addElement(i, j, current_rect);
       //
       // x轴不显示

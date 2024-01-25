@@ -20,28 +20,24 @@ MatrixWidget::MatrixWidget(QWidget *parent) : PlotBase(parent) {
 }
 
 void MatrixWidget::ShowSubplot(int const index) {
-  auto rect_show = this->plotLayout()->take(all_rects_[index]);
-  // qDebug() <<  "this->plotLayout()->rowCount() = " << this->plotLayout()->rowCount();
-  if (rect_show) {
-    all_rects_[index]->setVisible(false);
-    this->plotLayout()->simplify();
-  } else {
-    all_rects_[index]->setVisible(true);
-    int current_index = -1; // 因为每次删除元素后，剩余元素会重新编号，所以需要重新计算当前rect的实际index
-    for (int i = 0; i <= index; ++i) {
-      if (all_rects_[i]->visible()) { current_index++; }
-    }
+  // auto rect_show = this->plotLayout()->take(all_rects_[index]);
+  // // qDebug() <<  "all_rects_.rows() = " << all_rects_.rows();
+  // if (rect_show) {
+  //   all_rects_[index]->setVisible(false);
+  //   this->plotLayout()->simplify();
+  // } else {
+  //   all_rects_[index]->setVisible(true);
+  //   int current_index = -1; // 因为每次删除元素后，剩余元素会重新编号，所以需要重新计算当前rect的实际index
+  //   for (int i = 0; i <= index; ++i) {
+  //     if (all_rects_[i]->visible()) { current_index++; }
+  //   }
 
-    // qDebug() << "current_index == " << current_index;
+  //   // qDebug() << "current_index == " << current_index;
 
-    this->plotLayout()->insertRow(current_index);
-    this->plotLayout()->addElement(current_index, 0, all_rects_[index]);
-  }
-  // for (auto [key, rect] : all_rects_)
-  // {
-  //   qDebug() << "rect" << key << " " << rect->visible();
+  //   this->plotLayout()->insertRow(current_index);
+  //   this->plotLayout()->addElement(current_index, 0, all_rects_[index]);
   // }
-  // qDebug() <<  "end rowCount() = " << this->plotLayout()->rowCount();
+
 
   this->replot();
 }
@@ -58,22 +54,22 @@ void MatrixWidget::contextMenuRequest(QPoint pos) {
 }
 
 void MatrixWidget::mouseWheel() {
-  bool x_selected = false;
+  // bool x_selected = false;
 
-  for (auto rect : this->axisRects()) {
-    if (rect->axis(QCPAxis::atBottom)->selectedParts().testFlag(QCPAxis::spAxis)) {
-      x_selected = true;
-      break;
-    }
-  }
+  // for (auto rect : this->axisRects()) {
+  //   if (rect->axis(QCPAxis::atBottom)->selectedParts().testFlag(QCPAxis::spAxis)) {
+  //     x_selected = true;
+  //     break;
+  //   }
+  // }
 
-  for (auto rect : this->axisRects()) {
-    if (x_selected) {
-      rect->setRangeZoom(Qt::Horizontal);
-    } else {
-      rect->setRangeZoom(Qt::Vertical);
-    }
-  }
+  // for (auto rect : this->axisRects()) {
+  //   if (x_selected) {
+  //     rect->setRangeZoom(Qt::Horizontal);
+  //   } else {
+  //     rect->setRangeZoom(Qt::Vertical);
+  //   }
+  // }
 
   // qDebug() <<" x_selected = " << x_selected;
 }
@@ -134,73 +130,45 @@ std::shared_ptr<QCPGraph> MatrixWidget::CreateGraphByFieldName(int const row,
 }
 
 void MatrixWidget::RowChanged(int const new_row) {
-  int const old_row = this->plotLayout()->rowCount();
-  int const col = this->plotLayout()->columnCount();
+  int const old_row = all_rects_.rows();
+  int const col = all_rects_.cols();
   qDebug() << QString("begin RowChanged, col=%3, %1--->%2").arg(old_row).arg(new_row).arg(col);
 
   // 增加
-  if (old_row < new_row) {
-    // rects_.conservativeResize(new_row, col);
-    for (int i = old_row; i < new_row; i++) {
-      for (int j = 0; j < col; j++) {
-        QCPAxisRect *current_rect = CreateDefaultRect();
-        bool re = this->plotLayout()->addElement(i, j, current_rect);
-      }
+  all_rects_.resize(new_row, col);
+
+  for (int i = old_row; i < new_row; i++) {
+    for (int j = 0; j < col; j++) {
+      all_rects_(i, j) = CreateDefaultRect();
+      this->plotLayout()->addElement(i, j, all_rects_(i, j).get());
     }
   }
-  // 减少
-  else if (old_row > new_row) {
-    for (int i = new_row; i < old_row; i++) {
-      for (int j = 0; j < col; j++) {
-        QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(i, j));
-        for (auto *one_graph : current_rect->graphs()) {
-          this->removeGraph(one_graph);
-        }
-        this->plotLayout()->remove(current_rect);
-      }
-    }
-    // rects_.conservativeResize(new_row, col);
-  }
+
   qDebug() << QString("end RowChanged %1--->%2").arg(old_row).arg(new_row);
 }
 void MatrixWidget::ColChanged(int const new_col) {
   //! 因为0,0 --> 1,1 是行和列单独变化的,
-  int const row = (this->plotLayout()->rowCount() < 1 ? 1 : this->plotLayout()->rowCount());
-  int const old_col = this->plotLayout()->columnCount();
+  int const row = (all_rects_.rows() < 1 ? 1 : all_rects_.rows());
+  int const old_col = all_rects_.cols();
   qDebug() << QString("begin ColChanged, row=%3, %1--->%2").arg(old_col).arg(new_col).arg(row);
 
   // 增加
-  if (old_col < new_col) {
-    // rects_.conservativeResize(row, new_col);
-    // qDebug() << QString("rects_ %1*%2").arg(this->plotLayout()->rowCount()).arg(this->plotLayout()->columnCount());
-    for (int i = 0; i < row; i++) {
-      for (int j = old_col; j < new_col; j++) {
-        QCPAxisRect *current_rect = CreateDefaultRect();
-        bool re = this->plotLayout()->addElement(i, j, current_rect);
-      }
+  all_rects_.resize(row, new_col);
+  for (int i = 0; i < row; i++) {
+    for (int j = old_col; j < new_col; j++) {
+      all_rects_(i, j) = CreateDefaultRect();
+      plotLayout()->addElement(i, j, all_rects_(i, j).get());
     }
   }
-  // 减少
-  else if (old_col > new_col) {
-    for (int i = 0; i < row; i++) {
-      for (int j = new_col; j < old_col; j++) {
-        QCPAxisRect *current_rect = qobject_cast<QCPAxisRect *>(this->plotLayout()->element(i, j));
-        for (auto *one_graph : current_rect->graphs()) {
-          this->removeGraph(one_graph);
-        }
-        this->plotLayout()->remove(current_rect);
-      }
-    }
-    // rects_.conservativeResize(row, new_col);
-  }
-  qDebug() << QString("end ColChanged %1--->%2").arg(old_col).arg(this->plotLayout()->columnCount());
+
+  qDebug() << QString("end ColChanged %1--->%2").arg(old_col).arg(all_rects_.cols());
 }
 
 void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col) {
-  int const old_row = this->plotLayout()->rowCount();
-  int const old_col = this->plotLayout()->columnCount();
+  int const old_row = all_rects_.rows();
+  int const old_col = all_rects_.cols();
   if (new_row < 1 || new_col < 1) { return; }
-  // int const old_row = this->plotLayout()->rowCount();
+  // int const old_row = all_rects_.rows();
   // int const old_col = rects_.cols();
   if (new_row != old_row) { RowChanged(new_row); }
   if (old_col != new_col) { ColChanged(new_col); }
@@ -210,8 +178,8 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col) {
                   .arg(old_col)
                   .arg(new_row)
                   .arg(new_col)
-                  .arg(this->plotLayout()->rowCount())
-                  .arg(this->plotLayout()->columnCount());
+                  .arg(all_rects_.rows())
+                  .arg(all_rects_.cols());
   for (int i = 0; i < new_row; i++) {
     for (int j = 0; j < new_col; j++) {
       // QCPAxisRect *current_rect = rects_(i, j);

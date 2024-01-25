@@ -27,7 +27,6 @@ public:
 
 protected:
 protected:
-  std::map<int, QCPAxisRect *> all_rects_;
 
 private slots:
   void contextMenuRequest(QPoint pos);
