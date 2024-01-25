@@ -33,7 +33,7 @@ void RectProperty::UpdateChannelCount() {
   for (int i = old_count; i < new_count; ++i) {
     QString channel_header = (i == 0 ? QString("main_filed") : QString("field-%1").arg(i));
     auto field = new rviz::SubGraphProperty(channel_header, "", "field_name", this);
-    field->setChannelProperty(parent_->data_channels_(i, 0).get());
+    field->setChannelProperty(parent_->data_channels_[i].get());
     std::shared_ptr<rviz::SubGraphProperty> result(field, when_delete);
     connect(field, &rviz::Property::changed, [this, field]() {
       this->parent_->UpdateFieldName(field, this->row_, this->col_);
@@ -57,8 +57,8 @@ MultiMatrixDisplay::MultiMatrixDisplay() {
       new rviz::IntProperty("channel counts", 0, "the number of channel counts", this, SLOT(UpdateChannelCount()));
 
   // ! 需要互相访问,限制范围的set需要在row col都构造完再设置
-  row_prop_ = new rviz::IntProperty("row count", 0, "row of mat graphs", this, SLOT(UpdateRow()));
-  col_prop_ = new rviz::IntProperty("col count", 0, "col of mat graphs", this, SLOT(UpdateCol()));
+  row_prop_ = new rviz::IntProperty("row count", 0, "row of mat graphs", this, SLOT(UpdateRowCol()));
+  col_prop_ = new rviz::IntProperty("col count", 0, "col of mat graphs", this, SLOT(UpdateRowCol()));
 
   // 会自动生成rect-0-0
   row_prop_->setMin(1);
@@ -83,19 +83,21 @@ void MultiMatrixDisplay::UpdateChannelCount() {
   int const new_count = counts_prop_->getInt();
   int const old_count = data_channels_.size();
 
-  data_channels_.conservativeResize(new_count, 1);
+  data_channels_.resize(new_count);
   auto when_delete = [this](rviz::CachedChannelProperty *elem) {
     this->takeChild(elem);
     delete elem;
   };
 
   // 新增加元素
-  for (int i = old_count; i < new_count; ++i) {
+  // for (int i = old_count; i < new_count; ++i) {
+  for (int i = 0; i < new_count; ++i) {
+    if (data_channels_[i]) { continue; }
     QString channel_header = (i == 0 ? QString("main_channel") : QString("channel-%1").arg(i));
 
     auto single_changel = new rviz::CachedChannelProperty(channel_header, "", "data_channel", counts_prop_);
     std::shared_ptr<rviz::CachedChannelProperty> new_single_changel(single_changel, when_delete);
-    data_channels_(i, 0) = new_single_changel;
+    data_channels_[i] = new_single_changel;
   }
   qDebug() << QString("MultiMatrixDisplay::UpdateChannelCount() from %1 --> %2").arg(old_count).arg(new_count);
   view_->replot();
@@ -104,8 +106,7 @@ void MultiMatrixDisplay::UpdateChannelCount() {
 std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const row, int const col) {
   qDebug() << QString("CreateRectProperty row=%1,col=%2").arg(row).arg(col);
   auto when_delete = [this, row, col](RectProperty *elem) {
-    qDebug() << QString("rect row=%1,col=%2 deleted").arg(row).arg(col);
-
+    // qDebug() << QString("rect row=%1,col=%2 deleted").arg(row).arg(col);
     this->takeChild(elem);
     delete elem;
   };
@@ -115,60 +116,21 @@ std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const r
   rect_prop->setName(QString("rect-%1-%2").arg(row).arg(col));
   rect_prop->setLayout(row, col);
   rect_prop->UpdateChannelCount();
-  std::weak_ptr<RectProperty> wk_rect(rect_prop);
-  auto when_channel_count_changed = [this, wk_rect]() {
-    if (auto sp = wk_rect.lock()) { sp->UpdateChannelCount(); }
-  };
-
-  connect(counts_prop_, &rviz::IntProperty::changed, when_channel_count_changed);
+  connect(counts_prop_, &rviz::IntProperty::changed, new_rect, &RectProperty::UpdateChannelCount);
   return rect_prop;
 }
 
-void MultiMatrixDisplay::UpdateRow() {
-  int const old_row = fields_prop_.rows();
-  int const new_row = row_prop_->getInt();
-  int const col = col_prop_->getInt();
-  if (col == 0) { return; }
-
-  qDebug() << QString("------------------------MultiMatrixDisplay::UpdateRow() begin, size is [%1,%2]")
-                  .arg(fields_prop_.rows())
-                  .arg(fields_prop_.cols());
-
-  fields_prop_.resize(new_row, col);
-  // 增加
-  for (int i = old_row; i < new_row; ++i) {
-    for (int j = 0; j < col; ++j) {
-      fields_prop_(i, j) = CreateRectProperty(i, j);
-    }
-  }
-
-  qDebug() << QString("------------------------MultiMatrixDisplay::UpdateRow() begin, size is [%1,%2]")
-                  .arg(fields_prop_.rows())
-                  .arg(fields_prop_.cols());
-  view_->UpdatePlotLayout(new_row, col);
-}
-void MultiMatrixDisplay::UpdateCol() {
-  int const old_col = fields_prop_.cols();
+void MultiMatrixDisplay::UpdateRowCol() {
   int const new_col = col_prop_->getInt();
-  int const row = row_prop_->getInt();
-  if (row == 0) { return; }
-
-  qDebug() << QString("------------------------MultiMatrixDisplay::UpdateCol() begin, size is [%1,%2]")
-                  .arg(fields_prop_.rows())
-                  .arg(fields_prop_.cols());
-
-  fields_prop_.resize(row, new_col);
-  // 增加
-  for (int i = 0; i < row; ++i) {
-    for (int j = old_col; j < new_col; ++j) {
+  int const new_row = row_prop_->getInt();
+  fields_prop_.resize(new_row, new_col);
+  for (int i = 0; i < new_row; ++i) {
+    for (int j = 0; j < new_col; ++j) {
+      if (fields_prop_(i, j)) { continue; }
       fields_prop_(i, j) = CreateRectProperty(i, j);
     }
   }
-
-  qDebug() << QString("------------------------MultiMatrixDisplay::UpdateCol() end, size is [%1,%2]")
-                  .arg(fields_prop_.rows())
-                  .arg(fields_prop_.cols());
-  view_->UpdatePlotLayout(row, new_col);
+  view_->UpdatePlotLayout(new_row, new_col);
 }
 
 void MultiMatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString const &field_names) {
@@ -186,10 +148,10 @@ void MultiMatrixDisplay::CreateMatrixPlot(QString const &name, MatrixXQString co
 
 void MultiMatrixDisplay::SyncInfo() {
   // 去buffer里面查询通道更新
-  if (!view_ || data_channels_.rows() == 0) { return; }
+  if (!view_ || data_channels_.size() == 0) { return; }
   // 当前时间
-  for (int i = 0; i < data_channels_.rows(); ++i) {
-    std::string const channel_name = data_channels_(i, 0)->getStdString();
+  for (int i = 0; i < data_channels_.size(); ++i) {
+    std::string const channel_name = data_channels_[i]->getStdString();
     double t0 = view_->getLastDataTime(channel_name);
     auto msgs = g_cacher_->GetProtoWithChannleName(channel_name, t0);
     if (!msgs.empty()) {

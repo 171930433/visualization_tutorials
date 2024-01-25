@@ -61,8 +61,7 @@ public:
   void update(float dt, float ros_dt) override;
 
 private Q_SLOTS:
-  void UpdateRow();
-  void UpdateCol();
+  void UpdateRowCol();
   void UpdateChannelCount();
   void SyncInfo();
 public Q_SLOTS:
@@ -83,7 +82,7 @@ private:
 private:
   static int object_count_;
 
-  rviz::MatrixXChannel data_channels_;
+  rviz::VectorXChannel data_channels_;
   MatrixXRectProp fields_prop_;
   friend RectProperty;
 };

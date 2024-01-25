@@ -27,15 +27,13 @@ public:
 
 protected:
 protected:
-
 private slots:
   void contextMenuRequest(QPoint pos);
   void ShowSubplot(int const index);
   void mouseWheel();
 
 protected:
-  void RowChanged(int const new_row);
-  void ColChanged(int const new_col);
+  void RowColChanged(int const new_row, int const new_col);
 
 protected:
   CacherBuffer channel_msgs_; // 所有更新的数据缓存

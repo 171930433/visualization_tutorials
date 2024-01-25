@@ -38,7 +38,6 @@ void MatrixWidget::ShowSubplot(int const index) {
   //   this->plotLayout()->addElement(current_index, 0, all_rects_[index]);
   // }
 
-
   this->replot();
 }
 
@@ -129,50 +128,23 @@ std::shared_ptr<QCPGraph> MatrixWidget::CreateGraphByFieldName(int const row,
   return curve;
 }
 
-void MatrixWidget::RowChanged(int const new_row) {
-  int const old_row = all_rects_.rows();
-  int const col = all_rects_.cols();
-  qDebug() << QString("begin RowChanged, col=%3, %1--->%2").arg(old_row).arg(new_row).arg(col);
+void MatrixWidget::RowColChanged(int const new_row, int const new_col) {
+  all_rects_.resize(new_row, new_col);
 
-  // 增加
-  all_rects_.resize(new_row, col);
-
-  for (int i = old_row; i < new_row; i++) {
-    for (int j = 0; j < col; j++) {
-      all_rects_(i, j) = CreateDefaultRect();
-      this->plotLayout()->addElement(i, j, all_rects_(i, j).get());
-    }
-  }
-
-  qDebug() << QString("end RowChanged %1--->%2").arg(old_row).arg(new_row);
-}
-void MatrixWidget::ColChanged(int const new_col) {
-  //! 因为0,0 --> 1,1 是行和列单独变化的,
-  int const row = (all_rects_.rows() < 1 ? 1 : all_rects_.rows());
-  int const old_col = all_rects_.cols();
-  qDebug() << QString("begin ColChanged, row=%3, %1--->%2").arg(old_col).arg(new_col).arg(row);
-
-  // 增加
-  all_rects_.resize(row, new_col);
-  for (int i = 0; i < row; i++) {
-    for (int j = old_col; j < new_col; j++) {
+  for (int i = 0; i < new_row; i++) {
+    for (int j = 0; j < new_col; j++) {
+      if (all_rects_(i, j)) { continue; }
       all_rects_(i, j) = CreateDefaultRect();
       plotLayout()->addElement(i, j, all_rects_(i, j).get());
     }
   }
-
-  qDebug() << QString("end ColChanged %1--->%2").arg(old_col).arg(all_rects_.cols());
 }
 
 void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col) {
   int const old_row = all_rects_.rows();
   int const old_col = all_rects_.cols();
-  if (new_row < 1 || new_col < 1) { return; }
-  // int const old_row = all_rects_.rows();
-  // int const old_col = rects_.cols();
-  if (new_row != old_row) { RowChanged(new_row); }
-  if (old_col != new_col) { ColChanged(new_col); }
 
+  RowColChanged(new_row, new_col);
   qDebug() << QString("from %1*%2 ------------> %3*%4 rects_ size=%5*%6")
                   .arg(old_row)
                   .arg(old_col)
@@ -180,6 +152,7 @@ void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col) {
                   .arg(new_col)
                   .arg(all_rects_.rows())
                   .arg(all_rects_.cols());
+
   for (int i = 0; i < new_row; i++) {
     for (int j = 0; j < new_col; j++) {
       // QCPAxisRect *current_rect = rects_(i, j);

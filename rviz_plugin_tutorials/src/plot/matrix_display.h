@@ -56,7 +56,6 @@ private:
 private:
   MatrixWidget *view_ = nullptr;
 
-  // MatrixXFieldList fields_prop_;
   rviz::MatrixXSubGraph fields_prop_;
   rviz::IntProperty *row_prop_ = nullptr;
   rviz::IntProperty *col_prop_ = nullptr;

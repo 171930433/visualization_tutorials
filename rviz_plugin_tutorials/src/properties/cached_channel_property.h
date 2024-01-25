@@ -1,6 +1,7 @@
 #pragma once
 #include <eigen3/Eigen/Dense>
 #include <rviz/properties/editable_enum_property.h>
+#include <rviz/properties/int_property.h>
 #include <rviz/properties/property.h>
 
 namespace rviz {
@@ -34,6 +35,5 @@ protected:
   CachedChannelProperty *channel_;
 };
 
-using MatrixXFieldList = Eigen::Matrix<std::shared_ptr<rviz::FieldListProperty>, Eigen::Dynamic, Eigen::Dynamic>;
-using MatrixXChannel = Eigen::Matrix<std::shared_ptr<rviz::CachedChannelProperty>, Eigen::Dynamic, Eigen::Dynamic>;
+using VectorXChannel = std::vector<std::shared_ptr<rviz::CachedChannelProperty>>;
 } // namespace rviz

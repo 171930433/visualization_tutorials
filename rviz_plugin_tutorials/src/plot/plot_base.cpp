@@ -188,7 +188,7 @@ std::shared_ptr<QCPAxisRect> PlotBase::CreateDefaultRect() {
   rect->axis(QCPAxis::atLeft)->setTickLabelSide(QCPAxis::lsInside);
   rect->axis(QCPAxis::atLeft)->setSubTicks(false);
   // 共x轴 (0,0)->所有 所有->(0,0)
-  if (this->graphCount() != 0) {
+  if (this->axisRectCount() != 0) {
     connect(rect->axis(QCPAxis::atBottom),
             SIGNAL(rangeChanged(QCPRange)),
             this->axisRect(0)->axis(QCPAxis::atBottom),
