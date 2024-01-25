@@ -26,10 +26,9 @@ void RectProperty::UpdateChannelCount() {
     qDebug() << QString("rviz::SubGraphProperty deleted, name = %1 ").arg(elem->getName());
     this->takeChild(elem);
     delete elem;
-    elem = nullptr;
   };
 
-  graphs_.resize(new_count, 1);
+  graphs_.resize(new_count);
   for (int i = old_count; i < new_count; ++i) {
     QString channel_header = (i == 0 ? QString("main_filed") : QString("field-%1").arg(i));
     auto field = new rviz::SubGraphProperty(channel_header, "", "field_name", this);
@@ -38,7 +37,7 @@ void RectProperty::UpdateChannelCount() {
     connect(field, &rviz::Property::changed, [this, field]() {
       this->parent_->UpdateFieldName(field, this->row_, this->col_);
     });
-    graphs_(i, 0) = result;
+    graphs_[i] = result;
   }
   qDebug() << QString("RectProperty::UpdateChannelCount() end ,size = %1").arg(graphs_.size());
 }
@@ -90,7 +89,6 @@ void MultiMatrixDisplay::UpdateChannelCount() {
   };
 
   // 新增加元素
-  // for (int i = old_count; i < new_count; ++i) {
   for (int i = 0; i < new_count; ++i) {
     if (data_channels_[i]) { continue; }
     QString channel_header = (i == 0 ? QString("main_channel") : QString("channel-%1").arg(i));
@@ -105,8 +103,7 @@ void MultiMatrixDisplay::UpdateChannelCount() {
 
 std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const row, int const col) {
   qDebug() << QString("CreateRectProperty row=%1,col=%2").arg(row).arg(col);
-  auto when_delete = [this, row, col](RectProperty *elem) {
-    // qDebug() << QString("rect row=%1,col=%2 deleted").arg(row).arg(col);
+  auto when_delete = [this](RectProperty *elem) {
     this->takeChild(elem);
     delete elem;
   };

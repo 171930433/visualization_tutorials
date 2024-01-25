@@ -50,6 +50,7 @@ protected:
 };
 
 using MatrixXSubGraph = MatrixX<SubGraphProperty>;
+using VectorXSubGraph = std::vector<std::shared_ptr<SubGraphProperty>>;
 // using MatrixXSubGraph = Eigen::Matrix<std::shared_ptr<SubGraphProperty>, Eigen::Dynamic, Eigen::Dynamic>;
 using MatrixXSubCurve = Eigen::Matrix<std::shared_ptr<SubCurveProperty>, Eigen::Dynamic, Eigen::Dynamic>;
 

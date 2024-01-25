@@ -33,7 +33,7 @@ public Q_SLOTS:
   void UpdateChannelCount();
 
 protected:
-  rviz::MatrixXSubGraph graphs_;
+  rviz::VectorXSubGraph graphs_;
   MultiMatrixDisplay *parent_;
   MatrixWidget *plot_;
   int row_, col_;
