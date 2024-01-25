@@ -193,7 +193,7 @@ void MatrixWidget::ColChanged(int const new_col) {
     }
     // rects_.conservativeResize(row, new_col);
   }
-  qDebug() << QString("end ColChanged %1--->%2").arg(old_col).arg(new_col);
+  qDebug() << QString("end ColChanged %1--->%2").arg(old_col).arg(this->plotLayout()->columnCount());
 }
 
 void MatrixWidget::UpdatePlotLayout(int const new_row, int const new_col) {

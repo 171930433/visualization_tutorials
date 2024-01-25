@@ -38,7 +38,8 @@ protected:
   MatrixWidget *plot_;
   int row_, col_;
 };
-using MatrixXRectProp = Eigen::Matrix<std::shared_ptr<RectProperty>, Eigen::Dynamic, Eigen::Dynamic>;
+// using MatrixXRectProp = Eigen::Matrix<std::shared_ptr<RectProperty>, Eigen::Dynamic, Eigen::Dynamic>;
+using MatrixXRectProp = rviz::MatrixX<RectProperty>;
 
 // class QCPCurve;
 

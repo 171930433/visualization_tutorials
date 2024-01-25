@@ -86,8 +86,9 @@ void MatrixDisplay::UpdateRow() {
   int const old_row = fields_prop_.rows();
   int const new_row = row_prop_->getInt();
   int const col = col_prop_->getInt();
+  if (col == 0) { return; }
 
-  fields_prop_.conservativeResize(new_row, col);
+  fields_prop_.resize(new_row, col);
 
   // 增加
   for (int i = old_row; i < new_row; ++i) {
@@ -104,7 +105,7 @@ void MatrixDisplay::UpdateCol() {
   int const new_col = col_prop_->getInt();
   int const row = row_prop_->getInt();
   if (row == 0) { return; }
-  fields_prop_.conservativeResize(row, new_col);
+  fields_prop_.resize(row, new_col);
   // 增加
   for (int i = 0; i < row; ++i) {
     for (int j = old_col; j < new_col; ++j) {

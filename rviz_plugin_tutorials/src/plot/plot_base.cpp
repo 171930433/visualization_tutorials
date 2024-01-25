@@ -19,7 +19,7 @@ void FocusByIndex(QCPAbstractPlottable *single_graph, int const dataIndex) {
 void SelectByT0(QCPAbstractPlottable *single_graph, double const t0) {
   auto const dataIndex = single_graph->interface1D()->findBegin(t0, false);
   // 选中点
-  QCPDataRange index_range{dataIndex, dataIndex};
+  QCPDataRange index_range{dataIndex, dataIndex + 1};
   single_graph->setSelection(QCPDataSelection{index_range});
 }
 
@@ -28,7 +28,7 @@ void SelectByT0sT0e(QCPAbstractPlottable *single_graph, double const t0_s, doubl
   auto const dataIndex_s = single_graph->interface1D()->findBegin(t0_s, false);
   auto const dataIndex_e = single_graph->interface1D()->findBegin(t0_e, false);
   // 选中点
-  QCPDataRange index_range{dataIndex_s, dataIndex_e};
+  QCPDataRange index_range{dataIndex_s, dataIndex_e + 1};
   single_graph->setSelection(QCPDataSelection{index_range});
 }
 
@@ -112,14 +112,20 @@ void PlotBase::onSelectionChangedByUser() {
 
   QCPAbstractPlottable *single_plot = selected_plotable.first();
   QCPDataRange index_range = single_plot->selection().dataRange(0);
+
+  qDebug() << QString("index_range size=%1,start=%2,end=%3")
+                  .arg(index_range.size())
+                  .arg(index_range.begin())
+                  .arg(index_range.end());
+
   double t0_s = single_plot->interface1D()->dataSortKey(index_range.begin());
   double t0_e = single_plot->interface1D()->dataSortKey(index_range.end());
 
   for (auto *single_rect : this->axisRects()) {
     for (auto *single_plotable : single_rect->plottables()) {
-      if (index_range.isEmpty()) {
+      if (index_range.size() == 1) {
         SelectByT0(single_plotable, t0_s);
-      } else if (index_range.size() >= 1) {
+      } else if (index_range.size() > 1) {
         SelectByT0sT0e(single_plotable, t0_s, t0_e);
       }
     }

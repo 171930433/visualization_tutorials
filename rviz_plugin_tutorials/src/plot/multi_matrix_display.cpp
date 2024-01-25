@@ -15,19 +15,21 @@ RectProperty::RectProperty(MatrixWidget *plot, MultiMatrixDisplay *parent)
     : rviz::BoolProperty("rect", true, "sub plot", parent), plot_(plot), parent_(parent) {}
 
 void RectProperty::UpdateChannelCount() {
-  qDebug() << QString("RectProperty::UpdateChannelCount() from %1 to %2")
+  qDebug() << QString("recit is , %1_%2").arg(row_).arg(col_);
+  qDebug() << QString("RectProperty::UpdateChannelCount() begin,  from %1 to %2")
                   .arg(graphs_.size())
                   .arg(parent_->data_channels_.size());
   int const new_count = parent_->data_channels_.size();
   int const old_count = graphs_.size();
 
   auto when_delete = [this](rviz::SubGraphProperty *elem) {
-    // qDebug() << QString("rviz::SubGraphProperty deleted, name = %1 ").arg(elem->getName());
+    qDebug() << QString("rviz::SubGraphProperty deleted, name = %1 ").arg(elem->getName());
     this->takeChild(elem);
     delete elem;
+    elem = nullptr;
   };
 
-  graphs_.conservativeResize(new_count, 1);
+  graphs_.resize(new_count, 1);
   for (int i = old_count; i < new_count; ++i) {
     QString channel_header = (i == 0 ? QString("main_filed") : QString("field-%1").arg(i));
     auto field = new rviz::SubGraphProperty(channel_header, "", "field_name", this);
@@ -38,7 +40,7 @@ void RectProperty::UpdateChannelCount() {
     });
     graphs_(i, 0) = result;
   }
-  qDebug() << QString("RectProperty::UpdateChannelCount() end ,size is %1").arg(graphs_.size());
+  qDebug() << QString("RectProperty::UpdateChannelCount() end ,size = %1").arg(graphs_.size());
 }
 
 int MultiMatrixDisplay::object_count_ = 0;
@@ -95,12 +97,15 @@ void MultiMatrixDisplay::UpdateChannelCount() {
     std::shared_ptr<rviz::CachedChannelProperty> new_single_changel(single_changel, when_delete);
     data_channels_(i, 0) = new_single_changel;
   }
+  qDebug() << QString("MultiMatrixDisplay::UpdateChannelCount() from %1 --> %2").arg(old_count).arg(new_count);
   view_->replot();
 }
 
 std::shared_ptr<RectProperty> MultiMatrixDisplay::CreateRectProperty(int const row, int const col) {
   qDebug() << QString("CreateRectProperty row=%1,col=%2").arg(row).arg(col);
-  auto when_delete = [this](RectProperty *elem) {
+  auto when_delete = [this, row, col](RectProperty *elem) {
+    qDebug() << QString("rect row=%1,col=%2 deleted").arg(row).arg(col);
+
     this->takeChild(elem);
     delete elem;
   };
@@ -122,7 +127,7 @@ void MultiMatrixDisplay::UpdateRow() {
   int const col = col_prop_->getInt();
   if (col == 0) { return; }
 
-  fields_prop_.conservativeResize(new_row, col);
+  fields_prop_.resize(new_row, col);
   // 增加
   for (int i = old_row; i < new_row; ++i) {
     for (int j = 0; j < col; ++j) {
@@ -138,7 +143,7 @@ void MultiMatrixDisplay::UpdateCol() {
   int const new_col = col_prop_->getInt();
   int const row = row_prop_->getInt();
   if (row == 0) { return; }
-  fields_prop_.conservativeResize(row, new_col);
+  fields_prop_.resize(row, new_col);
   // 增加
   for (int i = 0; i < row; ++i) {
     for (int j = old_col; j < new_col; ++j) {
