@@ -79,7 +79,7 @@ void TrajectoryWidget::setupTrajectoryDemo()
   this->replot();
 }
 
-QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,       // curve legend
+std::shared_ptr<QCPCurve> TrajectoryWidget::addTrajectory(QString const &name,       // curve legend
                                           QCPScatterStyle const &ss, // 散点样式
                                           QPen const &lp             // line pen
 )
@@ -105,7 +105,13 @@ QCPCurve *TrajectoryWidget::addTrajectory(QString const &name,       // curve le
 
   decorator->setScatterStyle(selectedScatterStyle, QCPScatterStyle::ScatterProperty::spSize | QCPScatterStyle::ScatterProperty::spPen); // 只有size使用设定值，其他的用plot的继承值
 
-  return curve;
+  auto when_delete = [this](QCPCurve *elem) {
+    this->removePlottable(elem);
+    // qDebug() << QString("name = %1, deleted").arg(elem->name());
+  };
+  std::shared_ptr<QCPCurve> result(curve, when_delete);
+
+  return result;
 }
 
 void TrajectoryWidget::UpdateTrajectory(QCPCurve *curve, std::map<size_t, sp_cPbMsg> const &new_data)

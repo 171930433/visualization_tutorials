@@ -1,16 +1,14 @@
 #pragma once
 #include "plot/plot_base.h"
 #include "protobuf_helper.h"
-#include <ros/time.h>
 #include <deque>
+#include <ros/time.h>
 class QWidget;
 
-class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed
-{
+class QCP_LIB_DECL QCPMapAxisTickerFixed : public QCPAxisTickerFixed {
   Q_GADGET
 public:
-  QCPMapAxisTickerFixed(QCPAxis *x_axis, QCPAxis *y_axis) : QCPAxisTickerFixed()
-  {
+  QCPMapAxisTickerFixed(QCPAxis *x_axis, QCPAxis *y_axis) : QCPAxisTickerFixed() {
     x_axis_ = x_axis;
     y_axis_ = y_axis;
     //    this->setTickLength(0, 0);
@@ -21,18 +19,14 @@ public:
 
 protected:
   // reimplemented virtual methods: range in meter
-  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE
-  {
+  virtual double getTickStep(const QCPRange &range) Q_DECL_OVERRIDE {
     y_axis_->setScaleRatio(x_axis_);
 
     double re = 0;
 
-    if (x_axis_->range().size() >= y_axis_->range().size())
-    {
+    if (x_axis_->range().size() >= y_axis_->range().size()) {
       re = CalcStep(y_axis_->range().size(), y_axis_->axisRect()->height());
-    }
-    else
-    {
+    } else {
       re = CalcStep(x_axis_->range().size(), x_axis_->axisRect()->width());
     }
 
@@ -43,16 +37,13 @@ protected:
 
   virtual int getSubTickCount(double tickStep) Q_DECL_OVERRIDE { return 0; }
 
-  double CalcStep(double const rangle_meter, int const range_pixel)
-  {
+  double CalcStep(double const rangle_meter, int const range_pixel) {
     double step = 10;
     pixel_per_meter_ = rangle_meter / range_pixel;
     double t[] = {1.0, 2.0, 5.0, 10.0}, tick = 30.0 * pixel_per_meter_;
     double order = pow(10.0, floor(log10(tick)));
-    for (int i = 0; i < 4; i++)
-    {
-      if (tick <= t[i] * order)
-      {
+    for (int i = 0; i < 4; i++) {
+      if (tick <= t[i] * order) {
         step = t[i] * order;
         break;
       }
@@ -67,8 +58,7 @@ private:
   double pixel_per_meter_ = 0;
 };
 
-class TrajectoryWidget : public PlotBase
-{
+class TrajectoryWidget : public PlotBase {
   Q_OBJECT
 
 public:
@@ -76,12 +66,10 @@ public:
 
 public:
   void setFocusWhenSelect(bool const flag) { focus_when_select_ = flag; }
-  QCPCurve *addTrajectory(QString const &name, QCPScatterStyle const &ss, QPen const &lp);
+  std::shared_ptr<QCPCurve> addTrajectory(QString const &name, QCPScatterStyle const &ss, QPen const &lp);
   void UpdateTrajectory(QCPCurve *curve, std::map<size_t, sp_cPbMsg> const &new_data);
 
-
 protected:
-
 protected:
   void setupTrajectoryDemo();
 

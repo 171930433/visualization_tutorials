@@ -48,16 +48,27 @@ QString FieldListProperty::getChannelName() const {
 }
 
 void FieldListProperty::ListFieldNames() {
-  if (!channel_) { return; }
+  // 如果未设定通道名,则退化成通道名
+  // ! 需要统一string 和 qstring
+  if (!channel_) {
+    auto const names = g_cacher_->GetChannelNames();
+    this->clearOptions();
+    this->addOption("");
+    for (auto const &name : names) {
+      this->addOptionStd(name);
+    }
+    return;
+  }
+
   auto channel_name = channel_->getStdString();
   if (channel_name.empty()) { return; }
   auto type_name = g_cacher_->GetTypeNameWithChannelName(channel_name);
   auto msg = CreateMessageByName(type_name);
-  auto field_names = GetFildNames(*msg);
+  auto options = GetFildNames(*msg);
 
   this->clearOptions();
   this->addOption("");
-  for (auto const &name : field_names) {
+  for (auto const &name : options) {
     this->addOption(name);
   }
 }

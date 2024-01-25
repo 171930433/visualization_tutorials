@@ -1,76 +1,27 @@
 #pragma once
 
-// #include <rviz/properties/color_property.h>
-// #include <rviz/properties/float_property.h>
+#include "properties/sub_plot_property.h"
+
 #include <rviz/properties/bool_property.h>
 #include <rviz/properties/int_property.h>
 
-// #include <rviz/properties/vector_property.h>
-// #include <rviz/properties/enum_property.h>
-// #include <rviz/properties/tf_frame_property.h>
 #include <rviz/display.h>
 
 #include "display_sync_base.h"
 #include "trajectory_widget.h"
 #include <deque>
-namespace rviz
-{
-  class IntProperty;
-  class EnumProperty;
-  class BoolProperty;
-  class GroupProperty;
-  class ColorProperty;
-}
-
-namespace zhito
-{
-  class TrajectoryPanel;
-}
+namespace rviz {
+class IntProperty;
+class EnumProperty;
+class BoolProperty;
+class GroupProperty;
+class ColorProperty;
+} // namespace rviz
 
 class TrajectoryWidget;
 class QCPCurve;
 
-class GraphProperty : public rviz::BoolProperty
-{
-  Q_OBJECT
-public:
-  GraphProperty(TrajectoryWidget *plot, Property *parent = nullptr);
-  ~GraphProperty();
-private Q_SLOTS:
-  void UpdateScatterShape();
-  void UpdateScatterColor();
-  void UpdateScatterSize();
-  // void UpdateScatterStyle();
-  void UpdateLineStyle();
-  void UpdateLineWidth();
-  void UpdateLineColor();
-  void UpdateEnable();
-  void UpdateTopic();
-  void SyncInfo();
-
-protected:
-  QPen getLinePen() const;
-  QCPScatterStyle getScatterStyle() const;
-
-protected:
-  static int graph_counts_;
-  QTimer dataTimer_; // 检查是否有数据更新
-  rviz::EnumProperty *channel_name_prop_ = nullptr;
-  // scatter
-  rviz::EnumProperty *scatter_type_ = nullptr;
-  rviz::ColorProperty *scatter_color_ = nullptr; // scatter color
-  rviz::IntProperty *scatter_size_ = nullptr;    // scatter size
-  // line
-  rviz::EnumProperty *line_type_ = nullptr;   // line type
-  rviz::IntProperty *line_width_ = nullptr;   // line width
-  rviz::ColorProperty *line_color_ = nullptr; // line color
-
-  QCPCurve *curve_;
-  TrajectoryWidget *plot_ = nullptr;
-};
-
-class TrajectoryDisplay : public DisplaySyncBase
-{
+class TrajectoryDisplay : public DisplaySyncBase {
   Q_OBJECT
 public:
   TrajectoryDisplay();
@@ -85,16 +36,15 @@ private Q_SLOTS:
 
   void UpdateFocusWhenSelect(); // 将当前视图放置在central widget位置
   void UpdateGraphCount();      //
+  void UpdateTopic();
+  void SyncInfo();
 
 private:
   TrajectoryWidget *view_ = nullptr;
+  QTimer dataTimer_; // 检查是否有数据更新
 
-  rviz::EnumProperty *scatter_type_ = nullptr;
-  rviz::EnumProperty *line_type_ = nullptr;
-  rviz::IntProperty *counts_prop_ = nullptr;            // 轨迹数目
-  rviz::BoolProperty *focus_when_select_ = nullptr;     // 选中时居中
-  rviz::EnumProperty *plot_type_prop_ = nullptr;        // 绘图类型
-  rviz::BoolProperty *differ_with_main_prop_ = nullptr; // 与主轨迹做差
+  rviz::IntProperty *counts_prop_ = nullptr;        // 轨迹数目
+  rviz::BoolProperty *focus_when_select_ = nullptr; // 选中时居中
 
-  std::deque<std::shared_ptr<GraphProperty>> graphs_;
+  rviz::VectorXSubCurve graphs_;
 };
