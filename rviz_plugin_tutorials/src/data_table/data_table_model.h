@@ -5,28 +5,12 @@
 #include <QSortFilterProxyModel>
 #include <QStringList>
 #include <QVariant>
-#include <boost/multi_index/global_fun.hpp>
-#include <boost/multi_index/ordered_index.hpp>
-#include <boost/multi_index/member.hpp>
-#include <boost/multi_index/random_access_index.hpp>
-#include <boost/multi_index_container.hpp>
 #include <iostream>
 #include <map>
 #include <qdebug.h>
 #include <utility>
 #include <vector>
 
-using namespace boost::multi_index;
-
-inline size_t ExactT0_ms(sp_cPbMsg msg) { return GetHeaderT0(*msg, "header") * 1e3; }
-
-namespace inner {
-struct t0 {};
-} // namespace inner
-
-using DataContainer = boost::multi_index_container<
-    sp_cPbMsg,
-    indexed_by<random_access<>, ordered_unique<tag<inner::t0>, global_fun<sp_cPbMsg, size_t, ExactT0_ms>>>>;
 
 class MyTableModel : public QAbstractTableModel {
   Q_OBJECT

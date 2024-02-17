@@ -1,15 +1,17 @@
 #pragma once
 
 #include <deque>
+#include <eigen3/Eigen/Dense>
 #include <google/protobuf/message.h>
 #include <list>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
-#include <eigen3/Eigen/Dense>
 
 #include "cacher/utils.h"
+
+#include "protobuf_helper.h"
 
 // using namespace zhito::zloc;
 // using namespace zhito::convert;
@@ -119,3 +121,10 @@ DEFINE_EXTEND_TYPE(Cacher);
 using CacherBuffer = std::unordered_map<std::string, std::map<size_t, sp_cPbMsg>>;
 
 extern spCacher g_cacher_;
+
+
+
+
+class MessageManager {
+public:
+};

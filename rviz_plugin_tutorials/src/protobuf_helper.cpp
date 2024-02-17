@@ -3,8 +3,14 @@
 #include <iostream>
 #include <qmath.h>
 
+
+#include "cacher/cacher.h"
+
 // std::map<size_t, spMessage> g_messages;
 bool g_demo_data_inited = false;
+
+size_t ExactT0_ms(sp_cPbMsg msg) { return GetHeaderT0(*msg, "header") * 1e3; }
+
 
 void InitPersons() {
   if (g_demo_data_inited) { return; }
