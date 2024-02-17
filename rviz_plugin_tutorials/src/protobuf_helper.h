@@ -19,7 +19,8 @@ using spPerson = std::shared_ptr<demo::Person>;
 void InitPersons();
 
 spPbMsg CreateMessageByName(std::string const& name);
-
+double GetHeaderT0(google::protobuf::Message const &msg, QString const &name);
+google::protobuf::Message const &GetHeader(google::protobuf::Message const &msg, QString const &name);
 void PrintProtoMsg2(const google::protobuf::Message &message);
 QStringList GetFildNames(const google::protobuf::Message &message, QString const &prefix = "");
 QVariant ReflectVaule(const google::protobuf::Message &message, google::protobuf::Descriptor const *descriptor, google::protobuf::Reflection const *reflection,

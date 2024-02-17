@@ -15,12 +15,12 @@
 // using namespace zhito::convert;
 
 // const C; reference R;sp shared_ptr
-#define cr(T) T const &
-#define sp(T) std::shared_ptr<T>
-#define up(T) std::unique_ptr<T>
-#define crsp_c(T) std::shared_ptr<T const> const &
-#define sp_c(T) std::shared_ptr<T const>
-#define crsp(T) std::shared_ptr<T> const &
+// #define cr(T) T const &
+// #define sp(T) std::shared_ptr<T>
+// #define up(T) std::unique_ptr<T>
+// #define crsp_c(T) std::shared_ptr<T const> const &
+// #define sp_c(T) std::shared_ptr<T const>
+// #define crsp(T) std::shared_ptr<T> const &
 
 #define DEFINE_EXTEND_TYPE(T)                                                                                          \
   using cr##T = T const &;                                                                                             \
