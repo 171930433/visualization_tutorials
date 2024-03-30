@@ -94,11 +94,14 @@ ament_target_dependencies(${PROJECT_NAME}
   "rclcpp"
   "rviz_common"
   "rviz_rendering"
-  "sensor_msgs")
+  "sensor_msgs"
+  "Protobuf"
+  )
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${Qt5Widgets_INCLUDE_DIRS}
   ${CMAKE_CURRENT_LIST_DIR}/src
   )
+
 
 ## Here we export the plugins and meshes so they can be found by RViz at runtime.
 pluginlib_export_plugin_description_file(rviz_common plugin_description.xml)
