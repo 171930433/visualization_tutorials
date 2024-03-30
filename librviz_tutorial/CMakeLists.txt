@@ -29,6 +29,9 @@ set(CMAKE_AUTOMOC ON)
 set(SRC_FILES
   src/myviz.cpp
   src/main.cpp
+  src/mainwindow.cpp
+  src/visualizer_app2.cpp
+  src/visualization_frame2.cpp
 )
 
 ## Add the "myviz" executable and specify the list of source files we
@@ -45,6 +48,11 @@ target_include_directories(myviz PUBLIC
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS})
 
+## Link the myviz executable with whatever Qt libraries have been defined by
+## the ``find_package(Qt4 ...)`` line above, or by the
+## ``set(QT_LIBRARIES Qt5::Widgets)``, and with whatever libraries
+## catkin has included.
+target_link_libraries(myviz ${QT_LIBRARIES} ${catkin_LIBRARIES} qt5advanceddocking)
 ## END_TUTORIAL
 
 ament_export_dependencies(

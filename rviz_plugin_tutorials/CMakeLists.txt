@@ -22,18 +22,65 @@ find_package(rclcpp REQUIRED)
 find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(Protobuf REQUIRED)
+
+
+set(PROTO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proto")
+file(GLOB PROTO_FILES "${PROTO_PATH}/*.proto")
+# 使用protoc生成源码
+protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS ${PROTO_FILES})
+# 包含生成的源码文件
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+qt5_add_resources(RESOURCE_FILES resources.qrc)
+
+
+
+set(CMAKE_CXX_STANDARD 14)
 
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
 
+
+
 ## Here we specify the list of source files.
 ## The generated MOC files are included automatically as headers.
 set(SRC_FILES
-  src/drive_widget.cpp
-  src/imu_display.cpp
-  src/imu_visual.cpp
+  # src/drive_widget.cpp
   src/plant_flag_tool.cpp
   src/teleop_panel.cpp
+  # src/grid_view2.cpp
+  # src/grid_display2.cpp
+  # data_table
+  src/data_table/filterwidget.cpp
+  src/data_table/data_table_model.h
+  src/data_table/data_table_widget.cpp
+  src/data_table/data_table_display.cpp
+  # plot 2d
+  src/plot/qcustomplot.cpp
+  src/plot/plot_base.cpp
+  src/plot/trajectory_display.cpp
+  src/plot/trajectory_widget.cpp
+  src/plot/matrix_widget.cpp
+  src/plot/matrix_display.cpp
+  src/plot/multi_matrix_display.cpp
+  src/plot/precision_widget.cpp
+  src/plot/precision_display.cpp
+  # sync
+  src/time_sync.cpp
+  src/display_sync_base.cpp
+  src/time_sync_tool.cpp
+  # cacher
+  src/cacher/cacher.cpp
+  # proto
+  src/protobuf_helper.cpp
+  ${PROTO_SRCS} ${PROTO_HDRS}
+  # properties
+  src/properties/longitude_latitude_property.cpp
+  src/properties/cached_channel_property.cpp
+  src/properties/sub_plot_property.cpp
+  # 
+  ${RESOURCE_FILES}
 )
 
 ## An rviz plugin is just a shared library, so here we declare the
@@ -49,7 +96,9 @@ ament_target_dependencies(${PROJECT_NAME}
   "rviz_rendering"
   "sensor_msgs")
 target_include_directories(${PROJECT_NAME} PUBLIC
-  ${Qt5Widgets_INCLUDE_DIRS})
+  ${Qt5Widgets_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_LIST_DIR}/src
+  )
 
 ## Here we export the plugins and meshes so they can be found by RViz at runtime.
 pluginlib_export_plugin_description_file(rviz_common plugin_description.xml)

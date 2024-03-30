@@ -29,13 +29,13 @@
 
 #include "teleop_panel.hpp"
 
-#include <stdio.h>
-#include <QPainter>
-#include <QLineEdit>
-#include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
+#include <QPainter>
 #include <QTimer>
+#include <QVBoxLayout>
+#include <stdio.h>
 
 #include <memory>
 
@@ -44,8 +44,13 @@
 
 #include "drive_widget.hpp"
 
-namespace rviz_plugin_tutorials
-{
+#include <rviz_common/display_group.hpp>
+#include <rviz_common/render_panel.hpp>
+#include <rviz_common/visualization_frame.hpp>
+#include <rviz_common/visualization_manager.hpp>
+#include <rviz_common/window_manager_interface.hpp>
+
+namespace rviz_plugin_tutorials {
 
 // BEGIN_TUTORIAL
 // Here is the implementation of the TeleopPanel class.  TeleopPanel
@@ -59,14 +64,10 @@ namespace rviz_plugin_tutorials
 // passing the optional *parent* argument on to the superclass
 // constructor, and also zero-ing the velocities we will be
 // publishing.
-TeleopPanel::TeleopPanel(QWidget * parent)
-: rviz_common::Panel(parent),
-  linear_velocity_(0),
-  angular_velocity_(0)
-{
+TeleopPanel::TeleopPanel(QWidget *parent) : rviz_common::Panel(parent), linear_velocity_(0), angular_velocity_(0) {
   // Next we lay out the "output topic" text entry field using a
   // QLabel and a QLineEdit in a QHBoxLayout.
-  QHBoxLayout * topic_layout = new QHBoxLayout;
+  QHBoxLayout *topic_layout = new QHBoxLayout;
   topic_layout->addWidget(new QLabel("Output Topic:"));
   output_topic_editor_ = new QLineEdit;
   topic_layout->addWidget(output_topic_editor_);
@@ -75,7 +76,7 @@ TeleopPanel::TeleopPanel(QWidget * parent)
   drive_widget_ = new DriveWidget;
 
   // Lay out the topic field above the control widget.
-  QVBoxLayout * layout = new QVBoxLayout;
+  QVBoxLayout *layout = new QVBoxLayout;
   layout->addLayout(topic_layout);
   layout->addWidget(drive_widget_);
   setLayout(layout);
@@ -89,18 +90,10 @@ TeleopPanel::TeleopPanel(QWidget * parent)
   // QTimer is deleted by the QObject destructor when this TeleopPanel
   // object is destroyed.  Therefore we don't need to keep a pointer
   // to the timer.
-  QTimer * output_timer = new QTimer(this);
+  QTimer *output_timer = new QTimer(this);
 
   // Next we make signal/slot connections.
-  connect(
-    drive_widget_, SIGNAL(
-      outputVelocity(
-        float,
-        float)),
-    this, SLOT(
-      setVel(
-        float,
-        float)));
+  connect(drive_widget_, SIGNAL(outputVelocity(float, float)), this, SLOT(setVel(float, float)));
   connect(output_topic_editor_, SIGNAL(editingFinished()), this, SLOT(updateTopic()));
   connect(output_timer, SIGNAL(timeout()), this, SLOT(sendVel()));
 
@@ -118,8 +111,7 @@ TeleopPanel::TeleopPanel(QWidget * parent)
 // whenever it changes due to a mouse event.  This just records the
 // values it is given.  The data doesn't actually get sent until the
 // next timer callback.
-void TeleopPanel::setVel(float lin, float ang)
-{
+void TeleopPanel::setVel(float lin, float ang) {
   linear_velocity_ = lin;
   angular_velocity_ = ang;
 }
@@ -128,26 +120,19 @@ void TeleopPanel::setVel(float lin, float ang)
 // results.  This is connected to QLineEdit::editingFinished() which
 // fires when the user presses Enter or Tab or otherwise moves focus
 // away.
-void TeleopPanel::updateTopic()
-{
-  setTopic(output_topic_editor_->text());
-}
+void TeleopPanel::updateTopic() { setTopic(output_topic_editor_->text()); }
 
 // Set the topic name we are publishing to.
-void TeleopPanel::setTopic(const QString & new_topic)
-{
+void TeleopPanel::setTopic(const QString &new_topic) {
   // Only take action if the name has changed.
   if (new_topic != output_topic_) {
     output_topic_ = new_topic;
     // If a publisher currently exists, destroy it.
-    if (velocity_publisher_ != NULL) {
-      velocity_publisher_.reset();
-    }
+    if (velocity_publisher_ != NULL) { velocity_publisher_.reset(); }
     // If the topic is the empty string, don't publish anything.
     if (output_topic_ != "") {
       // The call to create_publisher() says we want to publish data on the new topic name.
-      velocity_publisher_ = velocity_node_->create_publisher<geometry_msgs::msg::Twist>(
-        output_topic_.toStdString(), 1);
+      velocity_publisher_ = velocity_node_->create_publisher<geometry_msgs::msg::Twist>(output_topic_.toStdString(), 1);
     }
     // rviz_common::Panel defines the configChanged() signal.  Emitting it
     // tells RViz that something in this panel has changed that will
@@ -164,8 +149,7 @@ void TeleopPanel::setTopic(const QString & new_topic)
 
 // Publish the control velocities if ROS is not shutting down and the
 // publisher is ready with a valid topic name.
-void TeleopPanel::sendVel()
-{
+void TeleopPanel::sendVel() {
   if (rclcpp::ok() && velocity_publisher_ != NULL) {
     geometry_msgs::msg::Twist msg;
     msg.linear.x = linear_velocity_;
@@ -181,15 +165,13 @@ void TeleopPanel::sendVel()
 // Save all configuration data from this panel to the given
 // Config object.  It is important here that you call save()
 // on the parent class so the class id and panel name get saved.
-void TeleopPanel::save(rviz_common::Config config) const
-{
+void TeleopPanel::save(rviz_common::Config config) const {
   rviz_common::Panel::save(config);
   config.mapSetValue("Topic", output_topic_);
 }
 
 // Load all configuration data for this panel from the given Config object.
-void TeleopPanel::load(const rviz_common::Config & config)
-{
+void TeleopPanel::load(const rviz_common::Config &config) {
   rviz_common::Panel::load(config);
   QString topic;
   if (config.mapGetString("Topic", &topic)) {
@@ -198,10 +180,11 @@ void TeleopPanel::load(const rviz_common::Config & config)
   }
 }
 
-}  // end namespace rviz_plugin_tutorials
+} // namespace rviz_plugin_tutorials
 
 // Tell pluginlib about this class.  Every class which should be
 // loadable by pluginlib::ClassLoader must have these two lines
 // compiled in its .cpp file, outside of any namespace scope.
+#include <pluginlib/class_list_macros.hpp>
 PLUGINLIB_EXPORT_CLASS(rviz_plugin_tutorials::TeleopPanel, rviz_common::Panel)
 // END_TUTORIAL

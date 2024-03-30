@@ -1,6 +1,6 @@
 <package format="2">
     <name>visualization_tutorials</name>
-    <version>0.10.3</version>
+    <version>0.11.0</version>
     <description>
         Metapackage referencing tutorials related to rviz and visualization.
     </description>

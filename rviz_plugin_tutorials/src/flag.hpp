@@ -30,6 +30,8 @@
 #ifndef FLAG_HPP_
 #define FLAG_HPP_
 
+#include <rviz_common/properties/property.hpp>
+
 namespace rviz_plugin_tutorials
 {
 

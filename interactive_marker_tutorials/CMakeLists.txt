@@ -77,7 +77,7 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-install(PROGRAMS
+catkin_install_python(PROGRAMS
   scripts/basic_controls.py
   scripts/cube.py
   scripts/menu.py
