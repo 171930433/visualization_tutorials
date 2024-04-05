@@ -59,6 +59,12 @@ class QTimer;
 class QToolButton;
 class QWidget;
 
+namespace ads
+{
+class CDockManager;
+class CDockWidget;
+}
+
 namespace rviz_common
 {
 
@@ -500,6 +506,7 @@ protected:
     QString name;
     QString class_id;
     QAction * delete_action;
+    ads::CDockWidget* dock_widget_;
   };
   QList<PanelRecord> custom_panels_;
 
@@ -527,6 +534,9 @@ protected:
   bool toolbar_visible_;
 
   ros_integration::RosNodeAbstractionIface::WeakPtr rviz_ros_node_;
+
+  // added 
+  ads::CDockManager* dock_manager_;
 };
 
 }  // namespace rviz_common

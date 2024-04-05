@@ -92,6 +92,9 @@
 // #include "./tool_properties_panel.hpp"
 // #include "./views_panel.hpp"
 
+#include "DockManager.h"
+#include "DockAreaWidget.h"
+
 #define CONFIG_EXTENSION "myrviz"
 #define CONFIG_EXTENSION_WILDCARD "*." CONFIG_EXTENSION
 #define RECENT_CONFIG_COUNT 10
@@ -123,6 +126,8 @@ VisualizationFrame2::VisualizationFrame2(
   toolbar_visible_(true),
   rviz_ros_node_(rviz_ros_node)
 {
+  dock_manager_ = new ads::CDockManager(this);
+
   setObjectName("VisualizationFrame2");
   installEventFilter(geom_change_detector_);
   connect(geom_change_detector_, SIGNAL(changed()), this, SLOT(setDisplayConfigModified()));
@@ -205,6 +210,7 @@ void VisualizationFrame2::closeEvent(QCloseEvent * event)
   } else {
     event->ignore();
   }
+  dock_manager_->deleteLater();
 }
 
 void VisualizationFrame2::leaveEvent(QEvent * event)
@@ -306,7 +312,11 @@ void VisualizationFrame2::initialize(
   // Periodically process events for the splash screen.
   QCoreApplication::processEvents();
 
-  setCentralWidget(central_widget);
+  // setCentralWidget(central_widget);
+  auto *CentralDockWidget = new ads::CDockWidget("CentralWidget");
+  CentralDockWidget->setWidget(render_panel_);
+  // auto *CentralDockArea = dock_manager_->addDockWidget(ads::LeftDockWidgetArea, CentralDockWidget);
+  dock_manager_->addDockWidget(ads::LeftDockWidgetArea, CentralDockWidget);
 
   // Periodically process events for the splash screen.
   QCoreApplication::processEvents();
@@ -838,6 +848,14 @@ void VisualizationFrame2::loadWindowGeometry(const Config & config)
     restoreState(QByteArray::fromHex(qPrintable(main_window_config)));
   }
 
+  QString ads_dock_state;
+  if (config.mapGetString("Ads dock State", &ads_dock_state))
+  {
+    dock_manager_->restoreState(QByteArray::fromHex(qPrintable(ads_dock_state)));
+    // qDebug() << " load state = " << qPrintable(ads_dock_state);
+  }
+
+
   // load panel dock widget states (collapsed or not)
   QList<PanelDockWidget *> dock_widgets = findChildren<PanelDockWidget *>();
 
@@ -870,6 +888,10 @@ void VisualizationFrame2::saveWindowGeometry(Config config)
   QByteArray window_state = saveState().toHex();
   config.mapSetValue("QMainWindow State", window_state.constData());
 
+  QByteArray ads_dock_state = dock_manager_->saveState().toHex();
+  config.mapSetValue("Ads dock State", ads_dock_state.constData());
+  // qDebug() << "save ads_dock_state = " << ads_dock_state;  
+
   config.mapSetValue("Hide Left Dock", hide_left_dock_button_->isChecked());
   config.mapSetValue("Hide Right Dock", hide_right_dock_button_->isChecked());
 
@@ -887,6 +909,7 @@ void VisualizationFrame2::loadPanels(const Config & config)
 {
   // First destroy any existing custom panels.
   for (int i = 0; i < custom_panels_.size(); i++) {
+    dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
     delete custom_panels_[i].dock;
     delete custom_panels_[i].delete_action;
   }
@@ -1203,6 +1226,9 @@ void VisualizationFrame2::onDeletePanel()
   if (QAction * action = qobject_cast<QAction *>(sender())) {
     for (int i = 0; i < custom_panels_.size(); i++) {
       if (custom_panels_[i].delete_action == action) {
+        // added 
+        dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
+
         delete custom_panels_[i].dock;
         custom_panels_.removeAt(i);
         setDisplayConfigModified();
@@ -1264,6 +1290,8 @@ QDockWidget * VisualizationFrame2::addPanelByName(
 
   PanelRecord record;
   record.dock = addPane(name, panel, area, floating);
+  // 丑陋
+  record.dock_widget_ = qobject_cast<ads::CDockWidget *>(panel->parent()->parent()->parent());
   record.panel = panel;
   record.name = name;
   record.delete_action = delete_view_menu_->addAction(name, this, SLOT(onDeletePanel()));
@@ -1281,24 +1309,37 @@ PanelDockWidget * VisualizationFrame2::addPane(
   const QString & name, QWidget * panel,
   Qt::DockWidgetArea area, bool floating)
 {
+  auto *dockWidget = new ads::CDockWidget(name);
+  dockWidget->setWidget(panel);
+  dock_manager_->addDockWidget(static_cast<ads::DockWidgetArea>(area), dockWidget);
+
   PanelDockWidget * dock;
   dock = new PanelDockWidget(name);
-  dock->setContentWidget(panel);
-  dock->setFloating(floating);
+
+  // objectname同步
+  connect(dock, &QObject::objectNameChanged, [dockWidget](QString const &name)
+        { dockWidget->setObjectName(name); 
+        dockWidget->setWindowTitle(name); });
+
+  // dock->setContentWidget(panel);
+  // dock->setFloating(floating);
   dock->setObjectName(name);   // QMainWindow::saveState() needs objectName to be set.
-  addDockWidget(area, dock);
+  // addDockWidget(area, dock);
 
   // we want to know when that panel becomes visible
   connect(dock, SIGNAL(visibilityChanged(bool)), this, SLOT(onDockPanelVisibilityChange(bool)));
   connect(this, SIGNAL(fullScreenChange(bool)), dock, SLOT(overrideVisibility(bool)));
 
-  QAction * toggle_action = dock->toggleViewAction();
+  // QAction * toggle_action = dock->toggleViewAction();
+  QAction *toggle_action = dockWidget->toggleViewAction();
+
   view_menu_->addAction(toggle_action);
 
   connect(toggle_action, SIGNAL(triggered(bool)), this, SLOT(setDisplayConfigModified()));
   connect(dock, SIGNAL(closed()), this, SLOT(setDisplayConfigModified()));
 
-  dock->installEventFilter(geom_change_detector_);
+  // dock->installEventFilter(geom_change_detector_);
+  dockWidget->installEventFilter(geom_change_detector_);
 
   // repair/update visibility status
   hideLeftDock(area == Qt::LeftDockWidgetArea ? false : hide_left_dock_button_->isChecked());

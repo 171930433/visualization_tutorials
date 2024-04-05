@@ -21,6 +21,9 @@ find_package(rviz_common REQUIRED)
 find_package(rviz_default_plugins REQUIRED)
 find_package(rviz_rendering REQUIRED)
 
+list(APPEND CMAKE_PREFIX_PATH "/home/gsk/install")
+find_package(qt5advanceddocking REQUIRED)
+
 ## This setting causes Qt's "MOC" generation to happen automatically, which is required for
 ## Qt's signal/slot connections to work.
 set(CMAKE_AUTOMOC ON)
@@ -54,7 +57,7 @@ target_include_directories(myviz PUBLIC
 ## ``set(QT_LIBRARIES Qt5::Widgets)``, and with whatever libraries
 ## catkin has included.
 target_link_libraries(myviz ${QT_LIBRARIES} ${catkin_LIBRARIES} 
-# qt5advanceddocking
+  ads::qt5advanceddocking
 )
 ## END_TUTORIAL
 
