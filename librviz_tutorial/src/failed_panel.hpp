@@ -1,5 +1,6 @@
 /*
- * Copyright (c) 2011, Willow Garage, Inc.
+ * Copyright (c) 2012, Willow Garage, Inc.
+ * Copyright (c) 2017, Open Source Robotics Foundation, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,53 +27,35 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
 
-#include <QApplication>
-#include <QObject>
+#ifndef RVIZ_COMMON__FAILED_PANEL_HPP_
+#define RVIZ_COMMON__FAILED_PANEL_HPP_
 
-#ifndef Q_MOC_RUN // See: https://bugreports.qt-project.org/browse/QTBUG-22829
-#include <ros/ros.h>
-#include <rviz/rviz_export.h>
-#include <rviz/SendFilePath.h>
-#endif
+#include <memory>
 
-class QTimer;
+#include "rviz_common/panel.hpp"
 
-namespace rviz
+namespace rviz_common
 {
-class VisualizationFrame2;
 
-class RVIZ_EXPORT VisualizerApp2 : public QObject
+class FailedPanel : public Panel
 {
   Q_OBJECT
+
 public:
-  VisualizerApp2();
-  ~VisualizerApp2() override;
+  FailedPanel(const QString & desired_class_id, const QString & error_message);
 
-  void setApp(QApplication* app);
+  /// Store the given Config data for later, so it can be returned with save().
+  virtual void load(const Config & config);
 
-  /** Start everything.  Pass in command line arguments.
-   * @return false on failure, true on success. */
-  bool init(int argc, char** argv);
-
-private Q_SLOTS:
-  /** If ros::ok() is false, close all windows. */
-  void checkContinue();
+  /// Copy Config data into config equivalent to the last which was sent to load().
+  virtual void save(Config config) const;
 
 private:
-  void startContinueChecker();
-  bool loadConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
-  bool saveConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res);
-
-  QApplication* app_;
-  QTimer* continue_timer_;
-  VisualizationFrame2* frame_;
-  ros::NodeHandlePtr nh_;
-  ros::ServiceServer reload_shaders_service_;
-  ros::ServiceServer load_config_service_;
-  ros::ServiceServer save_config_service_;
+  Config saved_config_;
+  QString error_message_;
 };
 
-} // end namespace rviz
+}  // namespace rviz_common
 
+#endif  // RVIZ_COMMON__FAILED_PANEL_HPP_

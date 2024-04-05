@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2008, Willow Garage, Inc.
+ * Copyright (c) 2017, Open Source Robotics Foundation, Inc.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -27,228 +28,159 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <QApplication>
-#include <QTimer>
+#include "visualizer_app2.hpp"
+#include "visualization_frame2.hpp"
 
-#include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
+#include <iostream>
+#include <memory>
+#include <utility>
 
-#include <OgreMaterialManager.h>
-#include <OgreGpuProgramManager.h>
-#include <OgreHighLevelGpuProgramManager.h>
-#include <std_srvs/Empty.h>
+// #include <OgreGpuProgramManager.h>
+// #include <OgreHighLevelGpuProgramManager.h>
+// #include <OgreMaterialManager.h>
 
-#ifdef Q_OS_MAC
-#include <ApplicationServices/ApplicationServices.h>
-// Apparently OSX #defines 'check' to be an empty string somewhere.
-// That was fun to figure out.
-#undef check
-#endif
+#include <QApplication>  // NOLINT: cpplint is unable to handle the include order here
+#include <QCommandLineParser>  // NOLINT: cpplint is unable to handle the include order here
+#include <QCommandLineOption>  // NOLINT: cpplint is unable to handle the include order here
+#include <QTimer>  // NOLINT: cpplint is unable to handle the include order here
 
-#include <ros/console.h>
-#include <ros/ros.h>
+#include <rviz_common/interaction/selection_manager.hpp>
+#include <rviz_common/logging.hpp>
+#include <rviz_rendering/ogre_logging.hpp>
 
-#include <rviz/selection/selection_manager.h>
-#include <rviz/env_config.h>
-#include <rviz/ogre_helpers/ogre_logging.h>
-#include <rviz/visualization_manager.h>
-#include <rviz/wait_for_master_dialog.h>
-#include <rviz/ogre_helpers/render_system.h>
+#include <rviz_common/visualization_manager.hpp>
 
-#include "visualizer_app2.h"
-#include "visualization_frame2.h"
-
-#define CATCH_EXCEPTIONS 0
-
-namespace po = boost::program_options;
-namespace fs = boost::filesystem;
-
-namespace rviz
+namespace rviz_common
 {
-bool reloadShaders2(std_srvs::Empty::Request& /*unused*/, std_srvs::Empty::Response& /*unused*/)
-{
-  ROS_INFO("Reloading materials.");
-  {
-    Ogre::ResourceManager::ResourceMapIterator it =
-        Ogre::MaterialManager::getSingleton().getResourceIterator();
-    while (it.hasMoreElements())
-    {
-      Ogre::ResourcePtr resource = it.getNext();
-      resource->reload();
-    }
-  }
-  ROS_INFO("Reloading high-level gpu shaders.");
-  {
-    Ogre::ResourceManager::ResourceMapIterator it =
-        Ogre::HighLevelGpuProgramManager::getSingleton().getResourceIterator();
-    while (it.hasMoreElements())
-    {
-      Ogre::ResourcePtr resource = it.getNext();
-      resource->reload();
-    }
-  }
-  ROS_INFO("Reloading gpu shaders.");
-  {
-    Ogre::ResourceManager::ResourceMapIterator it =
-        Ogre::GpuProgramManager::getSingleton().getResourceIterator();
-    while (it.hasMoreElements())
-    {
-      Ogre::ResourcePtr resource = it.getNext();
-      resource->reload();
-    }
-  }
-  return true;
-}
 
-VisualizerApp2::VisualizerApp2() : app_(nullptr), continue_timer_(nullptr), frame_(nullptr)
-{
-}
+VisualizerApp2::VisualizerApp2(
+  std::unique_ptr<rviz_common::ros_integration::RosClientAbstractionIface> ros_client_abstraction)
+: app_(0),
+  continue_timer_(0),
+  frame_(0),
+  node_(),
+  ros_client_abstraction_(std::move(ros_client_abstraction))
+{}
 
-void VisualizerApp2::setApp(QApplication* app)
+void VisualizerApp2::setApp(QApplication * app)
 {
   app_ = app;
 }
 
-bool VisualizerApp2::init(int argc, char** argv)
+rviz_rendering::RenderWindow * VisualizerApp2::getRenderWindow()
 {
-  ROS_INFO("rviz version %s", get_version().c_str());
-  ROS_INFO("compiled against Qt version " QT_VERSION_STR);
-  ROS_INFO("compiled against OGRE version %d.%d.%d%s (%s)", OGRE_VERSION_MAJOR, OGRE_VERSION_MINOR,
-           OGRE_VERSION_PATCH, OGRE_VERSION_SUFFIX, OGRE_VERSION_NAME);
+  return frame_->getRenderWindow();
+}
 
-#ifdef Q_OS_MAC
-  ProcessSerialNumber PSN;
-  GetCurrentProcess(&PSN);
-  TransformProcessType(&PSN, kProcessTransformToForegroundApplication);
-  SetFrontProcess(&PSN);
-#endif
+void VisualizerApp2::loadConfig(QString config_path)
+{
+  frame_->loadDisplayConfig(config_path);
+}
 
-#if CATCH_EXCEPTIONS
-  try
-  {
-#endif
-    ros::init(argc, argv, "rviz", ros::init_options::AnonymousName);
+bool VisualizerApp2::init(int argc, char ** argv)
+{
+  rviz_common::install_rviz_rendering_log_handlers();
 
-    startContinueChecker();
+  QCommandLineParser parser;
+  parser.setApplicationDescription("3D visualization tool for ROS2");
+  parser.addHelpOption();
 
-    std::string display_config, fixed_frame, splash_path, help_path;
-    int force_gl_version = 0;
+  QCommandLineOption display_title_format_option(
+    QStringList() << "t" << "display-title-format",
+      "A display title format like ",
+      "\"{NAMESPACE} - {CONFIG_PATH}/{CONFIG_FILENAME} - RViz2\" ",
+      "display_title_format");
+  parser.addOption(display_title_format_option);
 
-    // 1. --h时显示的所有信息，带po::value参数的表示这个配置项可以读入一个参数
-    po::options_description options;
-    options.add_options() // clang-format off
-      ("help,h", "Produce this help message")
-      ("splash-screen,s", po::value<std::string>(&splash_path),
-       "A custom splash-screen image to display")
-      ("help-file", po::value<std::string>(&help_path),
-       "A custom html file to show as the help screen")
-      ("display-config,d", po::value<std::string>(&display_config),
-       "A display config file (.rviz) to load")
-      ("fullscreen", "Trigger fullscreen display")
-      ("fixed-frame,f", po::value<std::string>(&fixed_frame), "Set the fixed frame")
-      ("ogre-log,l", "Enable the Ogre.log file (output in cwd) and console output.")
-      ("in-mc-wrapper", "Signal that this is running inside a master-chooser wrapper")
-      ("opengl", po::value<int>(&force_gl_version),
-        "Force OpenGL version (use '--opengl 210' for OpenGL 2.1 compatibility mode)")
-      ("disable-anti-aliasing", "Prevent rviz from trying to use anti-aliasing when rendering.")
-      ("no-stereo", "Disable the use of stereo rendering.")("verbose,v", "Enable debug visualizations")
-      ("log-level-debug", "Sets the ROS logger level to debug.");
-    // clang-format on
-    po::variables_map vm;
-    try
-    {
-      // 2 后续使用parse_command_line讲参数读取到po::variables_map vm中
-      po::store(po::parse_command_line(argc, argv, options), vm);
-      po::notify(vm);
+  QCommandLineOption display_config_option(
+    QStringList() << "d" << "display-config",
+      "A display config file (.rviz) to load",
+      "display_config");
+  parser.addOption(display_config_option);
 
-      // 3 使用vm.count("help") 表示是否读入该参数
-      if (vm.count("help"))
-      {
-        std::cout << "rviz command line options:\n" << options;
-        return false;
-      }
+  QCommandLineOption fixed_frame_option(
+    QStringList() << "f" << "fixed-frame", "Set the fixed frame", "fixed_frame");
+  parser.addOption(fixed_frame_option);
 
-      if (vm.count("log-level-debug"))
-      {
-        if (ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Debug))
-        {
-          ros::console::notifyLoggerLevelsChanged();
-        }
-      }
-    }
-    catch (std::exception& e)
-    {
-      ROS_ERROR("Error parsing command line: %s", e.what());
-      return false;
-    }
+  QCommandLineOption ogre_log_option(
+    QStringList() << "l" << "ogre-log",
+      "Enable the Ogre.log file (output in cwd) and console output.");
+  parser.addOption(ogre_log_option);
 
-    // roscore是否存在
-    if (!ros::master::check())
-    {
-      WaitForMasterDialog dialog;
-      if (dialog.exec() != QDialog::Accepted)
-      {
-        return false;
-      }
-    }
+  QCommandLineOption splash_screen_option(
+    QStringList() << "s" << "splash-screen",
+      "A custom splash-screen image to display", "splash_path");
+  parser.addOption(splash_screen_option);
 
-    nh_.reset(new ros::NodeHandle);
+  QCommandLineOption fullscreen_option(
+    "fullscreen",
+    "Start RViz in fullscreen mode.");
+  parser.addOption(fullscreen_option);
 
-    if (vm.count("ogre-log"))
-      OgreLogging::useRosLog();
+  QString display_config, fixed_frame, splash_path, help_path, display_title_format;
+  bool enable_ogre_log, fullscreen;
 
-    RenderSystem::forceGlVersion(force_gl_version);
+  if (app_) {parser.process(*app_);}
 
-    if (vm.count("disable-anti-aliasing"))
-      RenderSystem::disableAntiAliasing();
+  enable_ogre_log = parser.isSet(ogre_log_option);
+  fullscreen = parser.isSet(fullscreen_option);
 
-    if (vm.count("no-stereo"))
-      RenderSystem::forceNoStereo();
-
-    frame_ = new VisualizationFrame2();  // 默认构造，创建了窗口的状态栏部分
-    frame_->setApp(this->app_);
-    if (!help_path.empty())
-    {
-      frame_->setHelpPath(QString::fromStdString(help_path));
-    }
-    frame_->setShowChooseNewMaster(vm.count("in-mc-wrapper") > 0);
-    if (vm.count("splash-screen"))
-      frame_->setSplashPath(QString::fromStdString(splash_path));
-
-    // 
-    frame_->initialize(QString::fromStdString(display_config));
-
-    if (!fixed_frame.empty())
-      frame_->getManager()->setFixedFrame(QString::fromStdString(fixed_frame));
-
-    frame_->getManager()->getSelectionManager()->setDebugMode(vm.count("verbose") > 0);
-
-    if (vm.count("fullscreen"))
-      frame_->setFullScreen(true);
-    frame_->show();
-
-    ros::NodeHandle private_nh("~");
-    reload_shaders_service_ = private_nh.advertiseService("reload_shaders", rviz::reloadShaders2);
-
-    load_config_service_ =
-        private_nh.advertiseService("load_config", &VisualizerApp2::loadConfigCallback, this);
-    save_config_service_ =
-        private_nh.advertiseService("save_config", &VisualizerApp2::saveConfigCallback, this);
-
-#if CATCH_EXCEPTIONS
+  if (parser.isSet(display_config_option)) {
+    display_config = parser.value(display_config_option);
   }
-  catch (std::exception& e)
-  {
-    ROS_ERROR("Caught exception while loading: %s", e.what());
-    return false;
+  if (parser.isSet(fixed_frame_option)) {
+    fixed_frame = parser.value(fixed_frame_option);
   }
-#endif
+
+  if (parser.isSet(splash_screen_option)) {
+    splash_path = parser.value(splash_screen_option);
+  }
+
+  if (parser.isSet(display_title_format_option)) {
+    display_title_format = parser.value(display_title_format_option);
+  }
+
+  if (enable_ogre_log) {
+    rviz_rendering::OgreLogging::get()->useLogFileAndStandardOut();
+    rviz_rendering::OgreLogging::get()->configureLogging();
+  }
+
+  startContinueChecker();
+
+  node_ = ros_client_abstraction_->init(argc, argv, "rviz", false /* anonymous_name */);
+
+  frame_ = new VisualizationFrame2(node_);
+
+  frame_->setDisplayTitleFormat(display_title_format);
+
+  frame_->setApp(this->app_);
+
+  if (!help_path.isEmpty()) {
+    frame_->setHelpPath(help_path);
+  }
+
+  if (!splash_path.isEmpty()) {
+    frame_->setSplashPath(splash_path);
+  }
+  frame_->initialize(node_, display_config);
+
+  if (!fixed_frame.isEmpty()) {
+    frame_->getManager()->setFixedFrame(fixed_frame);
+  }
+
+  if (fullscreen) {
+    frame_->setFullScreen(true);
+  }
+
+  frame_->show();
+
   return true;
 }
 
 VisualizerApp2::~VisualizerApp2()
 {
   delete continue_timer_;
+  ros_client_abstraction_->shutdown();
   delete frame_;
 }
 
@@ -261,10 +193,8 @@ void VisualizerApp2::startContinueChecker()
 
 void VisualizerApp2::checkContinue()
 {
-  if (!ros::ok())
-  {
-    if (frame_)
-    {
+  if (!ros_client_abstraction_->ok()) {
+    if (frame_) {
       // Make sure the window doesn't ask if we want to save first.
       frame_->setWindowModified(false);
     }
@@ -272,21 +202,4 @@ void VisualizerApp2::checkContinue()
   }
 }
 
-bool VisualizerApp2::loadConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res)
-{
-  fs::path path = req.path.data;
-  if (fs::is_regular_file(path))
-    res.success = frame_->loadDisplayConfigHelper(path.string());
-  else
-    res.success = false;
-  return true;
-}
-
-bool VisualizerApp2::saveConfigCallback(rviz::SendFilePathRequest& req, rviz::SendFilePathResponse& res)
-{
-  res.success = frame_->saveDisplayConfig(QString::fromStdString(req.path.data));
-  return true;
-}
-
-
-} // namespace rviz
+}  // namespace rviz_common

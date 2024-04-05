@@ -7,6 +7,7 @@ project(librviz_tutorial)
 # Default to C++17
 if(NOT CMAKE_CXX_STANDARD)
   set(CMAKE_CXX_STANDARD 17)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
@@ -29,7 +30,6 @@ set(CMAKE_AUTOMOC ON)
 set(SRC_FILES
   src/myviz.cpp
   src/main.cpp
-  src/mainwindow.cpp
   src/visualizer_app2.cpp
   src/visualization_frame2.cpp
 )
@@ -45,6 +45,7 @@ ament_target_dependencies(myviz
   "rviz_default_plugins"
   "rviz_rendering")
 target_include_directories(myviz PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/src
   ${Qt5Widgets_INCLUDE_DIRS}
   ${Qt5Core_INCLUDE_DIRS})
 
@@ -52,7 +53,9 @@ target_include_directories(myviz PUBLIC
 ## the ``find_package(Qt4 ...)`` line above, or by the
 ## ``set(QT_LIBRARIES Qt5::Widgets)``, and with whatever libraries
 ## catkin has included.
-target_link_libraries(myviz ${QT_LIBRARIES} ${catkin_LIBRARIES} qt5advanceddocking)
+target_link_libraries(myviz ${QT_LIBRARIES} ${catkin_LIBRARIES} 
+# qt5advanceddocking
+)
 ## END_TUTORIAL
 
 ament_export_dependencies(
