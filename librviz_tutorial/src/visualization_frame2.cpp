@@ -748,10 +748,10 @@ void VisualizationFrame2::loadPanels(const Config &config) {
   // First destroy any existing custom panels.
   for (int i = 0; i < custom_panels_.size(); i++) {
     dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
+    custom_panels_[i].dock_widget_->toggleViewAction()->deleteLater();
     delete custom_panels_[i].dock;
     delete custom_panels_[i].delete_action;
   }
-  custom_panels_.clear();
 
   // Then load the ones in the config.
   int num_custom_panels = config.listLength();
@@ -1014,6 +1014,7 @@ void VisualizationFrame2::onDeletePanel() {
     for (int i = 0; i < custom_panels_.size(); i++) {
       if (custom_panels_[i].delete_action == action) {
         // added
+        custom_panels_[i].dock_widget_->toggleViewAction()->deleteLater();
         dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
 
         delete custom_panels_[i].dock;
@@ -1028,6 +1029,8 @@ void VisualizationFrame2::onDeletePanel() {
       }
     }
   }
+  // 添加的自定义display和widget
+  // if (QAction *action = qobject_cast<QAction *>(sender())) {}
 }
 
 void VisualizationFrame2::setFullScreen(bool full_screen) {
@@ -1074,13 +1077,15 @@ QDockWidget *VisualizationFrame2::addPanelByName(const QString &name,
 
   record.panel->initialize(manager_);
 
-  record.dock->setIcon(panel_factory_->getPluginInfo(class_id).icon);
+  // record.dock->setIcon(panel_factory_->getPluginInfo(class_id).icon);
+  record.dock_widget_->setIcon(panel_factory_->getPluginInfo(class_id).icon);
 
   return record.dock;
 }
 
 PanelDockWidget *
 VisualizationFrame2::addPane(const QString &name, QWidget *panel, Qt::DockWidgetArea area, bool floating) {
+  RVIZ_COMMON_LOG_INFO("begin VisualizationFrame2::addPane, name = " + name.toStdString());
   auto *dockWidget = new ads::CDockWidget(name);
   dockWidget->setWidget(panel);
   dock_manager_->addDockWidget(static_cast<ads::DockWidgetArea>(area), dockWidget);
@@ -1088,18 +1093,9 @@ VisualizationFrame2::addPane(const QString &name, QWidget *panel, Qt::DockWidget
   PanelDockWidget *dock;
   dock = new PanelDockWidget(name);
 
-  // 构建待实际删除的按钮
-
-  if (name.isEmpty()) {
-    delete_actions_[dockWidget] = delete_view_menu_->addAction(name, this, SLOT(onDeletePanel()));
-    qDebug() << QString("%1 added \n").arg(name);
-  }
-
-  // objectname同步
-  connect(dock, &QObject::objectNameChanged, [dockWidget, this](QString const &name) {
+  connect(dock, &QObject::objectNameChanged, [dockWidget, dock, panel, this](QString const &name) {
     dockWidget->setObjectName(name);
     dockWidget->setWindowTitle(name);
-    if (delete_actions_.find(dockWidget) != delete_actions_.end()) { delete_actions_[dockWidget]->setText(name); }
   });
 
   // dock->setContentWidget(panel);
@@ -1127,6 +1123,7 @@ VisualizationFrame2::addPane(const QString &name, QWidget *panel, Qt::DockWidget
   // repair/update visibility status
   hideLeftDock(area == Qt::LeftDockWidgetArea ? false : hide_left_dock_button_->isChecked());
   hideRightDock(area == Qt::RightDockWidgetArea ? false : hide_right_dock_button_->isChecked());
+  RVIZ_COMMON_LOG_INFO("end VisualizationFrame2::addPane");
 
   return dock;
 }
