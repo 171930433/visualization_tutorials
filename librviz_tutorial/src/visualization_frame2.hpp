@@ -537,6 +537,7 @@ protected:
 
   // added 
   ads::CDockManager* dock_manager_;
+  std::unordered_map<ads::CDockWidget*, QAction*> delete_actions_;
 };
 
 }  // namespace rviz_common
