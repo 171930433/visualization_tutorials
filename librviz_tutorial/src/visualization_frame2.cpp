@@ -747,8 +747,8 @@ void VisualizationFrame2::saveWindowGeometry(Config config) {
 void VisualizationFrame2::loadPanels(const Config &config) {
   // First destroy any existing custom panels.
   for (int i = 0; i < custom_panels_.size(); i++) {
-    dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
     custom_panels_[i].dock_widget_->toggleViewAction()->deleteLater();
+    dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
     delete custom_panels_[i].dock;
     delete custom_panels_[i].delete_action;
   }
@@ -1013,10 +1013,6 @@ void VisualizationFrame2::onDeletePanel() {
   if (QAction *action = qobject_cast<QAction *>(sender())) {
     for (int i = 0; i < custom_panels_.size(); i++) {
       if (custom_panels_[i].delete_action == action) {
-        // added
-        custom_panels_[i].dock_widget_->toggleViewAction()->deleteLater();
-        dock_manager_->removeDockWidget(custom_panels_[i].dock_widget_);
-
         delete custom_panels_[i].dock;
         custom_panels_.removeAt(i);
         setDisplayConfigModified();
@@ -1088,12 +1084,22 @@ VisualizationFrame2::addPane(const QString &name, QWidget *panel, Qt::DockWidget
   RVIZ_COMMON_LOG_INFO("begin VisualizationFrame2::addPane, name = " + name.toStdString());
   auto *dockWidget = new ads::CDockWidget(name);
   dockWidget->setWidget(panel);
+  // 内容被删除时
+  if (panel) {
+    connect(panel, &QObject::destroyed, [this, dockWidget]() {
+      if (dockWidget) {
+        dockWidget->toggleViewAction()->deleteLater();
+        this->dock_manager_->removeDockWidget(dockWidget);
+      }
+    });
+  }
+
   dock_manager_->addDockWidget(static_cast<ads::DockWidgetArea>(area), dockWidget);
 
   PanelDockWidget *dock;
   dock = new PanelDockWidget(name);
 
-  connect(dock, &QObject::objectNameChanged, [dockWidget, dock, panel, this](QString const &name) {
+  connect(dock, &QObject::objectNameChanged, [dockWidget](QString const &name) {
     dockWidget->setObjectName(name);
     dockWidget->setWindowTitle(name);
   });
