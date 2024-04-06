@@ -75,4 +75,34 @@ endif()
 ## Install
 install(TARGETS myviz RUNTIME DESTINATION lib/${PROJECT_NAME})
 
+
+
+# main2 
+
+set(SRC_FILES
+  src/myviz.cpp
+  src/main2.cpp
+)
+
+## Add the "myviz" executable and specify the list of source files we
+## collected above in ``${SRC_FILES}``.
+add_executable(myviz2 ${SRC_FILES})
+ament_target_dependencies(myviz2
+  "Qt5Core"
+  "Qt5Widgets"
+  "rclcpp"
+  "rviz_common"
+  "rviz_default_plugins"
+  "rviz_rendering")
+target_include_directories(myviz2 PUBLIC
+  ${CMAKE_CURRENT_LIST_DIR}/src
+  ${Qt5Widgets_INCLUDE_DIRS}
+  ${Qt5Core_INCLUDE_DIRS})
+
+target_link_libraries(myviz2 ${QT_LIBRARIES} ${catkin_LIBRARIES} )
+
+install(TARGETS myviz2 RUNTIME DESTINATION lib/${PROJECT_NAME})
+
+
+
 ament_package()

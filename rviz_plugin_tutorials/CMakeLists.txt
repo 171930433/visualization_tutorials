@@ -21,8 +21,10 @@ find_package(Qt5 REQUIRED COMPONENTS Widgets)
 find_package(rclcpp REQUIRED)
 find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
+find_package(rviz_default_plugins REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(Protobuf REQUIRED)
+
 
 
 set(PROTO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proto")
@@ -70,6 +72,7 @@ set(SRC_FILES
   src/time_sync.cpp
   src/display_sync_base.cpp
   src/time_sync_tool.cpp
+  src/my_3d_display.cpp
   # cacher
   src/cacher/cacher.cpp
   # proto
@@ -94,6 +97,7 @@ ament_target_dependencies(${PROJECT_NAME}
   "rclcpp"
   "rviz_common"
   "rviz_rendering"
+  "rviz_default_plugins"
   "sensor_msgs"
   "Protobuf"
   )

@@ -911,9 +911,9 @@ void VisualizationFrame2::addTool(Tool *tool) {
   remove_tool_menu_->addAction(tool->getName());
 
   // 不知道为什么,编译不过
-  // QObject::connect(
-  //   tool, &Tool::nameChanged, this,
-  //   &VisualizationFrame2::VisualizationFrame2::onToolNameChanged);
+  QObject::connect(
+    tool, &Tool::nameChanged, this,
+    &VisualizationFrame2::VisualizationFrame2::onToolNameChanged);
 }
 
 void VisualizationFrame2::onToolNameChanged(const QString &name) {
@@ -1081,7 +1081,7 @@ QDockWidget *VisualizationFrame2::addPanelByName(const QString &name,
 
 PanelDockWidget *
 VisualizationFrame2::addPane(const QString &name, QWidget *panel, Qt::DockWidgetArea area, bool floating) {
-  RVIZ_COMMON_LOG_INFO("begin VisualizationFrame2::addPane, name = " + name.toStdString());
+  // RVIZ_COMMON_LOG_INFO("begin VisualizationFrame2::addPane, name = " + name.toStdString());
   auto *dockWidget = new ads::CDockWidget(name);
   dockWidget->setWidget(panel);
   // 内容被删除时
@@ -1129,7 +1129,7 @@ VisualizationFrame2::addPane(const QString &name, QWidget *panel, Qt::DockWidget
   // repair/update visibility status
   hideLeftDock(area == Qt::LeftDockWidgetArea ? false : hide_left_dock_button_->isChecked());
   hideRightDock(area == Qt::RightDockWidgetArea ? false : hide_right_dock_button_->isChecked());
-  RVIZ_COMMON_LOG_INFO("end VisualizationFrame2::addPane");
+  // RVIZ_COMMON_LOG_INFO("end VisualizationFrame2::addPane");
 
   return dock;
 }

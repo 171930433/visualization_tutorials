@@ -9,7 +9,13 @@
   <!--  -->
 
   <!--  -->
-  
+    <class name="rviz_plugin_tutorials/My3dDisplay"
+         type="My3dDisplay"
+         base_class_type="rviz_common::Display">
+    <description>
+      My3dDisplay .
+    </description>
+  </class>
   <!--  -->
   <class name="rviz_plugin_tutorials/TimeSync"
          type="DisplaySyncManager"
