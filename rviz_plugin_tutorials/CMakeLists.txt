@@ -23,8 +23,17 @@ find_package(rviz_common REQUIRED)
 find_package(rviz_rendering REQUIRED)
 find_package(rviz_default_plugins REQUIRED)
 find_package(sensor_msgs REQUIRED)
-find_package(Protobuf REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
+# 
+list(APPEND CMAKE_PREFIX_PATH "/home/gsk/install")
+option(protobuf_MODULE_COMPATIBLE "123" ON)
+find_package(protobuf REQUIRED)
+find_package(fastrtps REQUIRED )
+find_package(fastcdr REQUIRED )
+find_package(glog REQUIRED)
+find_package(cyber REQUIRED)
+find_package(Poco REQUIRED COMPONENTS Foundation)
 
 
 set(PROTO_PATH "${CMAKE_CURRENT_SOURCE_DIR}/proto")
@@ -37,11 +46,21 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 qt5_add_resources(RESOURCE_FILES resources.qrc)
 
 
-
-set(CMAKE_CXX_STANDARD 14)
-
 ## This setting causes Qt's "MOC" generation to happen automatically.
 set(CMAKE_AUTOMOC ON)
+
+
+# # 添加消息文件
+# set(msg_files
+#   "msg/Wrapper.msg"
+# )
+
+# # 生成消息
+# rosidl_generate_interfaces(${PROJECT_NAME}__rosidl_typesupport_cpp
+#   ${msg_files}
+#   DEPENDENCIES
+#   std_msgs
+# )
 
 
 
@@ -82,6 +101,7 @@ set(SRC_FILES
   src/properties/longitude_latitude_property.cpp
   src/properties/cached_channel_property.cpp
   src/properties/sub_plot_property.cpp
+  src/properties/cyber_channel_property.cpp
   # 
   ${RESOURCE_FILES}
 )
@@ -92,6 +112,10 @@ set(SRC_FILES
 ## is called) and specify the list of source files we collected above
 ## in ``${SRC_FILES}``. We also add the needed dependencies.
 add_library(${PROJECT_NAME} SHARED ${SRC_FILES})
+
+# rosidl_get_typesupport_target(cpp_typesupport_target "${PROJECT_NAME}" "rosidl_typesupport_cpp")
+
+
 ament_target_dependencies(${PROJECT_NAME}
   "geometry_msgs"
   "rclcpp"
@@ -99,12 +123,30 @@ ament_target_dependencies(${PROJECT_NAME}
   "rviz_rendering"
   "rviz_default_plugins"
   "sensor_msgs"
-  "Protobuf"
+  "protobuf"
+  # "${cpp_typesupport_target}"
+  # "${sensor_msgs_TARGETS}"
+  "cyber"
+  "fastcdr"
+  "fastrtps"
+  "glog"
   )
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${Qt5Widgets_INCLUDE_DIRS}
   ${CMAKE_CURRENT_LIST_DIR}/src
   )
+target_link_directories(${PROJECT_NAME} PUBLIC
+  "/home/gsk/install/lib"
+)
+
+# target_link_libraries(${PROJECT_NAME}
+# PUBLIC
+#   cyber fastcdr fastrtps
+
+
+# )
+
+# add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencpp)
 
 
 ## Here we export the plugins and meshes so they can be found by RViz at runtime.
