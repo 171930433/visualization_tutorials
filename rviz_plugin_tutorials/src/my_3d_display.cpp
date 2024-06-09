@@ -18,6 +18,7 @@
 
 using namespace rviz_common;
 using namespace rviz_rendering;
+using namespace rviz_default_plugins;
 
 void MyShape::initialize(rviz_common::DisplayContext *context, rviz_common::properties::Property *parent) {
   context_ = context;
@@ -98,7 +99,7 @@ void MyLineSelectionHandler::onSelect(const rviz_common::interaction::Picked &ob
 
 void MyLineSelectionHandler::preRenderPass(uint32_t pass) {
   rviz_common::interaction::SelectionHandler::preRenderPass(pass);
-  qDebug() <<" MyLineSelectionHandler::preRenderPass pass = " << pass;
+  qDebug() << " MyLineSelectionHandler::preRenderPass pass = " << pass;
   switch (pass) {
   case 0:
     my_line_->setColorByPickHandler(rviz_common::interaction::SelectionManager::handleToColor(getHandle()));
@@ -112,7 +113,7 @@ void MyLineSelectionHandler::preRenderPass(uint32_t pass) {
 }
 
 void MyLineSelectionHandler::postRenderPass(uint32_t pass) {
-  qDebug() <<" MyLineSelectionHandler::postRenderPass pass = " << pass;
+  qDebug() << " MyLineSelectionHandler::postRenderPass pass = " << pass;
 
   rviz_common::interaction::SelectionHandler::postRenderPass(pass);
 
@@ -209,6 +210,56 @@ void MyLine::update() {
   }
 }
 
+void MyPointCloud::initialize(rviz_common::DisplayContext *context, rviz_common::properties::Property *parent) {
+  using namespace rviz_default_plugins;
+  context_ = context;
+  shape_property_ = new rviz_common::properties::BoolProperty("MyPointCloud", true, "", parent);
+  connect(shape_property_, &properties::Property::changed, this, &MyPointCloud::ColorChanged);
+
+  scale_property_ = new properties::VectorProperty("scale", Ogre::Vector3{0.1, 0.1, 0.1}, "", shape_property_);
+  connect(scale_property_, &properties::Property::changed, this, &MyPointCloud::ColorChanged);
+
+  type_property_ = new properties::EnumProperty("shape_type", "RM_POINTS", "", shape_property_);
+  type_property_->addOption("RM_POINTS", 0);
+  type_property_->addOption("RM_SQUARES", 1);
+  type_property_->addOption("RM_FLAT_SQUARES", 2);
+  type_property_->addOption("RM_SPHERES", 3);
+  type_property_->addOption("RM_TILES", 4);
+  type_property_->addOption("RM_BOXES", 5);
+  connect(type_property_, &properties::Property::changed, this, &MyPointCloud::ColorChanged);
+
+  Eigen::Vector3f raw_pt{1, 1, 0};
+  pts_ = {raw_pt, raw_pt * 2};
+
+  // points
+  std::vector<rviz_rendering::PointCloud::Point> pts;
+  for (auto const &pt : pts_) {
+    rviz_rendering::PointCloud::Point opt;
+    opt.position = Ogre::Vector3(pt.x(), pt.y(), pt.z());
+    opt.setColor(1, 0, 0);
+    pts.emplace_back(opt);
+  }
+
+  cloud_ = std::make_shared<rviz_rendering::PointCloud>();
+  cloud_->addPoints(pts.begin(), pts.end());
+  selection_handler_ = interaction::createSelectionHandler<PointCloudSelectionHandler2>(0.004f, cloud_.get(), context_);
+  cloud_->setPickColor(interaction::SelectionManager::handleToColor(selection_handler_->getHandle()));
+
+  context_->getSceneManager()->getRootSceneNode()->attachObject(cloud_.get());
+}
+
+void MyPointCloud::update() {
+  if (changed_) {
+    cloud_->setVisible(shape_property_->getBool());
+    //
+    auto scale = scale_property_->getVector();
+    cloud_->setDimensions(scale[0], scale[1], scale[2]);
+    cloud_->setRenderMode(static_cast<PointCloud::RenderMode>(type_property_->getOptionInt()));
+
+    changed_.store(false);
+  }
+}
+
 My3dDisplay::My3dDisplay() : rviz_common::Display() {}
 
 void My3dDisplay::setupRenderPanel() {
@@ -239,6 +290,8 @@ void My3dDisplay::initialize(rviz_common::DisplayContext *context) {
   shape3_.initialize(context_, this);
 
   line1_.initialize(context_, this);
+
+  pc1_.initialize(context_, this);
 }
 
 void My3dDisplay::update(float wall_dt, float ros_dt) {
@@ -255,6 +308,8 @@ void My3dDisplay::update(float wall_dt, float ros_dt) {
   shape3_.update();
 
   line1_.update();
+
+  pc1_.update();
 }
 
 bool My3dDisplay::updateCamera() {

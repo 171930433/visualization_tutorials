@@ -25,6 +25,14 @@
 #include <QDebug>
 
 #include <rviz_rendering/custom_parameter_indices.hpp>
+// pc
+#include <rviz_default_plugins/displays/pointcloud/point_cloud_selection_handler.hpp>
+#include <rviz_default_plugins/displays/pointcloud/point_cloud_common.hpp>
+#include <rviz_rendering/objects/point_cloud.hpp>
+
+
+#include "my_pointcloud_selection_handler.hpp"
+
 
 namespace rviz_common {
 class Display;
@@ -104,8 +112,8 @@ public:
   void preRenderPass(uint32_t pass) override;
   void postRenderPass(uint32_t pass) override;
   bool needsAdditionalRenderPass(uint32_t pass) override { return pass < 2; }
-  void onSelect(const rviz_common::interaction::Picked & obj) override;
-  rviz_common::interaction::V_AABB getAABBs(const rviz_common::interaction::Picked & obj) override;
+  void onSelect(const rviz_common::interaction::Picked &obj) override;
+  rviz_common::interaction::V_AABB getAABBs(const rviz_common::interaction::Picked &obj) override;
 
   void createProperties(const rviz_common::interaction::Picked &obj,
                         rviz_common::properties::Property *parent_property) override {
@@ -215,6 +223,27 @@ private:
   void FillPoints();
 };
 
+class MyPointCloud : public QObject {
+public:
+  std::shared_ptr<rviz_rendering::PointCloud> cloud_;
+  std::shared_ptr<rviz_default_plugins::PointCloudSelectionHandler2> selection_handler_;
+
+public:
+  void initialize(rviz_common::DisplayContext *context, rviz_common::properties::Property *parent);
+
+  void update();
+
+private:
+  rviz_common::DisplayContext *context_ = nullptr;
+  rviz_common::properties::BoolProperty *shape_property_;
+  rviz_common::properties::VectorProperty *scale_property_;
+  rviz_common::properties::EnumProperty *type_property_;
+
+  std::atomic_bool changed_ = {true};
+  void ColorChanged() { changed_.store(true); };
+  std::vector<Eigen::Vector3f> pts_;
+};
+
 class My3dDisplay : public rviz_common::Display {
 public:
   My3dDisplay();
@@ -239,4 +268,6 @@ protected:
   MyShape shape3_;
 
   MyLine line1_;
+
+  MyPointCloud pc1_;
 };

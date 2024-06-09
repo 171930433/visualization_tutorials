@@ -92,6 +92,7 @@ set(SRC_FILES
   src/display_sync_base.cpp
   src/time_sync_tool.cpp
   src/my_3d_display.cpp
+  src/my_pointcloud_selection_handler.cpp
   # cacher
   src/cacher/cacher.cpp
   # proto
