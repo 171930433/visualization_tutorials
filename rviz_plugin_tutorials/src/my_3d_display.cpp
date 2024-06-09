@@ -65,6 +65,10 @@ void MyShape::update() {
 }
 
 rviz_common::interaction::V_AABB MyLineSelectionHandler::getAABBs(const rviz_common::interaction::Picked &obj) {
+  if (my_line_ && my_line_->type_property_->getOptionInt() == 0) {
+    return interaction::SelectionHandler::getAABBs(obj);
+  }
+
   rviz_common::interaction::V_AABB aabbs;
   for (auto handle : obj.extra_handles) {
     auto find_it = boxes_.find(Handles(obj.handle, handle - 1));
@@ -78,6 +82,10 @@ rviz_common::interaction::V_AABB MyLineSelectionHandler::getAABBs(const rviz_com
 }
 
 void MyLineSelectionHandler::onSelect(const rviz_common::interaction::Picked &obj) {
+  if (my_line_ && my_line_->type_property_->getOptionInt() == 0) {
+    return interaction::SelectionHandler::onSelect(obj);
+  }
+
   qDebug() << "MyLineSelectionHandler::onSelect size = " << obj.extra_handles.size();
   for (auto handle : obj.extra_handles) {
     uint64_t index = handleToIndex(handle);
@@ -99,7 +107,8 @@ void MyLineSelectionHandler::onSelect(const rviz_common::interaction::Picked &ob
 
 void MyLineSelectionHandler::preRenderPass(uint32_t pass) {
   rviz_common::interaction::SelectionHandler::preRenderPass(pass);
-  qDebug() << " MyLineSelectionHandler::preRenderPass pass = " << pass;
+  qDebug() << " MyLineSelectionHandler::preRenderPass pass = " << pass << " getHandle() = " << getHandle()
+           << "  getUseVertexColours = " << my_line_->lines_->getChains()[0]->getUseVertexColours();
   switch (pass) {
   case 0:
     my_line_->setColorByPickHandler(rviz_common::interaction::SelectionManager::handleToColor(getHandle()));
@@ -113,11 +122,19 @@ void MyLineSelectionHandler::preRenderPass(uint32_t pass) {
 }
 
 void MyLineSelectionHandler::postRenderPass(uint32_t pass) {
-  qDebug() << " MyLineSelectionHandler::postRenderPass pass = " << pass;
-
   rviz_common::interaction::SelectionHandler::postRenderPass(pass);
+  qDebug() << " MyLineSelectionHandler::preRenderPass pass = " << pass << " getHandle() = " << getHandle()
+           << "  getUseVertexColours = " << my_line_->lines_->getChains()[0]->getUseVertexColours();
 
   if (pass == 1) { my_line_->setColorByIndex(false); }
+}
+
+bool MyLineSelectionHandler::needsAdditionalRenderPass(uint32_t pass) {
+  // 线段只能直接选择
+  if (my_line_ && my_line_->type_property_->getOptionInt() == 0) {
+    return interaction::SelectionHandler::needsAdditionalRenderPass(pass);
+  }
+  return pass < 2;
 }
 
 void MyLine::initialize(rviz_common::DisplayContext *context, rviz_common::properties::Property *parent) {
@@ -129,7 +146,7 @@ void MyLine::initialize(rviz_common::DisplayContext *context, rviz_common::prope
   // handler_ = rviz_common::interaction::createSelectionHandler<MyShapeSelectionHandler>(shape_.get(), context);
   // handler_->addTrackedObjects(shape_->getRootNode());
 
-  type_property_ = new properties::EnumProperty("line_type", "line_strip", "", shape_property_);
+  type_property_ = new properties::EnumProperty("line_type", "line_list", "", shape_property_);
   type_property_->addOption("line_strip", 0);
   type_property_->addOption("line_list", 1);
   connect(type_property_, &properties::Property::changed, this, &MyLine::ShapeChanged);
@@ -140,7 +157,7 @@ void MyLine::initialize(rviz_common::DisplayContext *context, rviz_common::prope
   pos_property_ = new properties::VectorProperty("pos", Ogre::Vector3::ZERO, "", shape_property_);
   connect(pos_property_, &properties::Property::changed, this, &MyLine::ColorChanged);
 
-  width_property_ = new properties::FloatProperty("width", 0.01, "", shape_property_);
+  width_property_ = new properties::FloatProperty("width", 0.1, "", shape_property_);
   connect(width_property_, &properties::Property::changed, this, &MyLine::ColorChanged);
 
   Eigen::Vector3f raw_pt{1, 1, 1};
@@ -163,8 +180,9 @@ void MyLine::FillPoints() {
   if (type_property_->getOptionInt() == 1) {
     lines_->setMaxPointsPerLine(2);
     lines_->setNumLines(static_cast<uint32_t>(counts / 2));
+    auto root = Ogre::Root::getSingletonPtr();
 
-    for (size_t i = 0; i < counts / 2; i++) {
+    for (uint32_t i = 0; i < counts / 2; i++) {
       Ogre::ColourValue c = color_property_->getOgreColor();
       // Ogre::ColourValue c = getColorForLine(i, c1);
 
@@ -175,6 +193,10 @@ void MyLine::FillPoints() {
         c.g = ((color >> 8) & 0xff) / 255.0f;
         c.b = (color & 0xff) / 255.0f;
       }
+
+      uint32_t color2;
+      root->convertColourValue(c, &color2);
+      qDebug() << "                      color2 = " << color2;
 
       Ogre::Vector3 v1(pts_[2 * i].x(), pts_[2 * i].y(), pts_[2 * i].z());
       Ogre::Vector3 v2(pts_[2 * i + 1].x(), pts_[2 * i + 1].y(), pts_[2 * i + 1].z());
@@ -191,6 +213,7 @@ void MyLine::update() {
       lines_ = std::make_shared<rviz_rendering::BillboardLine>(context_->getSceneManager());
       handler_ = rviz_common::interaction::createSelectionHandler<MyLineSelectionHandler>(this, lines_.get(), context_);
       handler_->addTrackedObjects(lines_->getSceneNode());
+      qDebug() << " MyLine::update() handler_" << handler_->getHandle();
     }
     // 添加点
     FillPoints();
@@ -243,9 +266,11 @@ void MyPointCloud::initialize(rviz_common::DisplayContext *context, rviz_common:
   cloud_ = std::make_shared<rviz_rendering::PointCloud>();
   cloud_->addPoints(pts.begin(), pts.end());
   selection_handler_ = interaction::createSelectionHandler<PointCloudSelectionHandler2>(0.004f, cloud_.get(), context_);
-  cloud_->setPickColor(interaction::SelectionManager::handleToColor(selection_handler_->getHandle()));
+  // cloud_->setPickColor(interaction::SelectionManager::handleToColor(selection_handler_->getHandle()));
 
   context_->getSceneManager()->getRootSceneNode()->attachObject(cloud_.get());
+
+  qDebug() << " MyPointCloud::update() selection_handler_" << selection_handler_->getHandle();
 }
 
 void MyPointCloud::update() {
@@ -286,8 +311,8 @@ void My3dDisplay::initialize(rviz_common::DisplayContext *context) {
 
   inited_ = true;
 
-  shape2_.initialize(context_, this);
-  shape3_.initialize(context_, this);
+  // shape2_.initialize(context_, this);
+  // shape3_.initialize(context_, this);
 
   line1_.initialize(context_, this);
 
@@ -304,8 +329,8 @@ void My3dDisplay::update(float wall_dt, float ros_dt) {
 
   // view_manager_->getCurrent()->update(wall_dt,ros_dt);
 
-  shape2_.update();
-  shape3_.update();
+  // shape2_.update();
+  // shape3_.update();
 
   line1_.update();
 

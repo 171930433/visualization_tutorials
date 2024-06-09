@@ -5,15 +5,15 @@
 #include <rviz_common/display.hpp>
 #include <rviz_common/display_context.hpp>
 
-#include "rviz_common/interaction/forwards.hpp"
-#include "rviz_common/interaction/selection_manager.hpp"
+#include <rviz_common/interaction/forwards.hpp>
+#include <rviz_common/interaction/selection_manager.hpp>
 #include <rviz_rendering/objects/billboard_line.hpp>
 #include <rviz_rendering/objects/shape.hpp>
 
-#include "rviz_common/properties/parse_color.hpp"
 #include <rviz_common/properties/color_property.hpp>
 #include <rviz_common/properties/enum_property.hpp>
 #include <rviz_common/properties/float_property.hpp>
+#include <rviz_common/properties/parse_color.hpp>
 #include <rviz_common/properties/property.hpp>
 #include <rviz_common/properties/quaternion_property.hpp>
 #include <rviz_common/properties/vector_property.hpp>
@@ -26,13 +26,11 @@
 
 #include <rviz_rendering/custom_parameter_indices.hpp>
 // pc
-#include <rviz_default_plugins/displays/pointcloud/point_cloud_selection_handler.hpp>
 #include <rviz_default_plugins/displays/pointcloud/point_cloud_common.hpp>
+#include <rviz_default_plugins/displays/pointcloud/point_cloud_selection_handler.hpp>
 #include <rviz_rendering/objects/point_cloud.hpp>
 
-
 #include "my_pointcloud_selection_handler.hpp"
-
 
 namespace rviz_common {
 class Display;
@@ -108,10 +106,10 @@ public:
     lines_ = lines;
   }
 
-  ~MyLineSelectionHandler() override{};
+  // ~MyLineSelectionHandler() override{};
   void preRenderPass(uint32_t pass) override;
   void postRenderPass(uint32_t pass) override;
-  bool needsAdditionalRenderPass(uint32_t pass) override { return pass < 2; }
+  bool needsAdditionalRenderPass(uint32_t pass) override;
   void onSelect(const rviz_common::interaction::Picked &obj) override;
   rviz_common::interaction::V_AABB getAABBs(const rviz_common::interaction::Picked &obj) override;
 
@@ -184,17 +182,22 @@ public:
     color_is_index_ = set;
     FillPoints();
 
+    // for (auto &renderable : lines_->getChains()) {
+    //   renderable->setCustomParameter(RVIZ_RENDERING_PICK_COLOR_PARAMETER, pick_col);
+    // }
     // shape_changed_.store(true);
   };
   void setColorByPickHandler(const Ogre::ColourValue &color) {
+    color_is_index_ = false;
     pick_color_ = color;
     Ogre::Vector4 pick_col(pick_color_.r, pick_color_.g, pick_color_.b, pick_color_.a);
 
-    FillPoints();
-    qDebug() << "setColorByPickHandler lines_->getChains() size = " << lines_->getChains().size();
-    for (auto &renderable : lines_->getChains()) {
-      renderable->setCustomParameter(RVIZ_RENDERING_PICK_COLOR_PARAMETER, pick_col);
-    }
+    // FillPoints();
+    // std::cout << "setColorByPickHandler lines_->getChains() size = " << lines_->getChains().size()
+    //           << " pick_color_ = " << pick_color_ << "\n";
+    // for (auto &renderable : lines_->getChains()) {
+    //   renderable->setCustomParameter(RVIZ_RENDERING_PICK_COLOR_PARAMETER, pick_col);
+    // }
     // shape_changed_.store(true);
   }
   bool color_is_index_ = false;
