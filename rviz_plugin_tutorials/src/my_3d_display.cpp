@@ -3,6 +3,7 @@
 #include <OgreCamera.h>
 #include <OgreSceneManager.h>
 #include <OgreViewport.h>
+#include <OgreWireBoundingBox.h>
 
 #include <QDebug>
 
@@ -13,6 +14,8 @@
 #include <rviz_common/visualization_manager.hpp>
 #include <rviz_rendering/render_window.hpp>
 
+#include <vector>
+
 using namespace rviz_common;
 using namespace rviz_rendering;
 
@@ -21,9 +24,9 @@ void MyShape::initialize(rviz_common::DisplayContext *context, rviz_common::prop
   shape_property_ = new rviz_common::properties::BoolProperty("MyShape", true, "", parent);
   connect(shape_property_, &properties::Property::changed, this, &MyShape::ColorChanged);
 
-  shape_ = std::make_shared<rviz_rendering::Shape>(Shape::Cone, context->getSceneManager());
-  handler_ = rviz_common::interaction::createSelectionHandler<MySelectionHandler>(shape_.get(), context);
-  handler_->addTrackedObjects(shape_->getRootNode());
+  // shape_ = std::make_shared<rviz_rendering::Shape>(Shape::Cone, context->getSceneManager());
+  // handler_ = rviz_common::interaction::createSelectionHandler<MyShapeSelectionHandler>(shape_.get(), context);
+  // handler_->addTrackedObjects(shape_->getRootNode());
 
   type_property_ = new properties::EnumProperty("shape_type", "Cone", "", shape_property_);
   type_property_->addOption("Cone", 0);
@@ -32,18 +35,21 @@ void MyShape::initialize(rviz_common::DisplayContext *context, rviz_common::prop
   type_property_->addOption("Sphere", 3);
   connect(type_property_, &properties::Property::changed, this, &MyShape::ShapeChanged);
 
+  color_property_ = new properties::ColorProperty("color", Qt::red, "", shape_property_);
+  connect(color_property_, &properties::Property::changed, this, &MyShape::ColorChanged);
+
   pos_property_ = new properties::VectorProperty("pos", Ogre::Vector3::ZERO, "", shape_property_);
   connect(pos_property_, &properties::Property::changed, this, &MyShape::ColorChanged);
 
-  color_property_ = new properties::ColorProperty("color", Qt::black, "", shape_property_);
-  connect(color_property_, &properties::Property::changed, this, &MyShape::ColorChanged);
+  scale_property_ = new properties::VectorProperty("scale", Ogre::Vector3{0.1, 0.1, 0.1}, "", shape_property_);
+  connect(scale_property_, &properties::Property::changed, this, &MyShape::ColorChanged);
 }
 
 void MyShape::update() {
   if (shape_changed_) {
     int type = type_property_->getOptionInt();
     shape_ = std::make_shared<rviz_rendering::Shape>(Shape::Type(type), context_->getSceneManager());
-    handler_ = rviz_common::interaction::createSelectionHandler<MySelectionHandler>(shape_.get(), context_);
+    handler_ = rviz_common::interaction::createSelectionHandler<MyShapeSelectionHandler>(shape_.get(), context_);
     handler_->addTrackedObjects(shape_->getRootNode());
     shape_changed_.store(false);
     changed_ = true;
@@ -52,6 +58,153 @@ void MyShape::update() {
     shape_->getRootNode()->setVisible(shape_property_->getBool());
     shape_->setColor(color_property_->getOgreColor());
     shape_->setPosition(pos_property_->getVector());
+    shape_->setScale(scale_property_->getVector());
+    changed_.store(false);
+  }
+}
+
+rviz_common::interaction::V_AABB MyLineSelectionHandler::getAABBs(const rviz_common::interaction::Picked &obj) {
+  rviz_common::interaction::V_AABB aabbs;
+  for (auto handle : obj.extra_handles) {
+    auto find_it = boxes_.find(Handles(obj.handle, handle - 1));
+    if (find_it != boxes_.end()) {
+      Ogre::WireBoundingBox *box = find_it->second.box;
+
+      aabbs.push_back(box->getWorldBoundingBox(true)); // calculate bounding boxes if absent
+    }
+  }
+  return aabbs;
+}
+
+void MyLineSelectionHandler::onSelect(const rviz_common::interaction::Picked &obj) {
+  qDebug() << "MyLineSelectionHandler::onSelect size = " << obj.extra_handles.size();
+  for (auto handle : obj.extra_handles) {
+    uint64_t index = handleToIndex(handle);
+
+    // sensor_msgs::msg::PointCloud2::ConstSharedPtr message = cloud_info_->message_;
+
+    Eigen::Vector3f const &e_pt = my_line_->pts_[2 * index];
+    Ogre::Vector3 pos = {e_pt.x(), e_pt.y(), e_pt.z()};
+    pos = my_line_->lines_->getSceneNode()->convertLocalToWorldPosition(pos);
+
+    float box_size_ = 0.004f;
+    float size = box_size_ * 0.5f;
+
+    Ogre::AxisAlignedBox aabb(pos - size, pos + size);
+
+    createBox(Handles(obj.handle, index), aabb, "RVIZ/Cyan");
+  }
+}
+
+void MyLineSelectionHandler::preRenderPass(uint32_t pass) {
+  rviz_common::interaction::SelectionHandler::preRenderPass(pass);
+  qDebug() <<" MyLineSelectionHandler::preRenderPass pass = " << pass;
+  switch (pass) {
+  case 0:
+    my_line_->setColorByPickHandler(rviz_common::interaction::SelectionManager::handleToColor(getHandle()));
+    break;
+  case 1:
+    my_line_->setColorByIndex(true);
+    break;
+  default:
+    break;
+  }
+}
+
+void MyLineSelectionHandler::postRenderPass(uint32_t pass) {
+  qDebug() <<" MyLineSelectionHandler::postRenderPass pass = " << pass;
+
+  rviz_common::interaction::SelectionHandler::postRenderPass(pass);
+
+  if (pass == 1) { my_line_->setColorByIndex(false); }
+}
+
+void MyLine::initialize(rviz_common::DisplayContext *context, rviz_common::properties::Property *parent) {
+  context_ = context;
+  shape_property_ = new rviz_common::properties::BoolProperty("MyLine", true, "", parent);
+  connect(shape_property_, &properties::Property::changed, this, &MyLine::ColorChanged);
+
+  // shape_ = std::make_shared<rviz_rendering::Shape>(Shape::Cone, context->getSceneManager());
+  // handler_ = rviz_common::interaction::createSelectionHandler<MyShapeSelectionHandler>(shape_.get(), context);
+  // handler_->addTrackedObjects(shape_->getRootNode());
+
+  type_property_ = new properties::EnumProperty("line_type", "line_strip", "", shape_property_);
+  type_property_->addOption("line_strip", 0);
+  type_property_->addOption("line_list", 1);
+  connect(type_property_, &properties::Property::changed, this, &MyLine::ShapeChanged);
+
+  color_property_ = new properties::ColorProperty("color", Qt::red, "", shape_property_);
+  connect(color_property_, &properties::Property::changed, this, &MyLine::ColorChanged);
+
+  pos_property_ = new properties::VectorProperty("pos", Ogre::Vector3::ZERO, "", shape_property_);
+  connect(pos_property_, &properties::Property::changed, this, &MyLine::ColorChanged);
+
+  width_property_ = new properties::FloatProperty("width", 0.01, "", shape_property_);
+  connect(width_property_, &properties::Property::changed, this, &MyLine::ColorChanged);
+
+  Eigen::Vector3f raw_pt{1, 1, 1};
+  pts_ = {raw_pt * 0.1, raw_pt * 0.2, raw_pt * 0.3, raw_pt * 0.4};
+}
+
+void MyLine::FillPoints() {
+  lines_->clear();
+
+  uint32_t const counts = pts_.size();
+  if (type_property_->getOptionInt() == 0) {
+    lines_->setMaxPointsPerLine(counts);
+    for (size_t i = 0; i < counts; i++) {
+      Ogre::ColourValue c = color_property_->getOgreColor();
+
+      Ogre::Vector3 v(pts_[i].x(), pts_[i].y(), pts_[i].z());
+      lines_->addPoint(v, c);
+    }
+  }
+  if (type_property_->getOptionInt() == 1) {
+    lines_->setMaxPointsPerLine(2);
+    lines_->setNumLines(static_cast<uint32_t>(counts / 2));
+
+    for (size_t i = 0; i < counts / 2; i++) {
+      Ogre::ColourValue c = color_property_->getOgreColor();
+      // Ogre::ColourValue c = getColorForLine(i, c1);
+
+      if (color_is_index_) {
+        uint32_t color = (i + 1);
+        c.a = 1.0f;
+        c.r = ((color >> 16) & 0xff) / 255.0f;
+        c.g = ((color >> 8) & 0xff) / 255.0f;
+        c.b = (color & 0xff) / 255.0f;
+      }
+
+      Ogre::Vector3 v1(pts_[2 * i].x(), pts_[2 * i].y(), pts_[2 * i].z());
+      Ogre::Vector3 v2(pts_[2 * i + 1].x(), pts_[2 * i + 1].y(), pts_[2 * i + 1].z());
+      lines_->addPoint(v1, c);
+      lines_->addPoint(v2, c);
+      lines_->finishLine();
+    }
+  }
+}
+
+void MyLine::update() {
+  if (shape_changed_) {
+    if (!lines_) {
+      lines_ = std::make_shared<rviz_rendering::BillboardLine>(context_->getSceneManager());
+      handler_ = rviz_common::interaction::createSelectionHandler<MyLineSelectionHandler>(this, lines_.get(), context_);
+      handler_->addTrackedObjects(lines_->getSceneNode());
+    }
+    // 添加点
+    FillPoints();
+
+    shape_changed_.store(false);
+    changed_ = true;
+  }
+  if (changed_) {
+    lines_->getSceneNode()->setVisible(shape_property_->getBool());
+    auto color = color_property_->getOgreColor();
+    lines_->setColor(color.r, color.g, color.b, color.a);
+    lines_->setLineWidth(width_property_->getFloat());
+
+    lines_->setPosition(pos_property_->getVector());
+
     changed_.store(false);
   }
 }
@@ -84,6 +237,8 @@ void My3dDisplay::initialize(rviz_common::DisplayContext *context) {
 
   shape2_.initialize(context_, this);
   shape3_.initialize(context_, this);
+
+  line1_.initialize(context_, this);
 }
 
 void My3dDisplay::update(float wall_dt, float ros_dt) {
@@ -98,6 +253,8 @@ void My3dDisplay::update(float wall_dt, float ros_dt) {
 
   shape2_.update();
   shape3_.update();
+
+  line1_.update();
 }
 
 bool My3dDisplay::updateCamera() {
@@ -105,6 +262,7 @@ bool My3dDisplay::updateCamera() {
   // auto proj_matrix = view_manager_->getCurrent()->getCamera()->getProjectionMatrix();
   // std::cout << " proj_matrix = " << proj_matrix << "\n";
   // rviz_rendering::RenderWindowOgreAdapter::getOgreCamera(render_window)->setCustomProjectionMatrix(true, proj_matrix);
+  return true;
 }
 
 #include <pluginlib/class_list_macros.hpp>
