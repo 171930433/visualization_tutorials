@@ -9,10 +9,13 @@ DemoVisualDisplay::DemoVisualDisplay() : rviz::Display() {}
 
 void DemoVisualDisplay::onInitialize() {
   shape_.initialize(context_, this);
+
+  bline_.initialize(context_, this);
 }
 
 void DemoVisualDisplay::update(float wall_dt, float ros_dt) {
   shape_.update();
+  bline_.update();
 }
 
 #include <pluginlib/class_list_macros.hpp>

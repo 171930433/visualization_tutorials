@@ -8,6 +8,7 @@
 
 
 #include "visual/shape_visual.hpp"
+#include "visual/bline_visual.hpp"
 
 
 class DemoVisualDisplay : public rviz::Display {
@@ -21,6 +22,7 @@ protected:
 
 protected:
   ShapeVisual shape_;
+  MyLine bline_;
   // 最佳自定义图元绘制
 protected:
 protected:
