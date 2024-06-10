@@ -59,6 +59,7 @@ set(SRC_FILES
   src/teleop_panel.cpp
   src/grid_view2.cpp
   src/grid_display2.cpp
+  src/my_3d_display.cpp
   # data_table
   src/data_table/filterwidget.cpp
   src/data_table/data_table_model.h

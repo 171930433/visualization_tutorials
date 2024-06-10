@@ -82,6 +82,13 @@
     </description>
   </class>
   <!--  -->
+
+  <class name="rviz_plugin_tutorials/My3dDisplay"
+         type="My3dDisplay"
+         base_class_type="rviz::Display">
+  <description>      My3dDisplay .    </description>
+  </class>
+
   <class name="rviz_plugin_tutorials/TimeSync"
          type="rviz_plugin_tutorials::TimeSyncTool"
          base_class_type="rviz::Tool">
