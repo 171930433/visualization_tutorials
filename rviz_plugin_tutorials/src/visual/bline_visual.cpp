@@ -99,8 +99,8 @@ void MyLine::initialize(rviz::DisplayContext *context, rviz::Property *parent) {
   width_property_ = new rviz::FloatProperty("width", 0.1, "", shape_property_);
   connect(width_property_, &rviz::Property::changed, this, &MyLine::ColorChanged);
 
-  Eigen::Vector3f raw_pt{1, 1, 1};
-  pts_ = {raw_pt * 0.1, raw_pt * 0.2, raw_pt * 0.3, raw_pt * 0.4};
+  Eigen::Vector3f raw_pt{1, 1, 0};
+  pts_ = {raw_pt * 0.2, raw_pt * 0.4, raw_pt * 0.6, raw_pt * 0.8};
 }
 
 void MyLine::FillPoints() {
@@ -143,6 +143,10 @@ void MyLine::FillPoints() {
       lines_->addPoint(v1, c);
       lines_->addPoint(v2, c);
     }
+  }
+  if(lines_->getSceneNode())
+  {
+    lines_->getSceneNode()->needUpdate();
   }
 }
 
