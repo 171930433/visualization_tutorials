@@ -88,7 +88,10 @@ set(SRC_FILES
   src/properties/longitude_latitude_property.cpp
   src/properties/cached_channel_property.cpp
   src/properties/sub_plot_property.cpp
-  # 
+  # visual
+  src/visual/shape_visual.cpp
+  src/visual/demo_visual_display.cpp
+
   ${RESOURCE_FILES}
 )
 
