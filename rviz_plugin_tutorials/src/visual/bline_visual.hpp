@@ -99,51 +99,10 @@ public:
   std::vector<Eigen::Vector3f> pts_;
 
 public:
-  void setColorByIndex(bool set) {
-    qDebug() << "setColorByIndex set = " << set;
-
-    color_is_index_ = set;
-    FillPoints();
-
-    // for (auto &renderable : lines_->getChains()) {
-    //   renderable->setCustomParameter(RVIZ_RENDERING_PICK_COLOR_PARAMETER, pick_col);
-    // }
-    // shape_changed_.store(true);
-  };
-  void setColorByPickHandler(const Ogre::ColourValue &color) {
-    color_is_index_ = false;
-    pick_color_ = color;
-    Ogre::Vector4 pick_col(pick_color_.r, pick_color_.g, pick_color_.b, pick_color_.a);
-
-    // FillPoints();
-    // std::cout << "setColorByPickHandler lines_->getChains() size = " << lines_->getChains().size()
-    //           << " pick_color_ = " << pick_color_ << "\n";
-    // for (auto &renderable : lines_->getChains()) {
-    //   renderable->setCustomParameter(RVIZ_RENDERING_PICK_COLOR_PARAMETER, pick_col);
-    // }
-    // shape_changed_.store(true);
-  }
+  void setColorByIndex(bool set);
+  void setColorByPickHandler(const Ogre::ColourValue &color);
   bool color_is_index_ = false;
   Ogre::ColourValue pick_color_;
-
-  // uint32_t getColorForLine(uint32_t pt_index, Ogre::ColourValue const &c2) const {
-  //   uint32_t color;
-  //   auto root = Ogre::Root::getSingletonPtr();
-
-  //   if (color_is_index_) {
-  //     // convert to ColourValue, so we can then convert to the rendersystem-specific color type
-  //     color = (pt_index + 1);
-  //     Ogre::ColourValue c;
-  //     c.a = 1.0f;
-  //     c.r = ((color >> 16) & 0xff) / 255.0f;
-  //     c.g = ((color >> 8) & 0xff) / 255.0f;
-  //     c.b = (color & 0xff) / 255.0f;
-  //     root->convertColourValue(c, &color);
-  //   } else {
-  //     root->convertColourValue(c2, &color);
-  //   }
-  //   return color;
-  // }
 
 private:
   void FillPoints();

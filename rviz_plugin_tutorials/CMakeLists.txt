@@ -5,7 +5,7 @@
 ## First start with some standard catkin stuff.
 cmake_minimum_required(VERSION 3.0.2)
 project(rviz_plugin_tutorials)
-find_package(catkin REQUIRED COMPONENTS rviz pcl_ros pcl_conversions)
+find_package(catkin REQUIRED COMPONENTS rviz pcl_ros pcl_conversions rviz_visual_tools)
 # find_package(PCL REQUIRED)
 catkin_package()
 include_directories(
@@ -94,7 +94,11 @@ set(SRC_FILES
   src/visual/bline_visual.cpp
   src/visual/demo_visual_display.cpp
   src/visual/my_pointcloud.cpp
-  
+  src/visual/my_rviz_visual_tools.cpp
+  # markers
+  # src/markers/marker_base.cpp
+  # src/markers/arrow_marker.cpp
+  #
   ${RESOURCE_FILES}
 )
 

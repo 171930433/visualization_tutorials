@@ -51,7 +51,7 @@ void MyLineSelectionHandler::preRenderPass(uint32_t pass) {
 
   switch (pass) {
   case 0:
-    my_line_->setColorByPickHandler(rviz::SelectionManager::handleToColor(getHandle()));
+    // my_line_->setColorByPickHandler(rviz::SelectionManager::handleToColor(getHandle()));
     break;
   case 1:
     my_line_->setColorByIndex(true);
@@ -74,6 +74,33 @@ bool MyLineSelectionHandler::needsAdditionalRenderPass(uint32_t pass) {
     return rviz::SelectionHandler::needsAdditionalRenderPass(pass);
   }
   return pass < 2;
+}
+
+void MyLine::setColorByIndex(bool set) {
+  qDebug() << "setColorByIndex set = " << set;
+
+  color_is_index_ = set;
+  FillPoints();
+
+  // for (auto &renderable : lines_->getChains()) {
+  //   renderable->setCustomParameter(RVIZ_RENDERING_PICK_COLOR_PARAMETER, pick_col);
+  // }
+  // shape_changed_.store(true);
+};
+void MyLine::setColorByPickHandler(const Ogre::ColourValue &color) {
+  // color_is_index_ = false;
+  // pick_color_ = color;
+  // Ogre::Vector4 pick_col(pick_color_.r, pick_color_.g, pick_color_.b, pick_color_.a);
+
+  // FillPoints();
+  // std::cout << "setColorByPickHandler lines_->getChains() size = " << lines_->getChains().size()
+  //           << " pick_color_ = " << pick_color_ << "\n";
+  // for (auto &renderable : lines_->getChains()) {
+  //   renderable->setCustomParameter(RVIZ_RENDERING_PICK_COLOR_PARAMETER, pick_color_);
+  // }
+  // getUserObjectBindings().setUserAny("pick_handle", Ogre::Any(colorToHandle(color)));
+
+  // shape_changed_.store(true);
 }
 
 void MyLine::initialize(rviz::DisplayContext *context, rviz::Property *parent) {
@@ -143,11 +170,7 @@ void MyLine::FillPoints() {
       lines_->addPoint(v1, c);
       lines_->addPoint(v2, c);
     }
-  }
-  if(lines_->getSceneNode())
-  {
-    lines_->getSceneNode()->needUpdate();
-  }
+  } 
 }
 
 void MyLine::update() {
@@ -167,11 +190,12 @@ void MyLine::update() {
   if (changed_) {
     lines_->getSceneNode()->setVisible(shape_property_->getBool());
     auto color = color_property_->getOgreColor();
-    lines_->setColor(color.r, color.g, color.b, color.a);
+    // lines_->setColor(color.r, color.g, color.b, color.a);
     lines_->setLineWidth(width_property_->getFloat());
 
     lines_->setPosition(pos_property_->getVector());
 
     changed_.store(false);
   }
+  // context_->queueRender();
 }
