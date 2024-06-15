@@ -1,5 +1,7 @@
 #include "visual/my_rviz_visual_tools.hpp"
 
+#include "markers/arrow_marker.h"
+#include "markers/my_marker_selection_handler.h"
 
 void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *context) {
   parent_ = parent;
@@ -7,12 +9,18 @@ void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *
   scene_node_ = parent_->getSceneNode();
 
   ns_root_ = new rviz::BoolProperty("ns filter", true, "null", parent_);
+
+  // std::function<void()> cbk = [parent]() { parent->setTopic("", ""); };
+
+  // Ogre::Any any_cbk(std::make_shared<std::function<void()>>(cbk));
+  scene_node_->getUserObjectBindings().setUserAny(Ogre::Any(parent));
 }
 
 rviz::MarkerBase *MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker const &mark) {
   auto *new_scene_node = scene_node_->createChildSceneNode();
+  // new_scene_node->setUserAny();
 
-  auto mark_view = rviz::createMarker(mark.type, nullptr, context_, new_scene_node);
+  auto mark_view = rviz::createMarker2(mark.type, nullptr, context_, new_scene_node);
   mark_view->setMessage(mark);
 
   ns_filted_node_[mark.ns].push_back(new_scene_node);

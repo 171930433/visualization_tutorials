@@ -16,14 +16,12 @@
 #include "visual/my_rviz_visual_tools.hpp"
 
 
-
-
-
 class DemoVisualDisplay : public rviz::Display {
 public:
   DemoVisualDisplay();
 
   void onInitialize() override;
+  void setTopic(const QString& topic, const QString& datatype) override;
 
 protected:
   void update(float wall_dt, float ros_dt) override;

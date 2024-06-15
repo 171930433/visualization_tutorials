@@ -27,30 +27,42 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <OgreQuaternion.h>
+#include <OgreVector3.h>
+
+#include <rviz/default_plugin/interactive_markers/interactive_marker_control.h>
+#include <rviz/default_plugin/marker_display.h>
+#include <rviz/default_plugin/markers/marker_base.h>
+#include <rviz/properties/property.h>
+#include <rviz/properties/quaternion_property.h>
+#include <rviz/properties/vector_property.h>
+
 #include "markers/arrow_marker.h"
 #include "markers/my_marker_selection_handler.h"
 
-
-#include <rviz/ogre_helpers/arrow.h>
-#include <rviz/display_context.h>
-#include <rviz/default_plugin/markers/marker_selection_handler.h>
-
-#include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
-
 namespace rviz {
 
-void MyArrowMarker::onNewMessage(const MarkerConstPtr &old_message, const MarkerConstPtr &new_message) {
-  if (!arrow_) {
-    arrow_ = new Arrow(context_->getSceneManager(), child_scene_node_);
-    setDefaultProportions();
-    auto* handler = new MyMarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id), context_);
-    handler->setDisplaySceneNode(scene_node_);
-    handler_.reset(handler);
-    handler_->addTrackedObjects(arrow_->getSceneNode());
-  }
-
-  ArrowMarker::onNewMessage(old_message, new_message);
+MyMarkerSelectionHandler::MyMarkerSelectionHandler(const MarkerBase *marker, MarkerID id, DisplayContext *context)
+    : MarkerSelectionHandler(marker, id, context) {
+  my_marker_ = marker;
 }
 
-} // namespace rviz
+void MyMarkerSelectionHandler::createProperties(const Picked &obj, Property *parent_property) {
+  MarkerSelectionHandler::createProperties(obj, parent_property);
+
+  auto any_cbk = Ogre::any_cast<rviz::Display *>(display_scene_node_->getUserObjectBindings().getUserAny());
+  any_cbk->setTopic( QString::fromStdString(getStringID()), "");
+}
+
+MarkerBase *
+createMarker2(int marker_type, MarkerDisplay *owner, DisplayContext *context, Ogre::SceneNode *parent_node) {
+  switch (marker_type) {
+  case visualization_msgs::Marker::ARROW:
+    return new rviz::MyArrowMarker(owner, context, parent_node);
+  default:
+    return createMarker(marker_type, owner, context, parent_node);
+  }
+  return nullptr;
+}
+
+} // end namespace rviz

@@ -27,30 +27,46 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "markers/arrow_marker.h"
-#include "markers/my_marker_selection_handler.h"
+#ifndef RVIZ_MY_MARKER_SELECTION_HANDLER_H
+#define RVIZ_MY_MARKER_SELECTION_HANDLER_H
 
-
-#include <rviz/ogre_helpers/arrow.h>
-#include <rviz/display_context.h>
+#include <rviz/default_plugin/marker_utils.h>
 #include <rviz/default_plugin/markers/marker_selection_handler.h>
+#include <rviz/selection/forwards.h>
+#include <rviz/selection/selection_manager.h>
 
 #include <OgreSceneNode.h>
-#include <OgreSceneManager.h>
 
 namespace rviz {
+class InteractiveMarkerControl;
+class MarkerBase;
+class QuaternionProperty;
+class VectorProperty;
+typedef std::pair<std::string, int32_t> MarkerID;
 
-void MyArrowMarker::onNewMessage(const MarkerConstPtr &old_message, const MarkerConstPtr &new_message) {
-  if (!arrow_) {
-    arrow_ = new Arrow(context_->getSceneManager(), child_scene_node_);
-    setDefaultProportions();
-    auto* handler = new MyMarkerSelectionHandler(this, MarkerID(new_message->ns, new_message->id), context_);
-    handler->setDisplaySceneNode(scene_node_);
-    handler_.reset(handler);
-    handler_->addTrackedObjects(arrow_->getSceneNode());
+class MyMarkerSelectionHandler : public MarkerSelectionHandler {
+public:
+  MyMarkerSelectionHandler(const MarkerBase *marker, MarkerID id, DisplayContext *context);
+
+  void setDisplaySceneNode(Ogre::SceneNode *display_scene_node) {
+    display_scene_node_ = display_scene_node->getParentSceneNode()->getParentSceneNode();
   }
 
-  ArrowMarker::onNewMessage(old_message, new_message);
-}
+  void createProperties(const Picked &obj, Property *parent_property) override;
 
-} // namespace rviz
+  std::string getStringID() {
+    std::stringstream ss;
+    ss << my_marker_->getMessage()->ns << "/" << my_marker_->getMessage()->id;
+    return ss.str();
+  }
+
+protected:
+  const MarkerBase *my_marker_;
+  Ogre::SceneNode *display_scene_node_;
+};
+
+MarkerBase *createMarker2(int marker_type, MarkerDisplay *owner, DisplayContext *context, Ogre::SceneNode *parent_node);
+
+} // end namespace rviz
+
+#endif

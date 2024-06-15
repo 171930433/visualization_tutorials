@@ -96,8 +96,8 @@ set(SRC_FILES
   src/visual/my_pointcloud.cpp
   src/visual/my_rviz_visual_tools.cpp
   # markers
-  # src/markers/marker_base.cpp
-  # src/markers/arrow_marker.cpp
+  src/markers/my_marker_selection_handler.cpp
+  src/markers/arrow_marker.cpp
   #
   ${RESOURCE_FILES}
 )

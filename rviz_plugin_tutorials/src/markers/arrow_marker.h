@@ -30,33 +30,20 @@
 #ifndef RVIZ_MY_ARROW_MARKER_H
 #define RVIZ_MY_ARROW_MARKER_H
 
-#include "markers/marker_base.h"
+#include <rviz/default_plugin/markers/arrow_marker.h>
 #include <rviz/display.h>
 
-namespace Ogre {
-class SceneNode;
-}
 
 namespace rviz {
-class Arrow;
-class DisplayContext;
 
-class MyArrowMarker : public MyMarkerBase {
+class MyArrowMarker : public ArrowMarker {
 public:
-  MyArrowMarker(Display *owner, DisplayContext *context);
-
-  ~MyArrowMarker() override;
-  S_MaterialPtr getMaterials() override;
+  using ArrowMarker::ArrowMarker;
 
 protected:
   void onNewMessage(const MarkerConstPtr &old_message, const MarkerConstPtr &new_message) override;
-  virtual void setDefaultProportions();
-
-  Arrow *arrow_;
-  Ogre::SceneNode *child_scene_node_;
-
-  bool last_arrow_set_from_points_;
 };
+
 
 } // end namespace rviz
 

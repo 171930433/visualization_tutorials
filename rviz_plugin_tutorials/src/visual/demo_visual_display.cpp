@@ -5,7 +5,6 @@
 #include <OgreCamera.h>
 #include <OgreRenderWindow.h>
 
-
 using namespace rviz_visual_tools;
 
 void testSize(double &x_location, scales scale, RvizVisualTools *visual_tools_) {
@@ -135,13 +134,16 @@ void testSize(double &x_location, scales scale, RvizVisualTools *visual_tools_) 
   x_location += 0.5;
 }
 
+void DemoVisualDisplay::setTopic(const QString &topic, const QString &datatype) {
+  ROS_INFO_STREAM("DemoVisualDisplay::setTopic called" << topic.toStdString());
+}
+
 DemoVisualDisplay::DemoVisualDisplay() : rviz::Display() {
   rvt_.reset(new MyRvizVisualTools("map", "/rviz_visual_tools"));
   rvt_->enableBatchPublishing();
 }
 
 void DemoVisualDisplay::onInitialize() {
-
   // shape_.initialize(context_, this);
 
   // bline_.initialize(context_, this);
