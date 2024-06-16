@@ -3,6 +3,10 @@
 #include "markers/arrow_marker.h"
 #include "markers/my_marker_selection_handler.h"
 
+#include <Eigen/Geometry>
+
+using namespace rviz_visual_tools;
+
 void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *context) {
   parent_ = parent;
   context_ = context;
@@ -51,3 +55,119 @@ void MyRvizVisualTools::update() {
   }
   markers_.markers.clear();
 }
+
+bool MyRvizVisualTools::publishPlaneRect(Eigen::Vector3d const &pos,
+                                         Eigen::Vector3d const &normal,
+                                         colors color,
+                                         double x_width,
+                                         double y_width,
+                                         std::string const ns) {
+  using namespace Eigen;
+  Eigen::Isometry3d Twl = Translation3d(pos) * Quaterniond::FromTwoVectors(Vector3d::UnitZ(), normal);
+  // 左上角点开始顺时针4个点
+  Vector3d const pt0 = Vector3d{-1, 1, 0};
+  Vector3d const pt1 = Vector3d{1, 1, 0};
+  Vector3d const pt2 = Vector3d{1, -1, 0};
+  Vector3d const pt3 = Vector3d{-1, -1, 0};
+  //
+  triangle_marker_.header.stamp = ros::Time::now();
+  triangle_marker_.id++;
+
+  triangle_marker_.ns = ns;
+  triangle_marker_.color = getColor(color);
+  triangle_marker_.pose = convertPose(Twl);
+
+  triangle_marker_.scale.x = x_width;
+  triangle_marker_.scale.y = y_width;
+  triangle_marker_.scale.z = 1.0;
+
+  triangle_marker_.points.clear();
+  triangle_marker_.points.reserve(6);
+  triangle_marker_.points.emplace_back(convertPoint(pt0));
+  triangle_marker_.points.emplace_back(convertPoint(pt3));
+  triangle_marker_.points.emplace_back(convertPoint(pt2));
+
+  triangle_marker_.points.emplace_back(convertPoint(pt2));
+  triangle_marker_.points.emplace_back(convertPoint(pt1));
+  triangle_marker_.points.emplace_back(convertPoint(pt0));
+
+  return publishMarker(triangle_marker_);
+}
+
+bool MyRvizVisualTools::publishPlaneCircle(Eigen::Vector3d const &pos,
+                                           Eigen::Vector3d const &normal,
+                                           double const radius_m,
+                                           rviz_visual_tools::colors color,
+                                           std::string const ns) {
+  using namespace Eigen;
+  Eigen::Isometry3d Twl = Translation3d(pos) * Quaterniond::FromTwoVectors(Vector3d::UnitZ(), normal);
+  Vector3d const origin = Vector3d::Zero();
+  //
+  triangle_marker_.header.stamp = ros::Time::now();
+  triangle_marker_.id++;
+
+  triangle_marker_.ns = ns;
+  triangle_marker_.color = getColor(color);
+  triangle_marker_.pose = convertPose(Twl);
+
+  triangle_marker_.scale.x = radius_m;
+  triangle_marker_.scale.y = radius_m;
+  triangle_marker_.scale.z = 1.0;
+
+  triangle_marker_.points.clear();
+  size_t counts = 36;
+  triangle_marker_.points.reserve(counts * 3);
+  double const d_theta = 1.0 / counts * 2 * M_PI;
+  double const end = 2 * M_PI;
+  for (double theta = 0; theta < end; theta += d_theta) {
+    double const theta2 = theta + d_theta;
+    triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta), sin(theta), 0.0}));
+    triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta2), sin(theta2), 0.0}));
+    triangle_marker_.points.emplace_back(geometry_msgs::Point{});
+  }
+  return publishMarker(triangle_marker_);
+}
+
+bool MyRvizVisualTools::publishPlaneTriangle(Eigen::Vector3d const &pos,
+                                             Eigen::Vector3d const &normal,
+                                             double const length_m,
+                                             rviz_visual_tools::colors color,
+                                             std::string const ns) {
+  using namespace Eigen;
+  Eigen::Isometry3d Twl = Translation3d(pos) * Quaterniond::FromTwoVectors(Vector3d::UnitZ(), normal);
+  Vector3d const origin = Vector3d::Zero();
+  //
+  triangle_marker_.header.stamp = ros::Time::now();
+  triangle_marker_.id++;
+
+  triangle_marker_.ns = ns;
+  triangle_marker_.color = getColor(color);
+  triangle_marker_.pose = convertPose(Twl);
+
+  // 外切圆半径
+  double const length2 = length_m / 0.5 * sin(30.0 / 180 * M_PI);
+  triangle_marker_.scale.x = length2;
+  triangle_marker_.scale.y = length2;
+  triangle_marker_.scale.z = 1.0;
+
+  triangle_marker_.points.clear();
+  triangle_marker_.points.reserve(3);
+  double theta = 0;
+  double const d_theta = 120.0 / 180 * M_PI;
+  triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta), sin(theta), 0.0}));
+  theta += d_theta;
+  triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta), sin(theta), 0.0}));
+  theta += d_theta;
+  triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta), sin(theta), 0.0}));
+
+  return publishMarker(triangle_marker_);
+}
+
+bool MyRvizVisualTools::publishPlaneRegularPolygon(Eigen::Vector3d const &pos,
+                                                   Eigen::Vector3d const &normal,
+                                                   int const line_count,  // 多边形的边数
+                                                   double const radius_m, // 外切圆半径
+                                                   rviz_visual_tools::colors color,
+                                                   std::string const ns) {
+                                                    return true;
+                                                   }

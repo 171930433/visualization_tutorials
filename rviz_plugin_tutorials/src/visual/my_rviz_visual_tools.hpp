@@ -16,6 +16,34 @@ public:
 
   void update();
 
+public:
+  bool publishPlaneRect(Eigen::Vector3d const &pos,
+                        Eigen::Vector3d const &normal,
+                        rviz_visual_tools::colors color = rviz_visual_tools::TRANSLUCENT,
+                        double x_width = 1.0,
+                        double y_width = 1.0,
+                        std::string const ns = "PlaneRect");
+
+  bool publishPlaneCircle(Eigen::Vector3d const &pos,
+                          Eigen::Vector3d const &normal,
+                          double const radius_m,
+                          rviz_visual_tools::colors color = rviz_visual_tools::TRANSLUCENT,
+                          std::string const ns = "PlaneCircle");
+
+  bool publishPlaneTriangle(Eigen::Vector3d const &pos,
+                            Eigen::Vector3d const &normal,
+                            double const length_m,
+                            rviz_visual_tools::colors color = rviz_visual_tools::TRANSLUCENT,
+                            std::string const ns = "PlaneTriangle");
+
+  // 绘制正多边形
+  bool publishPlaneRegularPolygon(Eigen::Vector3d const &pos,
+                            Eigen::Vector3d const &normal,
+                            int const line_count,   // 多边形的边数
+                            double const length_m,  // 多边形的边长
+                            rviz_visual_tools::colors color = rviz_visual_tools::TRANSLUCENT,
+                            std::string const ns = "PlaneRegularPolygon");
+
 protected:
   rviz::MarkerBase *CreateMarkView(visualization_msgs::Marker const &mark);
 

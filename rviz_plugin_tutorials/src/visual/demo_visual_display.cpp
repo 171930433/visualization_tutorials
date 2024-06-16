@@ -7,7 +7,8 @@
 
 using namespace rviz_visual_tools;
 
-void testSize(double &x_location, scales scale, RvizVisualTools *visual_tools_) {
+void testSize(double &x_location, scales scale, MyRvizVisualTools *visual_tools_) {
+  using namespace Eigen;
   // Create pose
   Eigen::Isometry3d pose1 = Eigen::Isometry3d::Identity();
   Eigen::Isometry3d pose2 = Eigen::Isometry3d::Identity();
@@ -126,6 +127,26 @@ void testSize(double &x_location, scales scale, RvizVisualTools *visual_tools_) 
   // Text
   visual_tools_->publishText(pose1, "Text", WHITE, scale, false);
   pose1.translation().y() += step;
+
+
+  // add 平面
+  visual_tools_->publishPlaneRect(pose1.translation(), Vector3d::UnitX(),RED,0.1,0.1);
+  visual_tools_->publishPlaneRect(pose1.translation(), Vector3d::UnitY(),GREEN,0.1,0.1);
+  visual_tools_->publishPlaneRect(pose1.translation(), Vector3d::UnitZ(),BLUE,0.1,0.1);
+  pose1.translation().y() += step;
+
+  // add 圆
+  visual_tools_->publishPlaneCircle(pose1.translation(), Vector3d::UnitX(), 0.1, RED );
+  visual_tools_->publishPlaneCircle(pose1.translation(), Vector3d::UnitY(), 0.1, GREEN );
+  visual_tools_->publishPlaneCircle(pose1.translation(), Vector3d::UnitZ(), 0.1, BLUE );
+  pose1.translation().y() += step;
+
+  // add 三角形
+  visual_tools_->publishPlaneTriangle(pose1.translation(), Vector3d::UnitX(), 0.1, RED );
+  visual_tools_->publishPlaneTriangle(pose1.translation(), Vector3d::UnitY(), 0.1, GREEN );
+  visual_tools_->publishPlaneTriangle(pose1.translation(), Vector3d::UnitZ(), 0.1, BLUE );
+  pose1.translation().y() += step;
+
 
   // Display test
   // visual_tools_->trigger();
