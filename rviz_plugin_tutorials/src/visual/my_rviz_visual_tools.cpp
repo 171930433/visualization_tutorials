@@ -14,15 +14,11 @@ void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *
 
   ns_root_ = new rviz::BoolProperty("ns filter", true, "null", parent_);
 
-  // std::function<void()> cbk = [parent]() { parent->setTopic("", ""); };
-
-  // Ogre::Any any_cbk(std::make_shared<std::function<void()>>(cbk));
   scene_node_->getUserObjectBindings().setUserAny(Ogre::Any(parent));
 }
 
 rviz::MarkerBase *MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker const &mark) {
   auto *new_scene_node = scene_node_->createChildSceneNode();
-  // new_scene_node->setUserAny();
 
   auto mark_view = rviz::createMarker2(mark.type, nullptr, context_, new_scene_node);
   mark_view->setMessage(mark);
@@ -49,14 +45,14 @@ rviz::MarkerBase *MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker c
 }
 
 void MyRvizVisualTools::update() {
-  if (markers_.markers.empty()) { return; }
+  if (!inited_ || markers_.markers.empty()) { return; }
   for (auto const &mark : markers_.markers) {
     CreateMarkView(mark);
   }
   markers_.markers.clear();
 }
 
-bool MyRvizVisualTools::publishPlaneRect(Eigen::Vector3d const &pos,
+bool MyRvizVisualTools::publishRect(Eigen::Vector3d const &pos,
                                          Eigen::Vector3d const &normal,
                                          colors color,
                                          double x_width,
@@ -94,11 +90,29 @@ bool MyRvizVisualTools::publishPlaneRect(Eigen::Vector3d const &pos,
   return publishMarker(triangle_marker_);
 }
 
-bool MyRvizVisualTools::publishPlaneCircle(Eigen::Vector3d const &pos,
+bool MyRvizVisualTools::publishCircle(Eigen::Vector3d const &pos,
                                            Eigen::Vector3d const &normal,
                                            double const radius_m,
                                            rviz_visual_tools::colors color,
                                            std::string const ns) {
+  double const length_m = 2 * radius_m * sin(M_PI / 36);
+  return publishRegularPolygon(pos, normal, 36, length_m, color, ns);
+}
+
+bool MyRvizVisualTools::publishRegularTriangle(Eigen::Vector3d const &pos,
+                                             Eigen::Vector3d const &normal,
+                                             double const length_m,
+                                             rviz_visual_tools::colors color,
+                                             std::string const ns) {
+  return publishRegularPolygon(pos, normal, 3, length_m, color, ns);
+}
+
+bool MyRvizVisualTools::publishRegularPolygon(Eigen::Vector3d const &pos,
+                                                   Eigen::Vector3d const &normal,
+                                                   int const line_count,  // 多边形的边数
+                                                   double const length_m, // 多边形的边长
+                                                   rviz_visual_tools::colors color,
+                                                   std::string const ns) {
   using namespace Eigen;
   Eigen::Isometry3d Twl = Translation3d(pos) * Quaterniond::FromTwoVectors(Vector3d::UnitZ(), normal);
   Vector3d const origin = Vector3d::Zero();
@@ -109,65 +123,33 @@ bool MyRvizVisualTools::publishPlaneCircle(Eigen::Vector3d const &pos,
   triangle_marker_.ns = ns;
   triangle_marker_.color = getColor(color);
   triangle_marker_.pose = convertPose(Twl);
-
-  triangle_marker_.scale.x = radius_m;
-  triangle_marker_.scale.y = radius_m;
+  //
+  double const length2 = length_m / 2 / sin(M_PI / line_count);
+  triangle_marker_.scale.x = length2;
+  triangle_marker_.scale.y = length2;
   triangle_marker_.scale.z = 1.0;
-
+  //
   triangle_marker_.points.clear();
-  size_t counts = 36;
+  size_t const counts = line_count;
   triangle_marker_.points.reserve(counts * 3);
   double const d_theta = 1.0 / counts * 2 * M_PI;
   double const end = 2 * M_PI;
-  for (double theta = 0; theta < end; theta += d_theta) {
+  double const start = (counts % 2 == 0 ? 0.5 * d_theta : 0);
+  for (double theta = start; theta < end; theta += d_theta) {
     double const theta2 = theta + d_theta;
-    triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta), sin(theta), 0.0}));
-    triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta2), sin(theta2), 0.0}));
+    triangle_marker_.points.emplace_back(convertPoint(Vector3d{-sin(theta), cos(theta), 0.0}));
+    triangle_marker_.points.emplace_back(convertPoint(Vector3d{-sin(theta2), cos(theta2), 0.0}));
     triangle_marker_.points.emplace_back(geometry_msgs::Point{});
   }
   return publishMarker(triangle_marker_);
 }
 
-bool MyRvizVisualTools::publishPlaneTriangle(Eigen::Vector3d const &pos,
-                                             Eigen::Vector3d const &normal,
-                                             double const length_m,
-                                             rviz_visual_tools::colors color,
-                                             std::string const ns) {
-  using namespace Eigen;
-  Eigen::Isometry3d Twl = Translation3d(pos) * Quaterniond::FromTwoVectors(Vector3d::UnitZ(), normal);
-  Vector3d const origin = Vector3d::Zero();
-  //
-  triangle_marker_.header.stamp = ros::Time::now();
-  triangle_marker_.id++;
-
-  triangle_marker_.ns = ns;
-  triangle_marker_.color = getColor(color);
-  triangle_marker_.pose = convertPose(Twl);
-
-  // 外切圆半径
-  double const length2 = length_m / 0.5 * sin(30.0 / 180 * M_PI);
-  triangle_marker_.scale.x = length2;
-  triangle_marker_.scale.y = length2;
-  triangle_marker_.scale.z = 1.0;
-
-  triangle_marker_.points.clear();
-  triangle_marker_.points.reserve(3);
-  double theta = 0;
-  double const d_theta = 120.0 / 180 * M_PI;
-  triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta), sin(theta), 0.0}));
-  theta += d_theta;
-  triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta), sin(theta), 0.0}));
-  theta += d_theta;
-  triangle_marker_.points.emplace_back(convertPoint(Vector3d{cos(theta), sin(theta), 0.0}));
-
-  return publishMarker(triangle_marker_);
+bool MyRvizVisualTools::publishRegularPolygon2(Eigen::Vector3d const &pos,
+                                                    Eigen::Vector3d const &normal,
+                                                    int const line_count,  // 多边形的边数
+                                                    double const radius_m, // 多边形的边长
+                                                    rviz_visual_tools::colors color,
+                                                    std::string const ns) {
+  double const length_m = 2 * radius_m * sin(M_PI / line_count);
+  return publishRegularPolygon(pos, normal, line_count, length_m, color, ns);
 }
-
-bool MyRvizVisualTools::publishPlaneRegularPolygon(Eigen::Vector3d const &pos,
-                                                   Eigen::Vector3d const &normal,
-                                                   int const line_count,  // 多边形的边数
-                                                   double const radius_m, // 外切圆半径
-                                                   rviz_visual_tools::colors color,
-                                                   std::string const ns) {
-                                                    return true;
-                                                   }

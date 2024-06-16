@@ -21,16 +21,16 @@ public:
   DemoVisualDisplay();
 
   void onInitialize() override;
+  // !当前测试元素被选中时,执行的回调
   void setTopic(const QString& topic, const QString& datatype) override;
 
 protected:
   void update(float wall_dt, float ros_dt) override;
 
 protected:
-  ShapeVisual shape_;
-  MyLine bline_;
-  MyPointCloud pc_;
-  // 最佳自定义图元绘制
+  // ShapeVisual shape_;
+  // MyLine bline_;
+  // MyPointCloud pc_;
 protected:
 protected:
   std::shared_ptr<MyRvizVisualTools> rvt_ = nullptr;

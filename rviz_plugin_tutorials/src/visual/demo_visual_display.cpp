@@ -7,6 +7,37 @@
 
 using namespace rviz_visual_tools;
 
+void testSize(double &x_location, scales scale, MyRvizVisualTools *visual_tools_);
+
+void DemoVisualDisplay::setTopic(const QString &topic, const QString &datatype) {
+  ROS_INFO_STREAM("DemoVisualDisplay::setTopic called" << topic.toStdString());
+}
+
+DemoVisualDisplay::DemoVisualDisplay() : rviz::Display() {
+  rvt_.reset(new MyRvizVisualTools("map", "/rviz_visual_tools"));
+  rvt_->enableBatchPublishing();
+}
+
+void DemoVisualDisplay::onInitialize() {
+  // 发送
+  rvt_->initialize(this, context_);
+
+  rvt_->beginInit();
+
+  double x = 0;
+  for (int i = 0; i < 10; ++i) {
+    testSize(x, scales::LARGE, rvt_.get());
+    x += 1;
+  }
+
+  rvt_->endInit();
+}
+
+void DemoVisualDisplay::update(float wall_dt, float ros_dt) {
+  //
+  rvt_->update();
+}
+
 void testSize(double &x_location, scales scale, MyRvizVisualTools *visual_tools_) {
   using namespace Eigen;
   // Create pose
@@ -83,18 +114,20 @@ void testSize(double &x_location, scales scale, MyRvizVisualTools *visual_tools_
   // Lines
   points1.clear();
   points2.clear();
+  colors.clear(); // temp
+
   pose2 = pose1;
   pose2.translation().x() += step / 2.0;
-  points1.emplace_back(pose1.translation());
-  points2.emplace_back(pose2.translation());
+  for (int i = 0; i < 3; ++i) {
+    points1.emplace_back(pose1.translation() + Eigen::Vector3d{i * 1.0, 0, 0} * step);
+    points2.emplace_back(pose2.translation() + Eigen::Vector3d{i * 1.0, 0, 0} * step);
+    colors.push_back((rviz_visual_tools::colors)(i + 1));
+  }
   pose1.translation().x() += step / 2.0;
 
   pose2 = pose1;
   pose2.translation().x() += step / 2.0;
-  // points1.push_back(pose1.translation());
-  // points2.push_back(pose2.translation());
-  colors.clear(); // temp
-  colors.push_back(ORANGE);
+
   visual_tools_->publishLines(points1, points2, colors, scale);
   pose1.translation().x() = x_location; // reset
   pose1.translation().y() += step;
@@ -128,61 +161,34 @@ void testSize(double &x_location, scales scale, MyRvizVisualTools *visual_tools_
   visual_tools_->publishText(pose1, "Text", WHITE, scale, false);
   pose1.translation().y() += step;
 
-
   // add 平面
-  visual_tools_->publishPlaneRect(pose1.translation(), Vector3d::UnitX(),RED,0.1,0.1);
-  visual_tools_->publishPlaneRect(pose1.translation(), Vector3d::UnitY(),GREEN,0.1,0.1);
-  visual_tools_->publishPlaneRect(pose1.translation(), Vector3d::UnitZ(),BLUE,0.1,0.1);
+  visual_tools_->publishRect(pose1.translation(), Vector3d::UnitX(), RED, 0.1, 0.1);
+  visual_tools_->publishRect(pose1.translation(), Vector3d::UnitY(), GREEN, 0.1, 0.1);
+  visual_tools_->publishRect(pose1.translation(), Vector3d::UnitZ(), BLUE, 0.1, 0.1);
   pose1.translation().y() += step;
 
   // add 圆
-  visual_tools_->publishPlaneCircle(pose1.translation(), Vector3d::UnitX(), 0.1, RED );
-  visual_tools_->publishPlaneCircle(pose1.translation(), Vector3d::UnitY(), 0.1, GREEN );
-  visual_tools_->publishPlaneCircle(pose1.translation(), Vector3d::UnitZ(), 0.1, BLUE );
+  visual_tools_->publishCircle(pose1.translation(), Vector3d::UnitX(), 0.1, RED);
+  visual_tools_->publishCircle(pose1.translation(), Vector3d::UnitY(), 0.1, GREEN);
+  visual_tools_->publishCircle(pose1.translation(), Vector3d::UnitZ(), 0.1, BLUE);
   pose1.translation().y() += step;
 
   // add 三角形
-  visual_tools_->publishPlaneTriangle(pose1.translation(), Vector3d::UnitX(), 0.1, RED );
-  visual_tools_->publishPlaneTriangle(pose1.translation(), Vector3d::UnitY(), 0.1, GREEN );
-  visual_tools_->publishPlaneTriangle(pose1.translation(), Vector3d::UnitZ(), 0.1, BLUE );
+  visual_tools_->publishRegularTriangle(pose1.translation(), Vector3d::UnitX(), 0.1, RED);
+  visual_tools_->publishRegularTriangle(pose1.translation(), Vector3d::UnitY(), 0.1, GREEN);
+  visual_tools_->publishRegularTriangle(pose1.translation(), Vector3d::UnitZ(), 0.1, BLUE);
   pose1.translation().y() += step;
 
-
-  // Display test
-  // visual_tools_->trigger();
+  // 正多边形
+  for (int i = 3; i < 10; ++i) {
+    visual_tools_->publishRegularPolygon2(pose1.translation(), Vector3d::UnitX(), i, 0.1, RED);
+    visual_tools_->publishRegularPolygon2(pose1.translation(), Vector3d::UnitY(), i, 0.1, GREEN);
+    visual_tools_->publishRegularPolygon2(pose1.translation(), Vector3d::UnitZ(), i, 0.1, BLUE);
+    pose1.translation().y() += step;
+  }
 
   // Set x location for next visualization function
   x_location += 0.5;
-}
-
-void DemoVisualDisplay::setTopic(const QString &topic, const QString &datatype) {
-  ROS_INFO_STREAM("DemoVisualDisplay::setTopic called" << topic.toStdString());
-}
-
-DemoVisualDisplay::DemoVisualDisplay() : rviz::Display() {
-  rvt_.reset(new MyRvizVisualTools("map", "/rviz_visual_tools"));
-  rvt_->enableBatchPublishing();
-}
-
-void DemoVisualDisplay::onInitialize() {
-  // shape_.initialize(context_, this);
-
-  // bline_.initialize(context_, this);
-
-  // pc_.initialize(this, context_);
-
-  // 发送
-  rvt_->initialize(this, context_);
-
-  double x = 0;
-  testSize(x, scales::LARGE, rvt_.get());
-}
-
-void DemoVisualDisplay::update(float wall_dt, float ros_dt) {
-  // shape_.update();
-  // bline_.update();
-
-  rvt_->update();
 }
 
 #include <pluginlib/class_list_macros.hpp>

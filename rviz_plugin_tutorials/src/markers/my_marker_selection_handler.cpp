@@ -50,8 +50,9 @@ MyMarkerSelectionHandler::MyMarkerSelectionHandler(const MarkerBase *marker, Mar
 void MyMarkerSelectionHandler::createProperties(const Picked &obj, Property *parent_property) {
   MarkerSelectionHandler::createProperties(obj, parent_property);
 
+  // ! 选中时的回调,待优化
   auto any_cbk = Ogre::any_cast<rviz::Display *>(display_scene_node_->getUserObjectBindings().getUserAny());
-  any_cbk->setTopic( QString::fromStdString(getStringID()), "");
+  if (any_cbk) { any_cbk->setTopic(QString::fromStdString(getStringID()), ""); }
 }
 
 MarkerBase *
