@@ -7,6 +7,10 @@
 
 using namespace rviz_visual_tools;
 
+MyRvizVisualTools::MyRvizVisualTools(std::string base_frame) : RvizVisualTools(base_frame) {
+  this->enableBatchPublishing();
+}
+
 void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *context) {
   parent_ = parent;
   context_ = context;
@@ -53,11 +57,11 @@ void MyRvizVisualTools::update() {
 }
 
 bool MyRvizVisualTools::publishRect(Eigen::Vector3d const &pos,
-                                         Eigen::Vector3d const &normal,
-                                         colors color,
-                                         double x_width,
-                                         double y_width,
-                                         std::string const ns) {
+                                    Eigen::Vector3d const &normal,
+                                    colors color,
+                                    double x_width,
+                                    double y_width,
+                                    std::string const ns) {
   using namespace Eigen;
   Eigen::Isometry3d Twl = Translation3d(pos) * Quaterniond::FromTwoVectors(Vector3d::UnitZ(), normal);
   // 左上角点开始顺时针4个点
@@ -91,28 +95,28 @@ bool MyRvizVisualTools::publishRect(Eigen::Vector3d const &pos,
 }
 
 bool MyRvizVisualTools::publishCircle(Eigen::Vector3d const &pos,
-                                           Eigen::Vector3d const &normal,
-                                           double const radius_m,
-                                           rviz_visual_tools::colors color,
-                                           std::string const ns) {
+                                      Eigen::Vector3d const &normal,
+                                      double const radius_m,
+                                      rviz_visual_tools::colors color,
+                                      std::string const ns) {
   double const length_m = 2 * radius_m * sin(M_PI / 36);
   return publishRegularPolygon(pos, normal, 36, length_m, color, ns);
 }
 
 bool MyRvizVisualTools::publishRegularTriangle(Eigen::Vector3d const &pos,
-                                             Eigen::Vector3d const &normal,
-                                             double const length_m,
-                                             rviz_visual_tools::colors color,
-                                             std::string const ns) {
+                                               Eigen::Vector3d const &normal,
+                                               double const length_m,
+                                               rviz_visual_tools::colors color,
+                                               std::string const ns) {
   return publishRegularPolygon(pos, normal, 3, length_m, color, ns);
 }
 
 bool MyRvizVisualTools::publishRegularPolygon(Eigen::Vector3d const &pos,
-                                                   Eigen::Vector3d const &normal,
-                                                   int const line_count,  // 多边形的边数
-                                                   double const length_m, // 多边形的边长
-                                                   rviz_visual_tools::colors color,
-                                                   std::string const ns) {
+                                              Eigen::Vector3d const &normal,
+                                              int const line_count,  // 多边形的边数
+                                              double const length_m, // 多边形的边长
+                                              rviz_visual_tools::colors color,
+                                              std::string const ns) {
   using namespace Eigen;
   Eigen::Isometry3d Twl = Translation3d(pos) * Quaterniond::FromTwoVectors(Vector3d::UnitZ(), normal);
   Vector3d const origin = Vector3d::Zero();
@@ -145,11 +149,11 @@ bool MyRvizVisualTools::publishRegularPolygon(Eigen::Vector3d const &pos,
 }
 
 bool MyRvizVisualTools::publishRegularPolygon2(Eigen::Vector3d const &pos,
-                                                    Eigen::Vector3d const &normal,
-                                                    int const line_count,  // 多边形的边数
-                                                    double const radius_m, // 多边形的边长
-                                                    rviz_visual_tools::colors color,
-                                                    std::string const ns) {
+                                               Eigen::Vector3d const &normal,
+                                               int const line_count,  // 多边形的边数
+                                               double const radius_m, // 多边形的边长
+                                               rviz_visual_tools::colors color,
+                                               std::string const ns) {
   double const length_m = 2 * radius_m * sin(M_PI / line_count);
   return publishRegularPolygon(pos, normal, line_count, length_m, color, ns);
 }

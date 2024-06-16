@@ -11,7 +11,9 @@
 
 class MyRvizVisualTools : public rviz_visual_tools::RvizVisualTools, public QObject {
 public:
-  using rviz_visual_tools::RvizVisualTools::RvizVisualTools;
+  // using rviz_visual_tools::RvizVisualTools::RvizVisualTools;
+  explicit MyRvizVisualTools(std::string base_frame);
+
   void initialize(rviz::Display *parent, rviz::DisplayContext *context);
 
   void update();

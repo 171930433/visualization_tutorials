@@ -14,8 +14,7 @@ void DemoVisualDisplay::setTopic(const QString &topic, const QString &datatype) 
 }
 
 DemoVisualDisplay::DemoVisualDisplay() : rviz::Display() {
-  rvt_.reset(new MyRvizVisualTools("map", "/rviz_visual_tools"));
-  rvt_->enableBatchPublishing();
+  rvt_.reset(new MyRvizVisualTools("map"));
 }
 
 void DemoVisualDisplay::onInitialize() {
