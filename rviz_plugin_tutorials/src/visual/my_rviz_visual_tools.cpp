@@ -17,6 +17,12 @@ void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *
   scene_node_ = parent_->getSceneNode();
 
   ns_root_ = new rviz::BoolProperty("ns filter", true, "null", parent_);
+  connect(ns_root_, &rviz::BoolProperty::changed, [this]() {
+    int counts = this->ns_root_->numChildren();
+    for (size_t i = 0; i < counts; ++i) {
+      this->ns_root_->childAt(i)->setValue(this->ns_root_->getBool());
+    }
+  });
 
   scene_node_->getUserObjectBindings().setUserAny(Ogre::Any(parent));
 }

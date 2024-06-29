@@ -4,6 +4,10 @@
 #include <rviz/display_context.h>
 #include <rviz/visualization_manager.h>
 
+namespace rviz
+{
+class DisplayGroupVisibilityProperty;
+}
 
 class My3dDisplay : public rviz::Display {
 public:
@@ -24,5 +28,8 @@ protected:
 
   // 最佳自定义图元绘制
 protected:
+
 protected:
+  uint32_t vis_bit_;
+  rviz::DisplayGroupVisibilityProperty* visibility_property_;
 };

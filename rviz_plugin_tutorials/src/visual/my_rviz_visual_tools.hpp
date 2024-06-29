@@ -21,6 +21,8 @@ public:
   void beginInit() { inited_ = false; } // 开始添加元素时调用
   void endInit() { inited_ = true; }    // 结束添加元素时调用
 
+  visualization_msgs::MarkerArray &markers() { return markers_; } // 只可在begin与end之间访问
+
 public:
   bool publishRect(Eigen::Vector3d const &pos,
                    Eigen::Vector3d const &normal,
