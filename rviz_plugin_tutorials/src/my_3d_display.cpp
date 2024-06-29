@@ -3,25 +3,16 @@
 #include <OgreCamera.h>
 #include <OgreRenderWindow.h>
 
-#include <rviz/default_plugin/view_controllers/fixed_orientation_ortho_view_controller.h>
 #include <rviz/properties/display_group_visibility_property.h>
-#include <rviz/viewport_mouse_event.h>
-
-namespace rviz {
-
-class MyFixedOrientationOrthoViewController : public FixedOrientationOrthoViewController {
-  using FixedOrientationOrthoViewController::FixedOrientationOrthoViewController;
-
-  void handleMouseEvent(ViewportMouseEvent &event) override {
-    event.modifiers.setFlag(Qt::ShiftModifier); // 强制shift锁定
-    FixedOrientationOrthoViewController::handleMouseEvent(event);
-  }
-};
-
-} // namespace rviz
 
 My3dDisplay::My3dDisplay() : rviz::Display() {
-  //
+
+}
+
+My3dDisplay::~My3dDisplay() {
+  if (initialized()) { 
+    this->takeChild(top_down_view_);
+    context_->visibilityBits()->freeBits(vis_bit_); }
 }
 
 void My3dDisplay::setupRenderPanel() {
@@ -56,8 +47,11 @@ void My3dDisplay::onInitialize() {
 
   view_manager_ = std::make_shared<rviz::ViewManager>(context_);
   view_manager_->setRenderPanel(render_panel_.get());
-  view_manager_->initialize();
+
   view_manager_->setCurrentViewControllerType("rviz/MyTopDownOrtho");
+  top_down_view_ = qobject_cast<rviz::FixedOrientationOrthoViewController *>(view_manager_->getCurrent());
+
+  this->addChild(top_down_view_, 1);
 }
 
 void My3dDisplay::update(float wall_dt, float ros_dt) { view_manager_->update(wall_dt, ros_dt); }
