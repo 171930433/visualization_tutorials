@@ -3,16 +3,18 @@
 #include <OgreCamera.h>
 #include <OgreRenderWindow.h>
 
+#include <rviz/display_group.h>
 #include <rviz/properties/display_group_visibility_property.h>
 
-My3dDisplay::My3dDisplay() : rviz::Display() {
+#include <rviz/properties/color_property.h>
 
-}
+My3dDisplay::My3dDisplay() : rviz::Display() {}
 
 My3dDisplay::~My3dDisplay() {
-  if (initialized()) { 
+  if (initialized()) {
     this->takeChild(top_down_view_);
-    context_->visibilityBits()->freeBits(vis_bit_); }
+    context_->visibilityBits()->freeBits(vis_bit_);
+  }
 }
 
 void My3dDisplay::setupRenderPanel() {
@@ -24,6 +26,19 @@ void My3dDisplay::setupRenderPanel() {
   render_panel_->resize(640, 480);
   render_panel_->initialize(context_->getSceneManager(), context_);
   setAssociatedWidget(render_panel_.get());
+
+  // back ground
+  auto *bg_color = qobject_cast<rviz::ColorProperty *>(context_->getRootDisplayGroup()->childAt(0)->childAt(1));
+  if (bg_color) {
+    auto update_color_func = [this, bg_color]() {
+      render_panel_->setBackgroundColor(qtToOgre(bg_color->getColor()));
+      context_->queueRender();
+    };
+
+    update_color_func();
+
+    connect(bg_color, &rviz::ColorProperty::changed, update_color_func);
+  }
 
   // set vis_bit_
   vis_bit_ = context_->visibilityBits()->allocBit();
