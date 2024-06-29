@@ -103,4 +103,15 @@
     </description>
   </class>
   <!--  -->
+
+
+
+
+  <class name="rviz/MyTopDownOrtho" type="rviz::MyFixedOrientationOrthoViewController" base_class_type="rviz::ViewController">
+    <description>
+      My Orthographic projection, seen from the top.
+    </description>
+  </class>
+
+
 </library>
