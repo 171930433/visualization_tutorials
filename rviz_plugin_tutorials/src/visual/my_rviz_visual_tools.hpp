@@ -7,7 +7,34 @@
 #include <rviz/display.h>
 
 #include <OgreSceneNode.h>
+#include <boost/multi_index/hashed_index.hpp>
+#include <boost/multi_index_container.hpp>
 #include <unordered_map>
+
+struct MarkIndex {
+  struct Mark {};
+  struct Node {};
+  struct Ns {};
+  struct Id {};
+
+  rviz::MarkerBase *mark_ = nullptr;
+  Ogre::SceneNode *scene_node_ = nullptr;
+  rviz::BoolProperty *ns_filted_ = nullptr;
+  const rviz::MarkerID getID() const { return mark_->getID(); }
+  //
+  rviz::BoolProperty *root_ns_filted_ = nullptr;
+  Ogre::SceneNode *root_node_ = nullptr;
+  ~MarkIndex() {
+    if (mark_) {
+      delete mark_;
+      mark_ = nullptr;
+    }
+    if (scene_node_) {
+      root_node_->removeAndDestroyChild(scene_node_->getName());
+      scene_node_ = nullptr;
+    }
+  }
+};
 
 class MyRvizVisualTools : public rviz_visual_tools::RvizVisualTools, public QObject {
 public:
@@ -22,6 +49,11 @@ public:
   void endInit() { inited_ = true; }    // 结束添加元素时调用
 
   visualization_msgs::MarkerArray &markers() { return markers_; } // 只可在begin与end之间访问
+
+protected:
+  MarkIndex CreateMarkIndex(rviz::MarkerBase *mark_, Ogre::SceneNode *scene_node_, rviz::BoolProperty *ns_filted_) {
+    return MarkIndex{mark_, scene_node_, ns_filted_, ns_root_, root_node_};
+  }
 
 public:
   bool publishRect(Eigen::Vector3d const &pos,
@@ -64,11 +96,12 @@ protected:
 protected:
   rviz::Display *parent_;
   rviz::DisplayContext *context_;
-  Ogre::SceneNode *scene_node_;
+  Ogre::SceneNode *root_node_;
+  rviz::BoolProperty *ns_root_;
   std::unordered_map<rviz::MarkerBase *, Ogre::SceneNode *> all_scene_node_; // 获取每一个mark对应的scene_node
   std::unordered_map<std::string, std::list<Ogre::SceneNode *>> ns_filted_node_; // 根据ns分组得到的node
   std::unordered_map<std::string, rviz::BoolProperty *> ns_properties_;
-  rviz::BoolProperty *ns_root_;
   //
   std::atomic_bool inited_ = {false};
+  //
 };

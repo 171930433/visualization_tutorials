@@ -14,7 +14,7 @@ MyRvizVisualTools::MyRvizVisualTools(std::string base_frame) : RvizVisualTools(b
 void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *context) {
   parent_ = parent;
   context_ = context;
-  scene_node_ = parent_->getSceneNode();
+  root_node_ = parent_->getSceneNode();
 
   ns_root_ = new rviz::BoolProperty("ns filter", true, "null", parent_);
   connect(ns_root_, &rviz::BoolProperty::changed, [this]() {
@@ -24,11 +24,11 @@ void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *
     }
   });
 
-  scene_node_->getUserObjectBindings().setUserAny(Ogre::Any(parent));
+  root_node_->getUserObjectBindings().setUserAny(Ogre::Any(parent));
 }
 
 rviz::MarkerBase *MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker const &mark) {
-  auto *new_scene_node = scene_node_->createChildSceneNode();
+  auto *new_scene_node = root_node_->createChildSceneNode();
 
   auto mark_view = rviz::createMarker2(mark.type, nullptr, context_, new_scene_node);
   mark_view->setMessage(mark);
