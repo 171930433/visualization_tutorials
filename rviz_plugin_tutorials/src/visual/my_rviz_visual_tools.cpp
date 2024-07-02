@@ -29,13 +29,13 @@ void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *
   context_ = context;
   root_node_ = parent_->getSceneNode();
 
-  auto new_color = new rviz::ColorProperty("color", Qt::gray, "new color to all", parent_);
-  connect(new_color, &rviz::ColorProperty::changed, [this, new_color] {
-    for (auto const &[name, props] : ns_properties_) {
-      this->updateColor(name, new_color->getColor());
-      this->reset_ns(name);
-    }
-  });
+  color_root_ = new rviz::ColorProperty("color", Qt::gray, "new color to all", parent_);
+  // connect(new_color, &rviz::ColorProperty::changed, [this, new_color] {
+  //   for (auto const &[name, props] : ns_properties_) {
+  //     this->updateColor(name, new_color->getColor());
+  //     this->reset_ns(name);
+  //   }
+  // });
 
   ns_root_ = new rviz::BoolProperty("ns filter", true, "null", parent_);
   connect(ns_root_, &rviz::BoolProperty::changed, [this]() {
@@ -109,6 +109,9 @@ rviz::MarkerBase *MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker c
     connect(new_color, &rviz::ColorProperty::changed, [this, new_prop, new_color] {
       this->updateColor(new_prop->getNameStd(), new_color->getColor());
       this->reset_ns(new_prop->getNameStd());
+    });
+    connect(color_root_, &rviz::ColorProperty::changed, [this, new_color]() {
+      new_color->setColor(this->color_root_->getColor());
     });
 
     // 响应筛选

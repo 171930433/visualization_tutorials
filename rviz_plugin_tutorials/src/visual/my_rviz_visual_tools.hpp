@@ -6,6 +6,8 @@
 #include <rviz/default_plugin/markers/marker_base.h>
 #include <rviz/display.h>
 
+#include <rviz/properties/color_property.h>
+
 #include <OgreSceneNode.h>
 #include <boost/multi_index/sequenced_index.hpp>
 #include <boost/multi_index_container.hpp>
@@ -38,8 +40,6 @@ struct MarkIndex {
 
 using namespace boost::multi_index;
 
-
-
 class MyRvizVisualTools : public rviz_visual_tools::RvizVisualTools, public QObject {
 public:
   // using rviz_visual_tools::RvizVisualTools::RvizVisualTools;
@@ -58,10 +58,8 @@ public:
   void reset();
 
 protected:
-
-  void reset_ns(std::string const& ns);
-  void updateColor(std::string const& ns,QColor const& new_color);
-
+  void reset_ns(std::string const &ns);
+  void updateColor(std::string const &ns, QColor const &new_color);
 
   MarkIndex CreateMarkIndex(rviz::MarkerBase *mark_, Ogre::SceneNode *scene_node_, rviz::BoolProperty *ns_filted_) {
     return MarkIndex{mark_, scene_node_, ns_filted_, ns_root_, root_node_};
@@ -110,6 +108,7 @@ protected:
   rviz::DisplayContext *context_;
   Ogre::SceneNode *root_node_;
   rviz::BoolProperty *ns_root_;
+  rviz::ColorProperty *color_root_;
   std::unordered_map<Ogre::SceneNode *, rviz::MarkerBase *> all_scene_node_; // 获取每一个mark对应的scene_node
   std::unordered_map<std::string, std::list<Ogre::SceneNode *>> ns_filted_node_; // 根据ns分组得到的node
   std::unordered_map<std::string, rviz::BoolProperty *> ns_properties_;
