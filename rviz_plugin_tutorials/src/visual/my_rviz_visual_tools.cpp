@@ -29,21 +29,9 @@ void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *
   context_ = context;
   root_node_ = parent_->getSceneNode();
 
-  color_root_ = new rviz::ColorProperty("color", Qt::gray, "new color to all", parent_);
-  // connect(new_color, &rviz::ColorProperty::changed, [this, new_color] {
-  //   for (auto const &[name, props] : ns_properties_) {
-  //     this->updateColor(name, new_color->getColor());
-  //     this->reset_ns(name);
-  //   }
-  // });
+  color_root_ = new rviz::ColorProperty("root color", Qt::gray, "new color to all", parent_);
 
   ns_root_ = new rviz::BoolProperty("ns filter", true, "null", parent_);
-  connect(ns_root_, &rviz::BoolProperty::changed, [this]() {
-    int counts = this->ns_root_->numChildren();
-    for (size_t i = 0; i < counts; ++i) {
-      this->ns_root_->childAt(i)->setValue(this->ns_root_->getBool());
-    }
-  });
 
   root_node_->getUserObjectBindings().setUserAny(Ogre::Any(parent));
 }
@@ -55,20 +43,17 @@ void MyRvizVisualTools::reset_ns(std::string const &ns) {
     root_node_->removeAndDestroyChild(single_node->getName()); // remove scene node
   }
   ns_filted_node_.erase(ns);
-  // ns_root_->takeChild(ns_properties_[ns]);
-  // delete ns_properties_[ns];
 }
 
 void MyRvizVisualTools::reset() {
   for (auto const &[name, props] : ns_properties_) {
     reset_ns(name);
   }
-  this->ns_root_->removeChildren(0, this->ns_root_->numChildren());
+  ns_root_->removeChildren(0, ns_root_->numChildren());
   ns_properties_.clear();
 }
 
 void MyRvizVisualTools::updateColor(std::string const &ns, QColor const &color) {
-  // 遍历所有当前ns的mark
   if (ns_properties_.find(ns) == ns_properties_.end()) { return; }
 
   auto const new_color = qcolorToColorRGBA(color);
@@ -96,7 +81,7 @@ rviz::MarkerBase *MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker c
   auto *new_scene_node = root_node_->createChildSceneNode();
 
   auto mark_view = rviz::createMarker2(mark.type, nullptr, context_, new_scene_node);
-  mark_view->setMessage(mark);
+  mark_view->setMessage(visualization_msgs::MarkerPtr(new visualization_msgs::Marker(std::move(mark))));
 
   ns_filted_node_[mark.ns].push_back(new_scene_node);
   all_scene_node_[new_scene_node] = mark_view;
@@ -107,19 +92,20 @@ rviz::MarkerBase *MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker c
     auto new_prop = new rviz::BoolProperty(QString::fromStdString(mark.ns), true, "null", ns_root_);
     auto new_color = new rviz::ColorProperty("color", Qt::gray, "new color", new_prop);
     connect(new_color, &rviz::ColorProperty::changed, [this, new_prop, new_color] {
-      this->updateColor(new_prop->getNameStd(), new_color->getColor());
-      this->reset_ns(new_prop->getNameStd());
+      updateColor(new_prop->getNameStd(), new_color->getColor());
+      reset_ns(new_prop->getNameStd());
     });
     connect(color_root_, &rviz::ColorProperty::changed, [this, new_color]() {
-      new_color->setColor(this->color_root_->getColor());
+      new_color->setColor(color_root_->getColor());
     });
 
     // 响应筛选
     connect(new_prop, &rviz::BoolProperty::changed, [this, new_prop]() {
-      for (auto single_node : this->ns_filted_node_[new_prop->getNameStd()]) {
+      for (auto &single_node : ns_filted_node_[new_prop->getNameStd()]) {
         single_node->setVisible(new_prop->getBool());
       }
     });
+    connect(ns_root_, &rviz::Property::changed, [this, new_prop]() { new_prop->setBool(ns_root_->getBool()); });
 
     ns_properties_[mark.ns] = new_prop;
   }
