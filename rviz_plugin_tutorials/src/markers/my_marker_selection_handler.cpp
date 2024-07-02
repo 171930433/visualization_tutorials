@@ -62,6 +62,7 @@ createMarker2(int marker_type, MarkerDisplay *owner, DisplayContext *context, Og
     return new rviz::MyArrowMarker(owner, context, parent_node);
   default:
     return createMarker(marker_type, owner, context, parent_node);
+    return createMarker(marker_type, owner, context, parent_node);
   }
   return nullptr;
 }
