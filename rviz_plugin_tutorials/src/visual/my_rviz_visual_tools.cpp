@@ -63,7 +63,7 @@ void MyRvizVisualTools::updateColor(std::string const &ns, QColor const &color) 
   beginInit();
 
   for (auto *single_node : ns_filted_node_[ns]) {
-    if (auto *mark_view = all_scene_node_[single_node]; mark_view) {
+    if (auto const &mark_view = all_scene_node_[single_node]; mark_view) {
       auto new_mark = *mark_view->getMessage();
       new_mark.color = new_color;
       for (auto &old_color : new_mark.colors) {

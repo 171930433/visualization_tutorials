@@ -109,7 +109,7 @@ protected:
   Ogre::SceneNode *root_node_;
   rviz::BoolProperty *ns_root_;
   rviz::ColorProperty *color_root_;
-  std::unordered_map<Ogre::SceneNode *, rviz::MarkerBase *> all_scene_node_; // 获取每一个mark对应的scene_node
+  std::unordered_map<Ogre::SceneNode *, rviz::MarkerBasePtr> all_scene_node_; // 获取每一个mark对应的scene_node
   std::unordered_map<std::string, std::list<Ogre::SceneNode *>> ns_filted_node_; // 根据ns分组得到的node
   std::unordered_map<std::string, rviz::BoolProperty *> ns_properties_;
   //

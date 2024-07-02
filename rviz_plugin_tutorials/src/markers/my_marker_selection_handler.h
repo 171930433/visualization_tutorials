@@ -65,7 +65,7 @@ protected:
   Ogre::SceneNode *display_scene_node_;
 };
 
-MarkerBase *createMarker2(int marker_type, MarkerDisplay *owner, DisplayContext *context, Ogre::SceneNode *parent_node);
+MarkerBasePtr createMarker2(int marker_type, MarkerDisplay *owner, DisplayContext *context, Ogre::SceneNode *parent_node);
 
 } // end namespace rviz
 

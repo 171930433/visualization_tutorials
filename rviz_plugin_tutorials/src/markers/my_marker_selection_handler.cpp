@@ -55,14 +55,13 @@ void MyMarkerSelectionHandler::createProperties(const Picked &obj, Property *par
   if (any_cbk) { any_cbk->setTopic(QString::fromStdString(getStringID()), ""); }
 }
 
-MarkerBase *
+MarkerBasePtr
 createMarker2(int marker_type, MarkerDisplay *owner, DisplayContext *context, Ogre::SceneNode *parent_node) {
   switch (marker_type) {
   case visualization_msgs::Marker::ARROW:
-    return new rviz::MyArrowMarker(owner, context, parent_node);
+    return MarkerBasePtr(new rviz::MyArrowMarker(owner, context, parent_node));
   default:
-    return createMarker(marker_type, owner, context, parent_node);
-    return createMarker(marker_type, owner, context, parent_node);
+    return MarkerBasePtr(createMarker(marker_type, owner, context, parent_node));
   }
   return nullptr;
 }
