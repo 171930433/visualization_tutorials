@@ -58,9 +58,6 @@ public:
   void reset();
 
 protected:
-  void reset_ns(std::string const &ns);
-  void updateColor(std::string const &ns, QColor const &new_color);
-
   MarkIndex CreateMarkIndex(rviz::MarkerBase *mark_, Ogre::SceneNode *scene_node_, rviz::BoolProperty *ns_filted_) {
     return MarkIndex{mark_, scene_node_, ns_filted_, ns_root_, root_node_};
   }
@@ -101,7 +98,10 @@ public:
                               std::string const ns = "RegularPolygon");
 
 protected:
-  rviz::MarkerBase *CreateMarkView(visualization_msgs::Marker const &mark);
+  rviz::MarkerBasePtr CreateMarkView(visualization_msgs::Marker const &mark);
+  void CreateNewNS(visualization_msgs::Marker const &mark);
+  void reset_ns(std::string const &ns);
+  void updateColor(std::string const &ns, QColor const &new_color);
 
 protected:
   rviz::Display *parent_;
