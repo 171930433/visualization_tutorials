@@ -7,6 +7,10 @@
 
 #include <rviz/properties/color_property.h>
 
+#include <rviz/display_group.h>
+#include <rviz/visualization_manager.h>
+#include <visualization_msgs/InteractiveMarker.h>
+
 using namespace rviz_visual_tools;
 
 std_msgs::ColorRGBA qcolorToColorRGBA(const QColor &qcolor) {
@@ -18,11 +22,107 @@ std_msgs::ColorRGBA qcolorToColorRGBA(const QColor &qcolor) {
   return color_rgba;
 }
 
-MyRvizVisualTools::MyRvizVisualTools(std::string base_frame) : RvizVisualTools(base_frame) {
-  this->enableBatchPublishing();
+void MyRvizVisualTools::processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback) {
+  std::ostringstream s;
+  s << "Feedback from marker '" << feedback->marker_name << "' "
+    << " / control '" << feedback->control_name << "'";
+
+  std::ostringstream mouse_point_ss;
+  if (feedback->mouse_point_valid) {
+    mouse_point_ss << " at " << feedback->mouse_point.x << ", " << feedback->mouse_point.y << ", "
+                   << feedback->mouse_point.z << " in frame " << feedback->header.frame_id;
+  }
+
+  switch (feedback->event_type) {
+  case visualization_msgs::InteractiveMarkerFeedback::BUTTON_CLICK:
+    ROS_INFO_STREAM(s.str() << ": button click" << mouse_point_ss.str() << ".");
+    break;
+
+  case visualization_msgs::InteractiveMarkerFeedback::MENU_SELECT:
+    ROS_INFO_STREAM(s.str() << ": menu item " << feedback->menu_entry_id << " clicked" << mouse_point_ss.str() << ".");
+    break;
+
+  case visualization_msgs::InteractiveMarkerFeedback::POSE_UPDATE:
+    ROS_INFO_STREAM(s.str() << ": pose changed"
+                            << "\nposition = " << feedback->pose.position.x << ", " << feedback->pose.position.y << ", "
+                            << feedback->pose.position.z << "\norientation = " << feedback->pose.orientation.w << ", "
+                            << feedback->pose.orientation.x << ", " << feedback->pose.orientation.y << ", "
+                            << feedback->pose.orientation.z << "\nframe: " << feedback->header.frame_id << " time: "
+                            << feedback->header.stamp.sec << "sec, " << feedback->header.stamp.nsec << " nsec");
+    break;
+
+  case visualization_msgs::InteractiveMarkerFeedback::MOUSE_DOWN:
+    ROS_INFO_STREAM(s.str() << ": mouse down" << mouse_point_ss.str() << ".");
+    break;
+
+  case visualization_msgs::InteractiveMarkerFeedback::MOUSE_UP:
+    ROS_INFO_STREAM(s.str() << ": mouse up" << mouse_point_ss.str() << ".");
+    break;
+  }
+
+  server_->applyChanges();
 }
 
-MyRvizVisualTools::~MyRvizVisualTools() { reset(); }
+void MyRvizVisualTools::CreateMenuMarker(visualization_msgs::Marker const &mark)
+
+{
+  using namespace visualization_msgs;
+
+  InteractiveMarker int_marker;
+  int_marker.header.frame_id = mark.header.frame_id;
+  int_marker.pose.position = mark.pose.position;
+  int_marker.scale = 1;
+
+  int_marker.name = mark.ns + "/" + std::to_string(mark.id);
+  // int_marker.description = "Context Menu\n(Right Click)";
+
+  InteractiveMarkerControl control;
+
+  control.interaction_mode = InteractiveMarkerControl::MENU;
+  control.name = "menu_only_control";
+
+  control.markers.push_back(mark);
+  control.always_visible = true;
+  int_marker.controls.push_back(control);
+
+  server_->insert(int_marker);
+  // server_->setCallback(int_marker.name, &processFeedback);
+  menu_handler_.apply(*server_, int_marker.name);
+
+  server_->applyChanges();
+}
+
+void MyRvizVisualTools::CreateInteractiveMarkerServer() {
+  // create server
+  server_.reset(new interactive_markers::InteractiveMarkerServer("MyRvizVisualTools", "", true));
+
+  auto cbk = std::bind(&MyRvizVisualTools::processFeedback, this, std::placeholders::_1);
+
+  menu_handler_.insert("First Entry", cbk);
+  menu_handler_.insert("Second Entry", cbk);
+  interactive_markers::MenuHandler::EntryHandle sub_menu_handle = menu_handler_.insert("Submenu");
+  menu_handler_.insert(sub_menu_handle, "First Entry", cbk);
+  menu_handler_.insert(sub_menu_handle, "Second Entry", cbk);
+}
+
+MyRvizVisualTools::MyRvizVisualTools(std::string base_frame) : RvizVisualTools(base_frame) {
+  this->enableBatchPublishing();
+
+  CreateInteractiveMarkerServer();
+}
+
+MyRvizVisualTools::~MyRvizVisualTools() {
+  reset();
+
+  // ROS_WARN_STREAM("imark_display_ = " << imark_display_);
+
+  // auto *vm = qobject_cast<rviz::VisualizationManager *>(context_);
+  // vm->stopUpdate();
+
+  // vm->getRootDisplayGroup()->takeDisplay(imark_display_);
+
+  // vm->startUpdate();
+}
 
 void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *context) {
   parent_ = parent;
@@ -31,8 +131,17 @@ void MyRvizVisualTools::initialize(rviz::Display *parent, rviz::DisplayContext *
 
   ns_root_ = new rviz::BoolProperty("ns filter", true, "null", parent_);
   color_root_ = new rviz::ColorProperty("root color", Qt::gray, "new color to all", ns_root_);
+  // create_interactive_marker_ = new rviz::BoolProperty("create interactive marker", false, "null", parent_);
 
   root_node_->getUserObjectBindings().setUserAny(Ogre::Any(parent));
+
+  // imark
+  auto *vm = qobject_cast<rviz::VisualizationManager *>(context_);
+  auto *imark_display_ = vm->createDisplay("rviz/InteractiveMarkers", "imark", false);
+  imark_display_->setTopic("MyRvizVisualTools/update", "");
+
+  vm->getRootDisplayGroup()->takeDisplay(imark_display_);
+  parent_->addChild(imark_display_, 1);
 }
 
 void MyRvizVisualTools::reset_ns(std::string const &ns) {
@@ -103,7 +212,7 @@ rviz::MarkerBasePtr MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker
   auto *new_scene_node = root_node_->createChildSceneNode();
 
   auto mark_view = rviz::createMarker2(mark.type, nullptr, context_, new_scene_node);
-  mark_view->setMessage(visualization_msgs::MarkerPtr(new visualization_msgs::Marker(std::move(mark))));
+  mark_view->setMessage(mark);
 
   ns_filted_node_[mark.ns].push_back(new_scene_node);
   all_scene_node_[new_scene_node] = mark_view;
@@ -113,10 +222,11 @@ rviz::MarkerBasePtr MyRvizVisualTools::CreateMarkView(visualization_msgs::Marker
   return mark_view;
 }
 
-void MyRvizVisualTools::update() {
+void MyRvizVisualTools::update(float wall_dt, float ros_dt) {
   if (!inited_ || markers_.markers.empty()) { return; }
   for (auto const &mark : markers_.markers) {
     CreateMarkView(mark);
+    CreateMenuMarker(mark);
   }
   markers_.markers.clear();
 }

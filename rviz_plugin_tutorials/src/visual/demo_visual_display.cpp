@@ -13,9 +13,7 @@ void DemoVisualDisplay::setTopic(const QString &topic, const QString &datatype) 
   ROS_INFO_STREAM("DemoVisualDisplay::setTopic called" << topic.toStdString());
 }
 
-DemoVisualDisplay::DemoVisualDisplay() : rviz::Display() {
-  rvt_.reset(new MyRvizVisualTools("map"));
-}
+DemoVisualDisplay::DemoVisualDisplay() : rviz::Display() { rvt_.reset(new MyRvizVisualTools("map")); }
 
 void DemoVisualDisplay::onInitialize() {
   // 发送
@@ -34,7 +32,7 @@ void DemoVisualDisplay::onInitialize() {
 
 void DemoVisualDisplay::update(float wall_dt, float ros_dt) {
   //
-  rvt_->update();
+  rvt_->update(wall_dt, ros_dt);
 }
 
 void testSize(double &x_location, scales scale, MyRvizVisualTools *visual_tools_) {

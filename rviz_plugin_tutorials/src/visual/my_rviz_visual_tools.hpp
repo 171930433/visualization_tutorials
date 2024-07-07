@@ -13,6 +13,11 @@
 #include <boost/multi_index_container.hpp>
 #include <unordered_map>
 
+// #include <interactive_markers/interactive_marker.h>
+#include <interactive_markers/interactive_marker_server.h>
+#include <interactive_markers/menu_handler.h>
+#include <rviz/default_plugin/interactive_marker_display.h>
+
 struct MarkIndex {
   struct Mark {};
   struct Node {};
@@ -48,7 +53,7 @@ public:
 
   void initialize(rviz::Display *parent, rviz::DisplayContext *context);
 
-  void update();
+  void update(float wall_dt, float ros_dt);
 
   void beginInit() { inited_ = false; } // 开始添加元素时调用
   void endInit() { inited_ = true; }    // 结束添加元素时调用
@@ -61,6 +66,9 @@ protected:
   MarkIndex CreateMarkIndex(rviz::MarkerBase *mark_, Ogre::SceneNode *scene_node_, rviz::BoolProperty *ns_filted_) {
     return MarkIndex{mark_, scene_node_, ns_filted_, ns_root_, root_node_};
   }
+  void processFeedback(const visualization_msgs::InteractiveMarkerFeedbackConstPtr &feedback);
+  void CreateMenuMarker(visualization_msgs::Marker const &mark);
+  void CreateInteractiveMarkerServer();
 
 public:
   bool publishRect(Eigen::Vector3d const &pos,
@@ -109,10 +117,14 @@ protected:
   Ogre::SceneNode *root_node_;
   rviz::BoolProperty *ns_root_;
   rviz::ColorProperty *color_root_;
+  rviz::BoolProperty *create_interactive_marker_;                             // 创建可选择
   std::unordered_map<Ogre::SceneNode *, rviz::MarkerBasePtr> all_scene_node_; // 获取每一个mark对应的scene_node
   std::unordered_map<std::string, std::list<Ogre::SceneNode *>> ns_filted_node_; // 根据ns分组得到的node
   std::unordered_map<std::string, rviz::BoolProperty *> ns_properties_;
   //
   std::atomic_bool inited_ = {false};
-  //
+  // 交互部分
+  boost::shared_ptr<interactive_markers::InteractiveMarkerServer> server_;
+  interactive_markers::MenuHandler menu_handler_;
+  rviz::InteractiveMarkerDisplay *imark_display_;
 };
