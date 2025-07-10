@@ -70,6 +70,7 @@ PointCloudSelectionHandler2::~PointCloudSelectionHandler2() {
 
 void PointCloudSelectionHandler2::preRenderPass(uint32_t pass) {
   rviz_common::interaction::SelectionHandler::preRenderPass(pass);
+  qDebug() << "     PointCloudSelectionHandler2::preRenderPass pass = " << pass <<" getHandle() = " << getHandle();
 
   switch (pass) {
   case 0:
@@ -85,6 +86,7 @@ void PointCloudSelectionHandler2::preRenderPass(uint32_t pass) {
 
 void PointCloudSelectionHandler2::postRenderPass(uint32_t pass) {
   rviz_common::interaction::SelectionHandler::postRenderPass(pass);
+  qDebug() << "     PointCloudSelectionHandler2::postRenderPass pass = " << pass <<" getHandle() = " << getHandle();
 
   if (pass == 1) { cloud_->setColorByIndex(false); }
 }

@@ -126,7 +126,8 @@ private:
   float box_size_;
 
   template <typename T, typename... Args>
-  friend typename std::shared_ptr<T> rviz_common::interaction::createSelectionHandler(Args... arguments);
+  friend typename std::shared_ptr<T> 
+  rviz_common::interaction::createSelectionHandler(Args... arguments);
 };
 
 } // namespace rviz_default_plugins
