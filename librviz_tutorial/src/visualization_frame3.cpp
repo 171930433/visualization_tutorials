@@ -83,26 +83,25 @@ namespace rviz_common {
 VisualizationFrame3::VisualizationFrame3(ros_integration::RosNodeAbstractionIface::WeakPtr rviz_ros_node,
                                          QWidget *parent)
     : VisualizationFrame(rviz_ros_node, parent) {
-  dock_manager_ = new ads::CDockManager();
 }
 
 void VisualizationFrame3::closeEvent(QCloseEvent *event) {
+  // dock_manager_->deleteLater();  // 目前添加这个退出会core
   VisualizationFrame::closeEvent(event);
-  dock_manager_->deleteLater();
 }
 
 void VisualizationFrame3::loadWindowGeometry(const Config &config) {
-  QString ads_dock_state;
-  if (config.mapGetString("Ads dock State", &ads_dock_state)) {
-    dock_manager_->restoreState(QByteArray::fromHex(qPrintable(ads_dock_state)));
-    // qDebug() << " load state = " << qPrintable(ads_dock_state);
-  }
+  // QString ads_dock_state;
+  // if (config.mapGetString("Ads dock State", &ads_dock_state)) {
+  //   dock_manager_->restoreState(QByteArray::fromHex(qPrintable(ads_dock_state)));
+  //   // qDebug() << " load state = " << qPrintable(ads_dock_state);
+  // }
   VisualizationFrame::loadWindowGeometry(config);
 }
 
 void VisualizationFrame3::saveWindowGeometry(Config config) {
-  QByteArray ads_dock_state = dock_manager_->saveState().toHex();
-  config.mapSetValue("Ads dock State", ads_dock_state.constData());
+  // QByteArray ads_dock_state = dock_manager_->saveState().toHex();
+  // config.mapSetValue("Ads dock State", ads_dock_state.constData());
   VisualizationFrame::saveWindowGeometry(config);
 }
 
@@ -130,12 +129,16 @@ VisualizationFrame3::addPane(const QString &name, QWidget *panel, Qt::DockWidget
 
 void VisualizationFrame3::initialize(ros_integration::RosNodeAbstractionIface::WeakPtr rviz_ros_node,
                                      const QString &display_config_file) {
+  using namespace ads;
+
   VisualizationFrame::initialize(rviz_ros_node, display_config_file);
 
-  // auto *CentralDockWidget = new ads::CDockWidget("CentralWidget");
-  // CentralDockWidget->setWidget(render_panel_);
-  // // auto *CentralDockArea = dock_manager_->addDockWidget(ads::LeftDockWidgetArea, CentralDockWidget);
-  // dock_manager_->addDockWidget(ads::LeftDockWidgetArea, CentralDockWidget);
+  this->setCentralWidget(nullptr);
+
+  dock_manager_ = new ads::CDockManager(this);
+  auto *CentralDockWidget = new ads::CDockWidget("CentralWidget");
+  CentralDockWidget->setWidget(render_panel_);
+  dock_manager_->addDockWidget(ads::LeftDockWidgetArea, CentralDockWidget);
 }
 
 } // namespace rviz_common
