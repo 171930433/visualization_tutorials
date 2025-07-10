@@ -47,6 +47,7 @@ namespace rviz_common
 {
 
 class VisualizationFrame2;
+class VisualizationFrame3;
 
 class RVIZ_COMMON_PUBLIC VisualizerApp2 : public QObject
 {
@@ -79,7 +80,7 @@ private:
 
   QApplication * app_;
   QTimer * continue_timer_;
-  VisualizationFrame2 * frame_;
+  VisualizationFrame3 * frame_;
   rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr node_;
   std::unique_ptr<rviz_common::ros_integration::RosClientAbstractionIface> ros_client_abstraction_;
 };

@@ -30,6 +30,7 @@
 
 #include "visualizer_app2.hpp"
 #include "visualization_frame2.hpp"
+#include "visualization_frame3.hpp"
 
 #include <iostream>
 #include <memory>
@@ -149,7 +150,7 @@ bool VisualizerApp2::init(int argc, char ** argv)
 
   node_ = ros_client_abstraction_->init(argc, argv, "rviz", false /* anonymous_name */);
 
-  frame_ = new VisualizationFrame2(node_);
+  frame_ = new VisualizationFrame3(node_);
 
   frame_->setDisplayTitleFormat(display_title_format);
 
@@ -168,9 +169,9 @@ bool VisualizerApp2::init(int argc, char ** argv)
     frame_->getManager()->setFixedFrame(fixed_frame);
   }
 
-  if (fullscreen) {
-    frame_->setFullScreen(true);
-  }
+  // if (fullscreen) {
+  //   frame_->setFullScreen(true);
+  // }
 
   frame_->show();
 

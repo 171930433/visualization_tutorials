@@ -21,7 +21,7 @@ find_package(rviz_common REQUIRED)
 find_package(rviz_default_plugins REQUIRED)
 find_package(rviz_rendering REQUIRED)
 
-list(APPEND CMAKE_PREFIX_PATH "/home/gsk/install")
+list(APPEND CMAKE_PREFIX_PATH "/opt/thirdparty")
 find_package(qt5advanceddocking REQUIRED)
 
 ## This setting causes Qt's "MOC" generation to happen automatically, which is required for
@@ -35,6 +35,7 @@ set(SRC_FILES
   src/main.cpp
   src/visualizer_app2.cpp
   src/visualization_frame2.cpp
+  src/visualization_frame3.cpp
 )
 
 ## Add the "myviz" executable and specify the list of source files we
