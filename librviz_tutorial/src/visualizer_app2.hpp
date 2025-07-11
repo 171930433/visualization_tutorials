@@ -80,7 +80,7 @@ private:
 
   QApplication * app_;
   QTimer * continue_timer_;
-  VisualizationFrame3 * frame_;
+  VisualizationFrame2 * frame_;
   rviz_common::ros_integration::RosNodeAbstractionIface::WeakPtr node_;
   std::unique_ptr<rviz_common::ros_integration::RosClientAbstractionIface> ros_client_abstraction_;
 };

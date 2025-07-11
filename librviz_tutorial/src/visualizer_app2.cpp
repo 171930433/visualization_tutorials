@@ -150,7 +150,7 @@ bool VisualizerApp2::init(int argc, char ** argv)
 
   node_ = ros_client_abstraction_->init(argc, argv, "rviz", false /* anonymous_name */);
 
-  frame_ = new VisualizationFrame3(node_);
+  frame_ = new VisualizationFrame2(node_);
 
   frame_->setDisplayTitleFormat(display_title_format);
 
