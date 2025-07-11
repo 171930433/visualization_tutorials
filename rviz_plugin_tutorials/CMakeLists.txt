@@ -26,11 +26,11 @@ find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
 # 
-list(APPEND CMAKE_PREFIX_PATH "/home/gsk/install")
-option(protobuf_MODULE_COMPATIBLE "123" ON)
-find_package(protobuf REQUIRED)
-find_package(fastrtps REQUIRED )
-find_package(fastcdr REQUIRED )
+list(APPEND CMAKE_PREFIX_PATH "/opt/thirdparty")
+# option(protobuf_MODULE_COMPATIBLE "123" ON)
+find_package(Protobuf REQUIRED)
+find_package(zfastrtps REQUIRED )
+find_package(zfastcdr REQUIRED )
 find_package(glog REQUIRED)
 find_package(cyber REQUIRED)
 find_package(Poco REQUIRED COMPONENTS Foundation)
@@ -124,28 +124,20 @@ ament_target_dependencies(${PROJECT_NAME}
   "rviz_rendering"
   "rviz_default_plugins"
   "sensor_msgs"
-  "protobuf"
-  # "${cpp_typesupport_target}"
-  # "${sensor_msgs_TARGETS}"
-  "cyber"
-  "fastcdr"
-  "fastrtps"
-  "glog"
   )
 target_include_directories(${PROJECT_NAME} PUBLIC
   ${Qt5Widgets_INCLUDE_DIRS}
   ${CMAKE_CURRENT_LIST_DIR}/src
   )
-target_link_directories(${PROJECT_NAME} PUBLIC
-  "/home/gsk/install/lib"
-)
-
-# target_link_libraries(${PROJECT_NAME}
-# PUBLIC
-#   cyber fastcdr fastrtps
-
-
+# target_link_directories(${PROJECT_NAME} PUBLIC
+#   "/home/gsk/install/lib"
 # )
+
+target_link_libraries(${PROJECT_NAME}
+# PUBLIC
+  cyber zfastcdr zfastrtps
+  protobuf::libprotobuf
+)
 
 # add_dependencies(${PROJECT_NAME} ${PROJECT_NAME}_gencpp)
 
